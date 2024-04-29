@@ -1,0 +1,15 @@
+header {
+  max-height: 150px;
+  max-width: 100%;
+  padding: 1rem 0;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+  img {
+    max-width: 33vw;
+    max-height: 100px;
+    margin-right: auto;
+    object-fit: contain;
+  }
+}
