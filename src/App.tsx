@@ -10,27 +10,39 @@ function App() {
   const [markers, setMarkers] = useState<FileType[]>([]);
   const [images, setImages] = useState<FileType[]>([]);
 
+  const renameFile = (file: File, index: number) => {
+    const fileExtension = file.name.split(".").pop();
+    return `target${index}.${fileExtension}`;
+  };
+
   const bundleFiles = async () => {
     try {
       const zip = new JSZip();
-      const aframe = await fetch("/js-includes/aframe.min.js");
-      const aframeBlob = await aframe.blob();
-      const mindar = await fetch("/js-includes/mindar-image-aframe.prod.js");
+      // const aframe = await fetch("/js-includes/aframe.min.js");
+      // const aframeBlob = await aframe.blob();
+      // const mindar = await fetch("/js-includes/mindar-image-aframe.prod.js");
+      // const mindarBlob = await mindar.blob();
+      // zip.file("aframe.min.js", aframeBlob);
+      // zip.file("mindar-image-aframe.js", mindarBlob);
+
+      const mindar = await fetch("/js-includes/mindar.prod.js");
       const mindarBlob = await mindar.blob();
+      zip.file("mindar.prod.js", mindarBlob);
 
       // const targets = await compileImageTargets(
       //   markers.map((marker) => marker.file),
       // );
       // zip.file("targets.mind", targets);
       //
-      markers.forEach((marker) => {
-        zip.file(marker.file.name, marker.file);
+      markers.forEach((marker, index) => {
+        const targetName = renameFile(marker.file, index);
+        zip.file(targetName, marker.file);
       });
-      images.forEach((image) => {
-        zip.file(image.file.name, image.file);
+      images.forEach((image, index) => {
+        const fileExtension = image.file.name.split(".").pop();
+        const imageName = `image${index}.${fileExtension}`;
+        zip.file(imageName, image.file);
       });
-      zip.file("aframe.min.js", aframeBlob);
-      zip.file("mindar-image-aframe.js", mindarBlob);
 
       zip.generateAsync({ type: "blob" }).then((content) => {
         saveAs(content, "ARbundle.zip");
