@@ -4,8 +4,8 @@ import { saveAs } from "file-saver";
 import Header from "./components/Header";
 import Uploader from "./components/Uploader";
 import { FileType } from "../types/types";
-import generateIndexHtml from "./components/lib/generateIndexHtml";
-import compileImageTargets from "./components/lib/uploadAndCompile";
+import generateIndexHtml from "./lib/generateIndexHtml";
+import compileImageTargets from "./lib/uploadAndCompile";
 
 function App() {
   const [markers, setMarkers] = useState<FileType[]>([]);
@@ -29,6 +29,10 @@ function App() {
       const mindar = await fetch("/js-includes/mindar.prod.js");
       const mindarBlob = await mindar.blob();
       zip.file("mindar.prod.js", mindarBlob);
+
+      const targets = markers.map((marker) => marker.file);
+      const mind = await compileImageTargets(targets);
+      console.log(mind);
 
       // const targets = await compileImageTargets(
       //   markers.map((marker) => marker.file),

@@ -1,11 +1,10 @@
-import { useCallback, useState } from "react";
-import { Compiler } from "mind-ar/src/image-target/compiler.js";
+import { Compiler } from "./image-target/compiler";
 
 // Assuming window.MINDAR.IMAGE.Compiler exists and has compileImageTargets and exportData methods.
 const compiler = new Compiler();
 
-const loadImage = async (file) => {
-  return new Promise((resolve, reject) => {
+const loadImage = async (file: File) => {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
     let img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
@@ -13,15 +12,18 @@ const loadImage = async (file) => {
   });
 };
 
-const compileImageTargets = async (files) => {
-  const images = [];
+const compileImageTargets = async (files: File[]) => {
+  const images: HTMLImageElement[] = [];
   for (let i = 0; i < files.length; i++) {
     images.push(await loadImage(files[i]));
   }
   console.log("Images loaded");
-  const dataList = await compiler.compileImageTargets(images, (progress) => {
-    console.log(`Progress: ${progress.toFixed(2)} %`);
-  });
+  const dataList = await compiler.compileImageTargets(
+    images,
+    (progress: number) => {
+      console.log(`Progress: ${progress.toFixed(2)} %`);
+    },
+  );
   console.log("Compilation done");
   const exportedBuffer = await compiler.exportData();
   return { dataList, exportedBuffer };

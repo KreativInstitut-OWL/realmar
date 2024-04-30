@@ -48,10 +48,10 @@ ${files
           color="#ffffff"
           src="#image${index}"
         ></a-plane>
-</a-entity>
-`;
+</a-entity>`;
   })
   .join("\n")}
+
 </a-scene>
     </body>
     </html>
