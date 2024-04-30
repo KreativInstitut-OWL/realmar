@@ -4,6 +4,7 @@ import { saveAs } from "file-saver";
 import Header from "./components/Header";
 import Uploader from "./components/Uploader";
 import { FileType } from "../types/types";
+import generateIndexHtml from "./components/lib/generateIndexHtml";
 import compileImageTargets from "./components/lib/uploadAndCompile";
 
 function App() {
@@ -43,6 +44,8 @@ function App() {
         const imageName = `image${index}.${fileExtension}`;
         zip.file(imageName, image.file);
       });
+      const indexHtml = generateIndexHtml(images.map((image) => image.file));
+      zip.file("index.html", indexHtml);
 
       zip.generateAsync({ type: "blob" }).then((content) => {
         saveAs(content, "ARbundle.zip");
