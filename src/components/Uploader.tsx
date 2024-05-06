@@ -1,14 +1,26 @@
-import React, { Dispatch, SetStateAction } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
+import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import DraggableInput from "./DraggableInput";
 import { FileType } from "../../types/types.ts";
 
 function Uploader({
   files,
   setFiles,
+  sectionName,
 }: {
   files: FileType[];
   setFiles: Dispatch<SetStateAction<FileType[]>>;
+  sectionName: string;
 }) {
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragStatus, setDragStatus] = useState<boolean>(false);
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { files } = event.target;
     if (!files) return; // Properly handle the case where files is null
@@ -22,14 +34,25 @@ function Uploader({
     setFiles((prevFiles: FileType[]) => [...prevFiles, ...fileList]);
   };
 
-  function moveFile(direction: string, index: number) {
+  function moveFile(startIndex: number | null, finishIndex: number) {
+    if (
+      startIndex === null ||
+      startIndex < 0 ||
+      startIndex >= files.length ||
+      finishIndex < 0 ||
+      finishIndex >= files.length ||
+      startIndex === finishIndex
+    ) {
+      return;
+    }
+
     setFiles((prevFiles: FileType[]) => {
       const newFiles = [...prevFiles];
-      const positionChange = direction === "up" ? -1 : 1;
-      const targetFile = newFiles.splice(index, 1)[0];
-      newFiles.splice(index + positionChange, 0, targetFile);
+      const targetFile = newFiles.splice(startIndex, 1)[0];
+      newFiles.splice(finishIndex, 0, targetFile);
       return newFiles;
     });
+    console.log(files);
   }
 
   function removeFile(index: number) {
@@ -40,22 +63,51 @@ function Uploader({
     });
   }
 
+  const ref = useRef(null);
+  const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    return dropTargetForElements({
+      element: el,
+      onDragEnter: () => setIsDraggedOver(true),
+      onDragLeave: () => setIsDraggedOver(false),
+      onDrop: () => {
+        setIsDraggedOver(false);
+        console.log("Dropped in " + sectionName);
+      },
+    });
+  }, []);
+
   return (
-    <>
+    <div
+      className={`markers upload-form ${isDraggedOver ? "isDraggedOver" : ""}`}
+    >
+      <h2>{sectionName}</h2>
       {files != null &&
         files.map(({ id, file }, index) => (
           <DraggableInput
             key={id}
             index={index}
+            lastIndex={files.length - 1}
             id={id}
             file={file}
-            lastIndex={files.length - 1}
+            dragIndex={dragIndex}
+            setDragIndex={setDragIndex}
+            dragStatus={dragStatus}
+            setDragStatus={setDragStatus}
             moveFile={moveFile}
             removeFile={removeFile}
           />
         ))}
+      <div
+        ref={ref}
+        className={`draggable-input ${isDraggedOver ? "isDraggedOver" : ""}`}
+      ></div>
       <input type="file" multiple onChange={handleFileUpload} />
-    </>
+    </div>
   );
 }
 

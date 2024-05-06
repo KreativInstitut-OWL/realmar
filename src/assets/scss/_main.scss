@@ -27,12 +27,15 @@ main {
 .draggable-input {
   padding: 0.5rem;
   aspect-ratio: 1 / 1;
-  border-top: 2px solid var(--primary);
+  border: 2px solid var(--primary);
   display: flex;
   flex-flow: column nowrap;
+  margin: 0.5rem 0.5rem;
+  border-radius: 0.5rem;
   img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
+    pointer-events: none;
   }
 }

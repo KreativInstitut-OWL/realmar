@@ -1,26 +1,84 @@
+import { useRef, useState, useEffect } from "react";
+import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+
 function DraggableInput({
   id,
   index,
-  file,
   lastIndex,
+  file,
+  dragIndex,
+  setDragIndex,
   removeFile,
   moveFile,
 }: {
   id: string;
   index: number;
-  file: File;
   lastIndex: number;
+  file: File;
+  dragIndex: number | null;
+  setDragIndex: Function;
+  dragStatus: boolean;
+  setDragStatus: Function;
   removeFile: Function;
   moveFile: Function;
 }) {
+  const ref = useRef(null);
+  const [dragging, setDragging] = useState<boolean>(false);
+  const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
+  console.log(dragIndex);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    return draggable({
+      element: el,
+      onDragStart: () => {
+        setDragging(true);
+        setDragIndex(index);
+      },
+      onDrop: () => {
+        setDragging(false);
+        setDragIndex(null);
+        console.log("Dropped " + index);
+      },
+    });
+  }, [dragIndex, index]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    return dropTargetForElements({
+      element: el,
+      onDragEnter: () => {
+        setIsDraggedOver(true);
+        console.log(dragIndex + " Dragged over " + index);
+      },
+      onDragLeave: () => setIsDraggedOver(false),
+      onDrop: () => {
+        setIsDraggedOver(false);
+        moveFile(dragIndex, index);
+        console.log(dragIndex + " Dropped in " + index);
+      },
+    });
+  }, [dragIndex, index]);
+
   return (
-    <div className="draggable-input">
+    <div
+      className={`draggable-input ${dragging ? "dragging" : ""} ${
+        isDraggedOver ? "isDraggedOver" : ""
+      }`}
+      ref={ref}
+    >
+      {index}
       <img src={id} alt={file.name} />
-      <button onClick={() => moveFile("up", index)} disabled={index === 0}>
+      <button onClick={() => moveFile(index, index - 1)} disabled={index === 0}>
         Up
       </button>
       <button
-        onClick={() => moveFile("down", index)}
+        onClick={() => moveFile(index, index + 1)}
         disabled={index === lastIndex}
       >
         Down

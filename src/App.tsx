@@ -72,14 +72,12 @@ function App() {
           Lade hier Deine AR-Tracking-Marker und die anzuzeigenden Bilder hoch.
         </p>
         <div className="upload">
-          <div className="markers upload-form">
-            <h2>Marker</h2>
-            <Uploader files={markers} setFiles={setMarkers} />
-          </div>
-          <div className="images upload-form">
-            <h2>Bilder</h2>
-            <Uploader files={images} setFiles={setImages} />
-          </div>
+          <Uploader
+            files={markers}
+            setFiles={setMarkers}
+            sectionName="Marker"
+          />
+          <Uploader files={images} setFiles={setImages} sectionName="Bilder" />
         </div>
         <button className="btn btn-primary" onClick={handleBundleFiles}>
           Bundle!
