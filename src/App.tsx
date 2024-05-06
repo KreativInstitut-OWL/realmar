@@ -19,26 +19,22 @@ function App() {
   const bundleFiles = async () => {
     try {
       const zip = new JSZip();
-      // const aframe = await fetch("/js-includes/aframe.min.js");
-      // const aframeBlob = await aframe.blob();
-      // const mindar = await fetch("/js-includes/mindar-image-aframe.prod.js");
-      // const mindarBlob = await mindar.blob();
-      // zip.file("aframe.min.js", aframeBlob);
-      // zip.file("mindar-image-aframe.js", mindarBlob);
-
-      const mindar = await fetch("/js-includes/mindar.prod.js");
+      const aframe = await fetch("/js-includes/aframe.min.js");
+      const aframeBlob = await aframe.blob();
+      const mindar = await fetch("/js-includes/mindar-image-aframe.prod.js");
       const mindarBlob = await mindar.blob();
-      zip.file("mindar.prod.js", mindarBlob);
+      zip.file("aframe.min.js", aframeBlob);
+      zip.file("mindar-image-aframe.prod.js", mindarBlob);
+
+      const license = await fetch("/LICENSE");
+      const licenseText = await license.text();
+      zip.file("LICENSE", licenseText);
 
       const targets = markers.map((marker) => marker.file);
-      const mind = await compileImageTargets(targets);
-      console.log(mind);
+      const { dataList, exportedBuffer } = await compileImageTargets(targets);
+      console.log("dataList", dataList);
+      zip.file("targets.mind", exportedBuffer);
 
-      // const targets = await compileImageTargets(
-      //   markers.map((marker) => marker.file),
-      // );
-      // zip.file("targets.mind", targets);
-      //
       markers.forEach((marker, index) => {
         const targetName = renameFile(marker.file, index);
         zip.file(targetName, marker.file);
