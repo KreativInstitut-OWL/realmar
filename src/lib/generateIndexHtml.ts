@@ -4,18 +4,12 @@ export default function generateIndexHTML(files: File[]) {
     <head>
         <meta charset="UTF-8">
         <title>AR Experience</title>
-<script src="./mindar.prod.js"></script>
+<script src="./aframe.min.js"></script>
+<script src="./mindar-image-aframe.prod.js"></script>
     </head>
     <body>
-${files
-  .map((file, index) => {
-    const id = `image${index}`;
-    const src = `${id}.${file.name.split(".").pop()}`;
-    return `<img id="${id}" src="./${src}" alt="${src}" />`;
-  })
-  .join("\n")}
 <a-scene
-      mindar-image="imageTargetSrc: ./img/targets.mind;"
+      mindar-image="imageTargetSrc: ./targets.mind;"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false"
     >
@@ -36,10 +30,7 @@ ${files
       ></a-camera>
 ${files
   .map((file, index) => {
-    const id = `image${index}`;
-    const src = `${id}.${file.name.split(".").pop()}`;
-    return `<img id="${id}" src="./${src}" alt="${src}" />
-<a-entity mindar-image-target="targetIndex: ${index}" id="entity${index}">
+    return `<a-entity mindar-image-target="targetIndex: ${index}" id="entity${index}">
 <a-plane
           position="0 0 0"
           width="1"
