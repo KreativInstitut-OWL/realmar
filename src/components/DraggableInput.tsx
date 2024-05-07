@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import {
+  attachClosestEdge,
+  extractClosestEdge,
+  Edge,
+} from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 
 function DraggableInput({
   id,
@@ -26,6 +31,8 @@ function DraggableInput({
   const ref = useRef(null);
   const [dragging, setDragging] = useState<boolean>(false);
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
+  const [edge, setEdge] = useState<Edge | null>(null);
+  const [menu, setMenu] = useState<boolean>(false);
   console.log(dragIndex);
 
   useEffect(() => {
@@ -52,15 +59,48 @@ function DraggableInput({
 
     return dropTargetForElements({
       element: el,
-      onDragEnter: () => {
-        setIsDraggedOver(true);
-        console.log(dragIndex + " Dragged over " + index);
+      getData: ({ input, element }) => {
+        const data = {};
+        return attachClosestEdge(data, {
+          input,
+          element,
+          allowedEdges: ["top", "bottom"],
+        });
       },
-      onDragLeave: () => setIsDraggedOver(false),
-      onDrop: () => {
+      onDrag: (args) => {
+        const thisEdge = extractClosestEdge(args.self.data);
+        setEdge(thisEdge);
+      },
+      onDragEnter: (args) => {
+        setIsDraggedOver(true);
+        const thisEdge = extractClosestEdge(args.self.data);
+        setEdge(thisEdge);
+      },
+      onDragLeave: () => {
         setIsDraggedOver(false);
-        moveFile(dragIndex, index);
+        setEdge(null);
+      },
+      onDrop: (args) => {
+        setIsDraggedOver(false);
+        const thisEdge = extractClosestEdge(args.self.data);
+        const dropIndex = () => {
+          if (index === lastIndex && thisEdge === "top") {
+            return index - 1;
+          }
+          if (index === lastIndex && thisEdge === "bottom") {
+            return index;
+          }
+          if (thisEdge === "top") {
+            return index;
+          }
+          if (thisEdge === "bottom") {
+            return index + 1;
+          }
+        };
+
+        moveFile(dragIndex, dropIndex());
         console.log(dragIndex + " Dropped in " + index);
+        setEdge(null);
       },
     });
   }, [dragIndex, index]);
