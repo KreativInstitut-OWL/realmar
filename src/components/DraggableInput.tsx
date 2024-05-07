@@ -109,21 +109,40 @@ function DraggableInput({
     <div
       className={`draggable-input ${dragging ? "dragging" : ""} ${
         isDraggedOver ? "isDraggedOver" : ""
-      }`}
+      } ${edge ? "edge-" + edge : ""}`}
       ref={ref}
     >
       {index}
-      <img src={id} alt={file.name} />
-      <button onClick={() => moveFile(index, index - 1)} disabled={index === 0}>
-        Up
-      </button>
       <button
-        onClick={() => moveFile(index, index + 1)}
-        disabled={index === lastIndex}
+        className={`draggable-input-toggle-options ${menu ? "active" : ""}`}
+        onClick={() => setMenu(!menu)}
       >
-        Down
+        ...
       </button>
-      <button onClick={() => removeFile(index)}>Remove</button>
+      <img src={id} alt={file.name} />
+      {menu && (
+        <div className="draggable-input-options">
+          <button
+            onClick={() => {
+              moveFile(index, index - 1);
+              setMenu(false);
+            }}
+            disabled={index === 0}
+          >
+            Up
+          </button>
+          <button
+            onClick={() => {
+              moveFile(index, index + 1);
+              setMenu(false);
+            }}
+            disabled={index === lastIndex}
+          >
+            Down
+          </button>
+          <button onClick={() => removeFile(index)}>Remove</button>
+        </div>
+      )}
     </div>
   );
 }

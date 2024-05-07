@@ -25,17 +25,53 @@ main {
   }
 }
 .draggable-input {
-  padding: 0.5rem;
+  padding: 0.75rem 0.5rem 0.5rem;
   aspect-ratio: 1 / 1;
   border: 2px solid var(--primary);
   display: flex;
   flex-flow: column nowrap;
   margin: 0.5rem 0.5rem;
   border-radius: 0.5rem;
+  position: relative;
   img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
     pointer-events: none;
+  }
+  &-toggle-options {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0.5rem;
+    padding: 0.1rem 1rem;
+    background-color: transparent;
+    transition: background-color 0.3s;
+    &:hover,
+    &.active {
+      background-color: var(--primary);
+    }
+  }
+  &-options {
+    position: absolute;
+    top: 1.75rem;
+    right: 0.5rem;
+    display: flex;
+    flex-flow: column nowrap;
+    border: 4px solid white;
+    border-top: none;
+    border-right: none;
+    background-color: var(--primary);
+
+    button {
+      padding: 0.5rem;
+      background-color: transparent;
+      border: none;
+      color: black;
+      transition: background-color 0.3s;
+      &:hover {
+        background-color: white;
+      }
+    }
   }
 }
