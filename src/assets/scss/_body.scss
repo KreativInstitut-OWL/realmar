@@ -4,6 +4,7 @@ body {
   padding: 0 1rem;
   background-color: var(--kiogrey);
   background-image: url("/kio-assets/kio_layer1_background_o.svg");
+  background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
