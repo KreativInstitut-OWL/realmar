@@ -105,6 +105,11 @@ function DraggableInput({
     });
   }, [dragIndex, index]);
 
+  const moveButton = (index: number, newIndex: number) => {
+    moveFile(index, newIndex);
+    setMenu(false);
+  };
+
   return (
     <div
       className={`draggable-input ${dragging ? "dragging" : ""} ${
@@ -122,6 +127,9 @@ function DraggableInput({
       <img src={id} alt={file.name} />
       {menu && (
         <div className="draggable-input-options">
+          <button onClick={() => moveButton(index, 0)} disabled={index === 0}>
+            Move to top
+          </button>
           <button
             onClick={() => {
               moveFile(index, index - 1);
@@ -129,7 +137,7 @@ function DraggableInput({
             }}
             disabled={index === 0}
           >
-            Up
+            Move up
           </button>
           <button
             onClick={() => {
@@ -138,7 +146,16 @@ function DraggableInput({
             }}
             disabled={index === lastIndex}
           >
-            Down
+            Move down
+          </button>
+          <button
+            onClick={() => {
+              moveFile(index, lastIndex);
+              setMenu(false);
+            }}
+            disabled={index === lastIndex}
+          >
+            Move to bottom
           </button>
           <button onClick={() => removeFile(index)}>Remove</button>
         </div>

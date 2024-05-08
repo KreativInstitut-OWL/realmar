@@ -69,8 +69,17 @@ main {
       border: none;
       color: black;
       transition: background-color 0.3s;
+      border-top: 2px solid white;
       &:hover {
         background-color: white;
+      }
+      &:first-child {
+        border-top: none;
+      }
+      &:disabled,
+      [disabled] {
+        color: black;
+        background-color: var(--kiogrey-dark);
       }
     }
   }
