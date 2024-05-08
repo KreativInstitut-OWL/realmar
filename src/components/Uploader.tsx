@@ -1,12 +1,7 @@
-import React, {
-  Dispatch,
-  SetStateAction,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import { Dispatch, SetStateAction, useRef, useState, useEffect } from "react";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import DraggableInput from "./DraggableInput";
+import Dropzone from "./Dropzone";
 import { FileType } from "../../types/types.ts";
 
 function Uploader({
@@ -21,16 +16,13 @@ function Uploader({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragStatus, setDragStatus] = useState<boolean>(false);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { files } = event.target;
-    if (!files) return; // Properly handle the case where files is null
-
+  const addFiles = (files: FileList | File[]) => {
+    if (!files) return;
     const fileList = Array.from(files).map((file) => ({
       id: URL.createObjectURL(file),
       file,
     }));
 
-    // Assuming 'setFiles' updates state, and 'files' is your state variable that tracks the file list
     setFiles((prevFiles: FileType[]) => [...prevFiles, ...fileList]);
   };
 
@@ -102,11 +94,7 @@ function Uploader({
             removeFile={removeFile}
           />
         ))}
-      <div
-        ref={ref}
-        className={`draggable-input ${isDraggedOver ? "isDraggedOver" : ""}`}
-      ></div>
-      <input type="file" multiple onChange={handleFileUpload} />
+      <Dropzone addFiles={addFiles} />
     </div>
   );
 }

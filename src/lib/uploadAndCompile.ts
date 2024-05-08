@@ -12,7 +12,7 @@ const loadImage = async (file: File) => {
   });
 };
 
-const compileImageTargets = async (files: File[]) => {
+const compileImageTargets = async (files: File[], setProgress: Function) => {
   const images: HTMLImageElement[] = [];
   for (let i = 0; i < files.length; i++) {
     images.push(await loadImage(files[i]));
@@ -22,6 +22,7 @@ const compileImageTargets = async (files: File[]) => {
     images,
     (progress: number) => {
       console.log(`Progress: ${progress.toFixed(2)} %`);
+      setProgress(progress);
     },
   );
   console.log("Compilation done");
