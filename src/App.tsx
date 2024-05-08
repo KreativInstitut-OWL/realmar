@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLanguage } from "./LanguageProvider";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import Header from "./components/Header";
@@ -6,16 +7,52 @@ import Uploader from "./components/Uploader";
 import { FileType } from "../types/types";
 import generateIndexHtml from "./lib/generateIndexHtml";
 import compileImageTargets from "./lib/uploadAndCompile";
+import ui from "./content/ui";
+import content from "./content/content";
 
 function App() {
   const [markers, setMarkers] = useState<FileType[]>([]);
   const [images, setImages] = useState<FileType[]>([]);
   const [progress, setProgress] = useState<number>(0);
+  const [noBundle, setNoBundle] = useState<boolean>(false);
+  const [errors, setErrors] = useState<String[]>([]);
+
+  const { language } = useLanguage();
+  const uiText = language === "en" ? ui.en : ui.de;
+  const contentText = language === "en" ? content.en : content.de;
 
   const renameFile = (file: File, index: number) => {
     const fileExtension = file.name.split(".").pop();
     return `target${index}.${fileExtension}`;
   };
+
+  useEffect(() => {
+    const description = document.querySelector("#description");
+    if (description) {
+      description.innerHTML = contentText.description;
+    }
+  }, [language]);
+
+  useEffect(() => {
+    if (markers.length > 0 && images.length > 0) {
+      setNoBundle(false);
+      setErrors((prevErrors) =>
+        prevErrors.filter((error) => error !== uiText.errors.notEnough),
+      );
+    } else {
+      setNoBundle(true);
+      setErrors((prevErrors) => [...prevErrors, uiText.errors.notEnough]);
+    }
+    if (markers.length !== images.length) {
+      setNoBundle(true);
+      setErrors((prevErrors) => [...prevErrors, uiText.errors.notEqual]);
+    } else {
+      setNoBundle(false);
+      setErrors((prevErrors) =>
+        prevErrors.filter((error) => error !== uiText.errors.notEqual),
+      );
+    }
+  }, [markers, images]);
 
   const bundleFiles = async () => {
     try {
@@ -72,35 +109,42 @@ function App() {
   return (
     <>
       <Header />
+
       <main className="container">
         <section className="info-area">
-          <p>
-            Lade hier Deine AR-Tracking-Marker und die anzuzeigenden Bilder
-            hoch.
-          </p>
+          <h2>{contentText.title}</h2>
+          <div id="description"></div>
           <div className="bundle-area">
             <button
               className="btn btn-primary"
               onClick={handleBundleFiles}
-              disabled={progress > 0}
+              disabled={noBundle || progress > 0}
             >
-              Bundle!
+              {uiText.cta}!
             </button>
 
             {progress > 0 && (
               <div
-                className={`progress-info ${
+                className={`info info-progress ${
                   progress > 99 ? "fade-out" : "fade-in"
                 }`}
               >
                 <p>
                   {progress < 50
-                    ? "Berechne Tracking-Marker: "
-                    : "Bundle packen: "}
+                    ? uiText.calculatingMarkers
+                    : uiText.bundleFiles}
                   {progress.toFixed(2)}%
                 </p>
 
                 <progress value={progress} max={100}></progress>
+              </div>
+            )}
+
+            {noBundle && (
+              <div className="info info-attention">
+                {errors.map((error, index) => (
+                  <p key={index}>{error}</p>
+                ))}
               </div>
             )}
           </div>
@@ -109,9 +153,13 @@ function App() {
           <Uploader
             files={markers}
             setFiles={setMarkers}
-            sectionName="Marker"
+            sectionName={uiText.markers}
           />
-          <Uploader files={images} setFiles={setImages} sectionName="Bilder" />
+          <Uploader
+            files={images}
+            setFiles={setImages}
+            sectionName={uiText.images}
+          />
         </section>
       </main>
     </>

@@ -92,6 +92,7 @@ function Uploader({
             setDragStatus={setDragStatus}
             moveFile={moveFile}
             removeFile={removeFile}
+            sectionName={sectionName}
           />
         ))}
       <Dropzone addFiles={addFiles} />

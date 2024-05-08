@@ -1,7 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import arrow from "/arrow.svg";
+import { useLanguage } from "../LanguageProvider";
+import ui from "../content/ui";
 import {
   attachClosestEdge,
   extractClosestEdge,
@@ -17,6 +18,7 @@ function DraggableInput({
   setDragIndex,
   removeFile,
   moveFile,
+  sectionName,
 }: {
   id: string;
   index: number;
@@ -28,7 +30,11 @@ function DraggableInput({
   setDragStatus: Function;
   removeFile: Function;
   moveFile: Function;
+  sectionName: string;
 }) {
+  const { language } = useLanguage();
+  const uiText = language === "en" ? ui.en : ui.de;
+
   const ref = useRef(null);
   const [dragging, setDragging] = useState<boolean>(false);
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
@@ -121,7 +127,8 @@ function DraggableInput({
         menu && setMenu(false);
       }}
     >
-      {index}
+      {sectionName === uiText.images ? uiText.image : uiText.markerDescriptor}{" "}
+      {index + 1}
       <button
         className={`draggable-input-toggle-options ${menu ? "active" : ""}`}
         onClick={() => setMenu(!menu)}
@@ -132,7 +139,7 @@ function DraggableInput({
       {menu && (
         <div className="draggable-input-options">
           <button onClick={() => moveButton(index, 0)} disabled={index === 0}>
-            Move to top
+            {uiText.move.top}
             <span className="arrow arrow-top"></span>
           </button>
           <button
@@ -142,7 +149,7 @@ function DraggableInput({
             }}
             disabled={index === 0}
           >
-            Move up
+            {uiText.move.up}
             <span className="arrow arrow-up"></span>
           </button>
           <button
@@ -152,7 +159,7 @@ function DraggableInput({
             }}
             disabled={index === lastIndex}
           >
-            Move down
+            {uiText.move.down}
             <span className="arrow arrow-down"></span>
           </button>
           <button
@@ -162,11 +169,11 @@ function DraggableInput({
             }}
             disabled={index === lastIndex}
           >
-            Move to bottom
+            {uiText.move.last}
             <span className="arrow arrow-last"></span>
           </button>
           <button onClick={() => removeFile(index)}>
-            Remove
+            {uiText.move.delete}
             <span className="arrow arrow-delete"></span>
           </button>
         </div>

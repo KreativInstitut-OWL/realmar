@@ -1,4 +1,6 @@
 import { useRef, useEffect, useState } from "react";
+import { useLanguage } from "../LanguageProvider";
+import ui from "../content/ui";
 import {
   containsFiles,
   getFiles,
@@ -10,6 +12,9 @@ function Dropzone({
 }: {
   addFiles: (files: FileList | File[]) => void;
 }) {
+  const { language } = useLanguage();
+  const uiText = language === "en" ? ui.en : ui.de;
+
   const ref = useRef(null);
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
 
@@ -50,9 +55,9 @@ function Dropzone({
       className={`dropzone  ${isDraggedOver ? "has-file-over-it" : ""}`}
       ref={ref}
     >
-      <p>Drag and drop files here</p>
+      <p>{uiText.dropzone}</p>
       <label>
-        Select manually
+        {uiText.select}
         <input type="file" multiple onChange={handleFileUpload} />
       </label>
     </div>
