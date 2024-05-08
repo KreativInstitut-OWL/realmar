@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import arrow from "/arrow.svg";
 import {
   attachClosestEdge,
   extractClosestEdge,
@@ -116,6 +117,9 @@ function DraggableInput({
         isDraggedOver ? "isDraggedOver" : ""
       } ${edge ? "edge-" + edge : ""}`}
       ref={ref}
+      onClick={() => {
+        menu && setMenu(false);
+      }}
     >
       {index}
       <button
@@ -129,6 +133,7 @@ function DraggableInput({
         <div className="draggable-input-options">
           <button onClick={() => moveButton(index, 0)} disabled={index === 0}>
             Move to top
+            <span className="arrow arrow-top"></span>
           </button>
           <button
             onClick={() => {
@@ -138,6 +143,7 @@ function DraggableInput({
             disabled={index === 0}
           >
             Move up
+            <span className="arrow arrow-up"></span>
           </button>
           <button
             onClick={() => {
@@ -147,6 +153,7 @@ function DraggableInput({
             disabled={index === lastIndex}
           >
             Move down
+            <span className="arrow arrow-down"></span>
           </button>
           <button
             onClick={() => {
@@ -156,8 +163,12 @@ function DraggableInput({
             disabled={index === lastIndex}
           >
             Move to bottom
+            <span className="arrow arrow-last"></span>
           </button>
-          <button onClick={() => removeFile(index)}>Remove</button>
+          <button onClick={() => removeFile(index)}>
+            Remove
+            <span className="arrow arrow-delete"></span>
+          </button>
         </div>
       )}
     </div>

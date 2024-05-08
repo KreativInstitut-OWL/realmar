@@ -10,6 +10,7 @@ import compileImageTargets from "./lib/uploadAndCompile";
 function App() {
   const [markers, setMarkers] = useState<FileType[]>([]);
   const [images, setImages] = useState<FileType[]>([]);
+  const [progress, setProgress] = useState<number>(0);
 
   const renameFile = (file: File, index: number) => {
     const fileExtension = file.name.split(".").pop();
@@ -31,7 +32,10 @@ function App() {
       zip.file("LICENSE", licenseText);
 
       const targets = markers.map((marker) => marker.file);
-      const { dataList, exportedBuffer } = await compileImageTargets(targets);
+      const { dataList, exportedBuffer } = await compileImageTargets(
+        targets,
+        setProgress,
+      );
       console.log("dataList", dataList);
       zip.file("targets.mind", exportedBuffer);
 
@@ -53,6 +57,7 @@ function App() {
     } catch (error) {
       console.error("Error bundling files: ", error);
     }
+    setTimeout(() => setProgress(0), 1000);
   };
 
   function handleBundleFiles() {
@@ -68,20 +73,46 @@ function App() {
     <>
       <Header />
       <main className="container">
-        <p>
-          Lade hier Deine AR-Tracking-Marker und die anzuzeigenden Bilder hoch.
-        </p>
-        <div className="upload">
+        <section className="info-area">
+          <p>
+            Lade hier Deine AR-Tracking-Marker und die anzuzeigenden Bilder
+            hoch.
+          </p>
+          <div className="bundle-area">
+            <button
+              className="btn btn-primary"
+              onClick={handleBundleFiles}
+              disabled={progress > 0}
+            >
+              Bundle!
+            </button>
+
+            {progress > 0 && (
+              <div
+                className={`progress-info ${
+                  progress > 99 ? "fade-out" : "fade-in"
+                }`}
+              >
+                <p>
+                  {progress < 50
+                    ? "Berechne Tracking-Marker: "
+                    : "Bundle packen: "}
+                  {progress.toFixed(2)}%
+                </p>
+
+                <progress value={progress} max={100}></progress>
+              </div>
+            )}
+          </div>
+        </section>
+        <section className="upload">
           <Uploader
             files={markers}
             setFiles={setMarkers}
             sectionName="Marker"
           />
           <Uploader files={images} setFiles={setImages} sectionName="Bilder" />
-        </div>
-        <button className="btn btn-primary" onClick={handleBundleFiles}>
-          Bundle!
-        </button>
+        </section>
       </main>
     </>
   );
