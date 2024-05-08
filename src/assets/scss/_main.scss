@@ -3,7 +3,7 @@
 main {
   --_sticky-top: 2rem;
   border: 1rem solid white;
-  background-color: rgba(230, 230, 230, 0.3);
+  background-color: rgba(255, 255, 255, 0.3);
   backdrop-filter: blur(1rem);
   display: flex;
   flex-flow: row wrap;
@@ -12,11 +12,47 @@ main {
 }
 
 .info-area {
-  background-color: white;
+  --_upload-gap: 2rem;
+  --_heading-offset: 1rem;
+  background-color: var(--kiogrey);
   position: sticky;
-  top: var(--_sticky-top);
+  top: calc(var(--_sticky-top) + var(--_heading-offset));
   padding: 1rem;
   max-width: 33%;
+  margin-top: var(--_heading-offset);
+
+  h2 {
+    --_heading-translate: calc(var(--_heading-offset) * -1);
+    padding: 0.5rem 1rem;
+    background-color: black;
+    color: white;
+    width: fit-content;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    transform: translate(var(--_heading-translate), var(--_heading-translate));
+  }
+  #description {
+    margin-top: calc(1rem + var(--_heading-offset) + var(--_sticky-top));
+    font-size: 0.9rem;
+    ul li {
+      list-style: disc;
+    }
+    ol li {
+      list-style: decimal;
+    }
+    ul,
+    ol {
+      margin: 1rem 0;
+      li {
+        margin-left: 1.25rem;
+        &::marker {
+          color: black;
+        }
+      }
+    }
+  }
 }
 
 .upload {
@@ -32,7 +68,7 @@ main {
   margin-top: var(--_heading-offset);
 
   &-form {
-    background-color: white;
+    background-color: var(--kiogrey);
     width: calc(50% - var(--_upload-gap));
     position: relative;
     h2 {
@@ -53,6 +89,7 @@ main {
   }
 }
 .draggable-input {
+  background-color: white;
   padding: 0.75rem 0.5rem 0.5rem;
   aspect-ratio: 1 / 1;
   border: 2px solid var(--primary);
@@ -149,13 +186,12 @@ main {
 
 .dropzone {
   border: 4px dashed var(--primary);
-  background-color: var(--kiogrey);
+  background-color: white;
   display: flex;
   flex-flow: column nowrap;
   align-items: center;
   justify-content: center;
   gap: 1rem;
-  cursor: pointer;
   transition: background-color 0.3s;
   padding: 0.75rem 0.5rem 0.5rem;
   margin: 0.5rem 0.5rem;
@@ -165,6 +201,10 @@ main {
   min-height: 10rem;
   &.has-file-over-it {
     background-color: var(--kiogrey-dark);
+  }
+  p {
+    text-align: center;
+    padding: 0.5rem 1rem;
   }
   input[type="file"] {
     display: none;
@@ -193,12 +233,17 @@ main {
   align-items: flex-start;
   margin: 2rem 0;
 }
-.progress-info {
+.info {
   max-width: max-content;
-  min-width: 25rem;
+  min-width: 100%;
   border: 4px solid white;
   padding: 1rem;
-  background-color: var(--primary);
+  &-progress {
+    background-color: var(--primary);
+  }
+  &-attention {
+    background-color: #f5b8b6;
+  }
 }
 
 progress {
