@@ -12,4 +12,26 @@ header {
     margin-right: auto;
     object-fit: contain;
   }
+  .language-options {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 1rem;
+    margin: 0 1rem;
+    button {
+      padding: 0.5rem;
+      background-color: transparent;
+      border: none;
+      color: black;
+      transition: background-color 0.3s;
+      border: 2px solid transparent;
+      &:hover {
+        background-color: var(--primary);
+        border: 2px solid white;
+        color: black;
+      }
+      &.active {
+        border-bottom: 2px solid black;
+      }
+    }
+  }
 }
