@@ -17,15 +17,12 @@ const compileImageTargets = async (files: File[], setProgress: Function) => {
   for (let i = 0; i < files.length; i++) {
     images.push(await loadImage(files[i]));
   }
-  console.log("Images loaded");
   const dataList = await compiler.compileImageTargets(
     images,
     (progress: number) => {
-      console.log(`Progress: ${progress.toFixed(2)} %`);
       setProgress(progress);
     },
   );
-  console.log("Compilation done");
   const exportedBuffer = await compiler.exportData();
   return { dataList, exportedBuffer };
 };

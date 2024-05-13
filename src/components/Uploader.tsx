@@ -44,7 +44,6 @@ function Uploader({
       newFiles.splice(finishIndex, 0, targetFile);
       return newFiles;
     });
-    console.log(files);
   }
 
   function removeFile(index: number) {
@@ -68,7 +67,6 @@ function Uploader({
       onDragLeave: () => setIsDraggedOver(false),
       onDrop: () => {
         setIsDraggedOver(false);
-        console.log("Dropped in " + sectionName);
       },
     });
   }, []);

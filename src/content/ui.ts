@@ -18,8 +18,8 @@ const ui = {
     },
     deleteAll: "Alle löschen",
     errors: {
-      notEnough: "Bitte lade mindestens ein Bild und einen Marker hoch",
-      notEqual: "Bitte lade für jedes Bild einen Marker hoch",
+      noInput: "Bitte lade mindestens ein Bild und einen Marker hoch",
+      missingPair: "Bitte lade für jedes Bild einen Marker hoch",
     },
   },
   en: {
@@ -41,8 +41,8 @@ const ui = {
     },
     deleteAll: "Delete all",
     errors: {
-      notEnough: "Please upload at least one image and one marker",
-      notEqual: "Please upload a marker for each image",
+      noInput: "Please upload at least one image and one marker",
+      missingPair: "Please upload a marker for each image",
     },
   },
 };

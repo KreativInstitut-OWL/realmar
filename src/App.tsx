@@ -17,7 +17,7 @@ function App() {
   const [images, setImages] = useState<FileType[]>([]);
   const [progress, setProgress] = useState<number>(0);
   const [noBundle, setNoBundle] = useState<boolean>(false);
-  const [errors, setErrors] = useState<String[]>([]);
+  const [errors, setErrors] = useState<ErrorState>({});
 
   const { language } = useLanguage();
   const uiText = language === "en" ? ui.en : ui.de;
@@ -36,25 +36,16 @@ function App() {
   }, [language]);
 
   useEffect(() => {
-    if (markers.length > 0 && images.length > 0) {
-      setNoBundle(false);
-      setErrors((prevErrors) =>
-        prevErrors.filter((error) => error !== uiText.errors.notEnough),
-      );
-    } else {
-      setNoBundle(true);
-      setErrors((prevErrors) => [...prevErrors, uiText.errors.notEnough]);
+    const newErrors: ErrorState = {};
+    if (markers.length <= 0 && images.length <= 0) {
+      newErrors.noInput = uiText.errors.noInput;
     }
     if (markers.length !== images.length) {
-      setNoBundle(true);
-      setErrors((prevErrors) => [...prevErrors, uiText.errors.notEqual]);
-    } else {
-      setNoBundle(false);
-      setErrors((prevErrors) =>
-        prevErrors.filter((error) => error !== uiText.errors.notEqual),
-      );
+      newErrors.missingPair = uiText.errors.missingPair;
     }
-  }, [markers, images]);
+    setNoBundle(Object.keys(newErrors).length > 0);
+    setErrors(newErrors);
+  }, [markers, images, language]);
 
   const bundleFiles = async () => {
     try {
@@ -71,11 +62,10 @@ function App() {
       zip.file("LICENSE", licenseText);
 
       const targets = markers.map((marker) => marker.file);
-      const { dataList, exportedBuffer } = await compileImageTargets(
+      const { exportedBuffer } = await compileImageTargets(
         targets,
         setProgress,
       );
-      console.log("dataList", dataList);
       zip.file("targets.mind", exportedBuffer);
 
       markers.forEach((marker, index) => {
@@ -126,29 +116,14 @@ function App() {
             </button>
 
             {progress > 0 && (
-              <div
-                className={`info info-progress ${
-                  progress > 99 ? "fade-out" : "fade-in"
-                }`}
-              >
-                <p>
-                  {progress < 50
-                    ? uiText.calculatingMarkers
-                    : uiText.bundleFiles}
-                  {progress.toFixed(2)}%
-                </p>
-
-                <progress value={progress} max={100}></progress>
-              </div>
+              <ProgressToast progress={progress} uiText={uiText} />
             )}
 
-            {noBundle && (
-              <div className="info info-attention">
-                {errors.map((error, index) => (
-                  <p key={index}>{error}</p>
-                ))}
+            {Object.keys(errors).map((error, i) => (
+              <div className="info info-attention fade-in">
+                <p key={i}>{errors[error]}</p>
               </div>
-            )}
+            ))}
           </div>
         </section>
         <section className="upload">

@@ -40,7 +40,6 @@ function DraggableInput({
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
   const [edge, setEdge] = useState<Edge | null>(null);
   const [menu, setMenu] = useState<boolean>(false);
-  console.log(dragIndex);
 
   useEffect(() => {
     const el = ref.current;
@@ -55,7 +54,6 @@ function DraggableInput({
       onDrop: () => {
         setDragging(false);
         setDragIndex(null);
-        console.log("Dropped " + index);
       },
     });
   }, [dragIndex, index]);
@@ -106,7 +104,6 @@ function DraggableInput({
         };
 
         moveFile(dragIndex, dropIndex());
-        console.log(dragIndex + " Dropped in " + index);
         setEdge(null);
       },
     });

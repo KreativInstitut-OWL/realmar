@@ -40,7 +40,6 @@ function Dropzone({
         setIsDraggedOver(true);
       },
       onDragLeave: () => {
-        console.log("an external file left the dropzone");
         setIsDraggedOver(false);
       },
       onDrop: (source) => {
