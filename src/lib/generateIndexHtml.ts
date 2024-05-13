@@ -29,7 +29,7 @@ ${files
         raycaster="far: 10000; objects: .clickable"
       ></a-camera>
 ${files
-  .map((file, index) => {
+  .map((_, index) => {
     return `<a-entity mindar-image-target="targetIndex: ${index}" id="entity${index}">
 <a-plane
           position="0 0 0"
