@@ -9,5 +9,5 @@ test("renders header", () => {
     </LanguageProvider>,
   );
   const headerElement = screen.getByAltText("KIO Logo");
-  expect(headerElement).toBeInTheDocument();
+  expect(headerElement).not.toBeNull();
 });

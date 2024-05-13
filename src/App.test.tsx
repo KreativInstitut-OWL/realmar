@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { expect, describe, it } from "vitest";
 import App from "./App";
 import { LanguageProvider } from "./LanguageProvider";
 
@@ -10,6 +11,6 @@ describe("App", () => {
       </LanguageProvider>,
     );
     const appText = screen.getByText("BundlAR");
-    expect(appText).toBeInTheDocument();
+    expect(appText).not.toBeNull();
   });
 });

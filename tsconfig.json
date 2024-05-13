@@ -21,8 +21,12 @@
     "noFallthroughCasesInSwitch": true,
 
     /* Testing types */
-    "types": ["@testing-library/jest-dom", "node"],
-    "typeRoots": ["node_modules/@types", "./types"],
+    "typeRoots": [
+      "../node_modules/@types",
+      "./node_modules/@types",
+      "../types"
+    ],
+    "types": ["jest", "mocha", "node"],
     "esModuleInterop": true,
     "allowJs": true,
     "checkJs": false,
