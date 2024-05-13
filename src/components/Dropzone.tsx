@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useLanguage } from "../LanguageProvider";
 import ui from "../content/ui";
 import {

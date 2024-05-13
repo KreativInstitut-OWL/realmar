@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useRef, useState, useEffect } from "react";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import DraggableInput from "./DraggableInput";
 import Dropzone from "./Dropzone";
-import { FileType } from "../../types/types.ts";
+import { FileType } from "../../types/types";
 
 function Uploader({
   files,
