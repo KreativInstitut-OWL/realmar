@@ -18,10 +18,19 @@ function Uploader({
 
   const addFiles = (files: FileList | File[]) => {
     if (!files) return;
-    const fileList = Array.from(files).map((file) => ({
-      id: URL.createObjectURL(file),
-      file,
-    }));
+
+    const validExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
+
+    const fileList = Array.from(files)
+      .filter((file) => {
+        const parts = file.name.split(".");
+        const extension = parts.length > 1 ? parts.pop()!.toLowerCase() : "";
+        return validExtensions.includes(extension);
+      })
+      .map((file) => ({
+        id: URL.createObjectURL(file),
+        file,
+      }));
 
     setFiles((prevFiles: FileType[]) => [...prevFiles, ...fileList]);
   };

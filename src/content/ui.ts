@@ -20,6 +20,8 @@ const ui = {
     errors: {
       noInput: "Bitte lade mindestens ein Bild und einen Marker hoch",
       missingPair: "Bitte lade für jedes Bild einen Marker hoch",
+      notValid:
+        "Zurzeit werden nur Bilddateien unterstützt. Die folgenden Dateien wurden nicht hochgeladen: ",
     },
   },
   en: {
@@ -43,6 +45,8 @@ const ui = {
     errors: {
       noInput: "Please upload at least one image and one marker",
       missingPair: "Please upload a marker for each image",
+      notValid:
+        "Currently only image files are supported. The following files were not uploaded: ",
     },
   },
 };

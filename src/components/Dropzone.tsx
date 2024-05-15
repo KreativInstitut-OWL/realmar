@@ -36,15 +36,27 @@ function Dropzone({
       element: el,
       canDrop: containsFiles,
       onDragEnter: () => {
-        console.log("an external file over the dropzone");
         setIsDraggedOver(true);
       },
       onDragLeave: () => {
         setIsDraggedOver(false);
       },
       onDrop: (source) => {
-        handleFileDrop(getFiles(source));
+        const files = getFiles(source);
+        const notValid: string[] = [];
+        files.filter((file) => {
+          const valid = file.type.includes("image");
+          if (!valid) {
+            console.error(`File ${file.name} is not an image`);
+            notValid.push(file.name);
+          }
+          return valid;
+        });
+
+        handleFileDrop(files);
         setIsDraggedOver(false);
+        notValid.length != 0 &&
+          alert(uiText.errors.notValid + notValid.join(", "));
       },
     });
   }, []);
@@ -57,7 +69,12 @@ function Dropzone({
       <p>{uiText.dropzone}</p>
       <label>
         {uiText.select}
-        <input type="file" multiple onChange={handleFileUpload} />
+        <input
+          type="file"
+          multiple
+          accept="image/png, image/jpg, image/jpeg, image/webp"
+          onChange={handleFileUpload}
+        />
       </label>
     </div>
   );
