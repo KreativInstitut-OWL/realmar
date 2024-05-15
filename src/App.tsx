@@ -120,8 +120,8 @@ function App() {
             )}
 
             {Object.keys(errors).map((error, i) => (
-              <div className="info info-attention fade-in">
-                <p key={i}>{errors[error]}</p>
+              <div key={i} className="info info-attention fade-in">
+                <p>{errors[error]}</p>
               </div>
             ))}
           </div>
