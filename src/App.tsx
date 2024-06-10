@@ -51,7 +51,6 @@ function App() {
     try {
       const imageSizeValues = await calculateImageValues(markers, images);
       if (!imageSizeValues) return;
-      console.log(imageSizeValues);
 
       const zip = new JSZip();
       const aframe = await fetch("/js-includes/aframe.min.js");
@@ -107,7 +106,6 @@ function App() {
       if (typeof markerRatio !== "number" || typeof imageRatio !== "number")
         return;
 
-      console.log("Marker: " + markerRatio, "image: " + imageRatio);
       if (markerRatio < 1) {
         // Tracker = Hochkant
         imageRatio == 1 // Image = Quadrat

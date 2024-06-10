@@ -6,6 +6,10 @@ describe("generateIndexHTML", () => {
       { name: "file1.jpg" } as File,
       { name: "file2.png" } as File,
     ];
+    const sizes = [
+      { width: 1, height: 1 },
+      { width: 1, height: 1 },
+    ];
 
     const expectedResult = `<!DOCTYPE html>
     <html lang="en">
@@ -57,7 +61,7 @@ describe("generateIndexHTML", () => {
     </html>
   `;
 
-    const result = generateIndexHTML(files);
+    const result = generateIndexHTML(files, sizes);
     expect(result).toBe(expectedResult);
   });
 });

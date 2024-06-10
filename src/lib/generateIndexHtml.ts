@@ -2,7 +2,6 @@ export default function generateIndexHTML(
   files: File[],
   sizes: { height: number; width: number }[],
 ) {
-  console.log(sizes);
   const htmlContent = `<!DOCTYPE html>
     <html lang="en">
     <head>
