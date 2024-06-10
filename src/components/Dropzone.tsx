@@ -47,7 +47,6 @@ function Dropzone({
         files.filter((file) => {
           const valid = file.type.includes("image");
           if (!valid) {
-            console.error(`File ${file.name} is not an image`);
             notValid.push(file.name);
           }
           return valid;
