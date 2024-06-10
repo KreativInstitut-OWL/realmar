@@ -49,9 +49,6 @@ function App() {
 
   const bundleFiles = async () => {
     try {
-      const imageSizeValues = await calculateImageValues(markers, images);
-      if (!imageSizeValues) return;
-
       const zip = new JSZip();
       const aframe = await fetch("/js-includes/aframe.min.js");
       const aframeBlob = await aframe.blob();
@@ -79,6 +76,9 @@ function App() {
         const imageName = `image${index}.${fileExtension}`;
         zip.file(imageName, image.file);
       });
+
+      const imageSizeValues = await calculateImageValues(markers, images);
+      if (!imageSizeValues) return;
       const indexHtml = generateIndexHtml(
         images.map((image) => image.file),
         imageSizeValues,
