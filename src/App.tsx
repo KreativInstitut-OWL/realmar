@@ -49,6 +49,10 @@ function App() {
 
   const bundleFiles = async () => {
     try {
+      const imageSizeValues = await calculateImageValues(markers, images);
+      if (!imageSizeValues) return;
+      console.log(imageSizeValues);
+
       const zip = new JSZip();
       const aframe = await fetch("/js-includes/aframe.min.js");
       const aframeBlob = await aframe.blob();
@@ -67,7 +71,6 @@ function App() {
         setProgress,
       );
       zip.file("targets.mind", exportedBuffer);
-
       markers.forEach((marker, index) => {
         const targetName = renameFile(marker.file, index);
         zip.file(targetName, marker.file);
@@ -77,7 +80,10 @@ function App() {
         const imageName = `image${index}.${fileExtension}`;
         zip.file(imageName, image.file);
       });
-      const indexHtml = generateIndexHtml(images.map((image) => image.file));
+      const indexHtml = generateIndexHtml(
+        images.map((image) => image.file),
+        imageSizeValues,
+      );
       zip.file("index.html", indexHtml);
 
       zip.generateAsync({ type: "blob" }).then((content) => {
@@ -87,6 +93,82 @@ function App() {
       console.error("Error bundling files: ", error);
     }
     setTimeout(() => setProgress(0), 1000);
+  };
+
+  const calculateImageValues = async (
+    markers: FileType[],
+    images: FileType[],
+  ) => {
+    if (markers.length !== images.length) return;
+    const imageSizes = [];
+    for (let i = 0; i < markers.length; i++) {
+      const markerRatio = await getAspectRatio(markers[i]);
+      const imageRatio = await getAspectRatio(images[i]);
+      if (typeof markerRatio !== "number" || typeof imageRatio !== "number")
+        return;
+
+      console.log("Marker: " + markerRatio, "image: " + imageRatio);
+      if (markerRatio < 1) {
+        // Tracker = Hochkant
+        imageRatio == 1 // Image = Quadrat
+          ? imageSizes.push({
+              height: 1 + markerRatio,
+              width: 1 + markerRatio,
+            })
+          : imageRatio > 1
+          ? imageSizes.push({
+              height: 1 / markerRatio,
+              width: imageRatio / markerRatio,
+            }) // Image = Quer
+          : imageRatio <= markerRatio
+          ? imageSizes.push({ height: 1 / imageRatio, width: 1 }) // Image = Hochkant
+          : imageSizes.push({
+              height: 1 / markerRatio,
+              width: imageRatio * (1 / markerRatio),
+            });
+      }
+      if (markerRatio > 1) {
+        // Tracker = Breitformat Works
+        imageRatio == 1
+          ? imageSizes.push({ height: 1, width: 1 })
+          : imageRatio < 1
+          ? imageSizes.push({
+              height: 1 / imageRatio,
+              width: 1,
+            })
+          : imageRatio >= markerRatio
+          ? imageSizes.push({
+              height: 1 / markerRatio,
+              width: imageRatio * (1 / markerRatio),
+            })
+          : imageSizes.push({
+              height: 1 - (markerRatio - imageRatio),
+              width: 1,
+            });
+      }
+      if (markerRatio === 1) {
+        //Tracker = Quadrat Works
+        imageRatio == 1
+          ? imageSizes.push({ height: 1, width: 1 })
+          : imageRatio < 1
+          ? imageSizes.push({ height: 1 + (1 - imageRatio), width: 1 })
+          : imageSizes.push({ height: 1, width: imageRatio });
+      }
+    }
+    return imageSizes;
+  };
+
+  const getAspectRatio = (file: FileType) => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = file.id;
+      img.onload = () => {
+        resolve(img.width / img.height);
+      };
+      img.onerror = (err) => {
+        reject(err);
+      };
+    });
   };
 
   function handleBundleFiles() {

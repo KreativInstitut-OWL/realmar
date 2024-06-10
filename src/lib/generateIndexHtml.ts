@@ -1,4 +1,8 @@
-export default function generateIndexHTML(files: File[]) {
+export default function generateIndexHTML(
+  files: File[],
+  sizes: { height: number; width: number }[],
+) {
+  console.log(sizes);
   const htmlContent = `<!DOCTYPE html>
     <html lang="en">
     <head>
@@ -33,8 +37,8 @@ ${files
     return `<a-entity mindar-image-target="targetIndex: ${index}" id="entity${index}">
 <a-plane
           position="0 0 0"
-          width="1"
-          height="1"
+          width="${sizes[index].width}"
+          height="${sizes[index].height}"
           id="plane${index}"
           color="#ffffff"
           src="#image${index}"
