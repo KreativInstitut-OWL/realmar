@@ -3,10 +3,12 @@ import generateIndexHTML from "./generateIndexHtml";
 describe("generateIndexHTML", () => {
   it("should generate correct HTML content for given files", () => {
     const files = [
-      { name: "file1.jpg" } as File,
-      { name: "file2.png" } as File,
+      { name: "file1.jpg", type: "image/jpg" } as File,
+      { name: "file2.png", type: "image/png" } as File,
+      { name: "file3.mp4", type: "video/mp4" } as File,
     ];
     const sizes = [
+      { width: 1, height: 1 },
       { width: 1, height: 1 },
       { width: 1, height: 1 },
     ];
@@ -26,8 +28,9 @@ describe("generateIndexHTML", () => {
       device-orientation-permission-ui="enabled: false"
     >
       <a-assets>
-<img id="image0" src="./image0.jpg" alt="image0.jpg" />
-<img id="image1" src="./image1.png" alt="image1.png" />
+<img id="asset0" src="./asset0.jpg" alt="asset0.jpg" />
+<img id="asset1" src="./asset1.png" alt="asset1.png" />
+<video id="asset2" src="./asset2.mp4" alt="asset2.mp4" loop="true" autoplay muted />
       </a-assets>
       <a-camera
         position="0 0 0"
@@ -42,7 +45,7 @@ describe("generateIndexHTML", () => {
           height="1"
           id="plane0"
           color="#ffffff"
-          src="#image0"
+          src="#asset0"
         ></a-plane>
 </a-entity>
 <a-entity mindar-image-target="targetIndex: 1" id="entity1">
@@ -52,7 +55,17 @@ describe("generateIndexHTML", () => {
           height="1"
           id="plane1"
           color="#ffffff"
-          src="#image1"
+          src="#asset1"
+        ></a-plane>
+</a-entity>
+<a-entity mindar-image-target="targetIndex: 2" id="entity2">
+<a-plane
+          position="0 0 0"
+          width="1"
+          height="1"
+          id="plane2"
+          color="#ffffff"
+          src="#asset2"
         ></a-plane>
 </a-entity>
 

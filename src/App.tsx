@@ -73,7 +73,7 @@ function App() {
       });
       images.forEach((image, index) => {
         const fileExtension = image.file.name.split(".").pop();
-        const imageName = `image${index}.${fileExtension}`;
+        const imageName = `asset${index}.${fileExtension}`;
         zip.file(imageName, image.file);
       });
 
@@ -158,14 +158,26 @@ function App() {
 
   const getAspectRatio = (file: FileType) => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = file.id;
-      img.onload = () => {
-        resolve(img.width / img.height);
-      };
-      img.onerror = (err) => {
-        reject(err);
-      };
+      if (file.file.type.includes("image")) {
+        const img = new Image();
+        img.src = file.id;
+        img.onload = () => {
+          resolve(img.width / img.height);
+        };
+        img.onerror = (err) => {
+          reject(err);
+        };
+      }
+      if (file.file.type.includes("video")) {
+        const vid = document.createElement("video");
+        vid.src = file.id;
+        vid.onloadedmetadata = () => {
+          resolve(vid.videoWidth / vid.videoHeight);
+        };
+        vid.onerror = (err) => {
+          reject(err);
+        };
+      }
     });
   };
 
@@ -215,7 +227,7 @@ function App() {
           <Uploader
             files={images}
             setFiles={setImages}
-            sectionName={uiText.images}
+            sectionName={uiText.assets}
           />
         </section>
       </main>

@@ -3,6 +3,7 @@ import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element
 import DraggableInput from "./DraggableInput";
 import Dropzone from "./Dropzone";
 import { FileType } from "../../types/types";
+import { validExtensions } from "../content/supported-upload-media";
 
 function Uploader({
   files,
@@ -18,8 +19,6 @@ function Uploader({
 
   const addFiles = (files: FileList | File[]) => {
     if (!files) return;
-
-    const validExtensions = ["jpg", "jpeg", "png", "gif", "webp"];
 
     const fileList = Array.from(files)
       .filter((file) => {
@@ -102,7 +101,7 @@ function Uploader({
             sectionName={sectionName}
           />
         ))}
-      <Dropzone addFiles={addFiles} />
+      <Dropzone addFiles={addFiles} sectionName={sectionName} />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
+import Preview from "./Preview";
+import DraggableInputMenu from "./DraggableInputMenu";
 import { useLanguage } from "../LanguageProvider";
 import ui from "../content/ui";
 import {
@@ -109,11 +111,6 @@ function DraggableInput({
     });
   }, [dragIndex, index]);
 
-  const moveButton = (index: number, newIndex: number) => {
-    moveFile(index, newIndex);
-    setMenu(false);
-  };
-
   return (
     <div
       className={`draggable-input ${dragging ? "dragging" : ""} ${
@@ -124,56 +121,30 @@ function DraggableInput({
         menu && setMenu(false);
       }}
     >
-      {sectionName === uiText.images ? uiText.image : uiText.markerDescriptor}{" "}
-      {index + 1}
-      <button
-        className={`draggable-input-toggle-options ${menu ? "active" : ""}`}
-        onClick={() => setMenu(!menu)}
-      >
-        ...
-      </button>
-      <img src={id} alt={file.name} />
+      <div>
+        <p>
+          {sectionName === uiText.assets
+            ? uiText.asset
+            : uiText.markerDescriptor}{" "}
+          {index + 1}
+        </p>
+        <button
+          className={`draggable-input-toggle-options ${menu ? "active" : ""}`}
+          onClick={() => setMenu(!menu)}
+        >
+          ...
+        </button>
+      </div>
+      <Preview src={id} id={id} alt={file.name} fileType={file.type} />
       {menu && (
-        <div className="draggable-input-options">
-          <button onClick={() => moveButton(index, 0)} disabled={index === 0}>
-            {uiText.move.top}
-            <span className="arrow arrow-top"></span>
-          </button>
-          <button
-            onClick={() => {
-              moveFile(index, index - 1);
-              setMenu(false);
-            }}
-            disabled={index === 0}
-          >
-            {uiText.move.up}
-            <span className="arrow arrow-up"></span>
-          </button>
-          <button
-            onClick={() => {
-              moveFile(index, index + 1);
-              setMenu(false);
-            }}
-            disabled={index === lastIndex}
-          >
-            {uiText.move.down}
-            <span className="arrow arrow-down"></span>
-          </button>
-          <button
-            onClick={() => {
-              moveFile(index, lastIndex);
-              setMenu(false);
-            }}
-            disabled={index === lastIndex}
-          >
-            {uiText.move.last}
-            <span className="arrow arrow-last"></span>
-          </button>
-          <button onClick={() => removeFile(index)}>
-            {uiText.move.delete}
-            <span className="arrow arrow-delete"></span>
-          </button>
-        </div>
+        <DraggableInputMenu
+          index={index}
+          lastIndex={lastIndex}
+          removeFile={removeFile}
+          moveFile={moveFile}
+          setMenu={setMenu}
+          uiText={uiText}
+        />
       )}
     </div>
   );

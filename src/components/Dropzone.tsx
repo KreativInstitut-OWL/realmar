@@ -6,11 +6,14 @@ import {
   getFiles,
 } from "@atlaskit/pragmatic-drag-and-drop/external/file";
 import { dropTargetForExternal } from "@atlaskit/pragmatic-drag-and-drop/external/adapter";
+import { acceptedUploadMedia } from "../content/supported-upload-media";
 
 function Dropzone({
   addFiles,
+  sectionName,
 }: {
   addFiles: (files: FileList | File[]) => void;
+  sectionName: string;
 }) {
   const { language } = useLanguage();
   const uiText = language === "en" ? ui.en : ui.de;
@@ -44,15 +47,18 @@ function Dropzone({
       onDrop: (source) => {
         const files = getFiles(source);
         const notValid: string[] = [];
-        files.filter((file) => {
-          const valid = file.type.includes("image");
+        const validFiles = files.filter((file) => {
+          const validAsset = acceptedUploadMedia.includes(file.type);
+          const noValidMarker =
+            sectionName == uiText.markers && !file.type.includes("image");
+          const valid = validAsset && !noValidMarker;
           if (!valid) {
             notValid.push(file.name);
           }
           return valid;
         });
 
-        handleFileDrop(files);
+        handleFileDrop(validFiles);
         setIsDraggedOver(false);
         notValid.length != 0 &&
           alert(uiText.errors.notValid + notValid.join(", "));
@@ -71,7 +77,11 @@ function Dropzone({
         <input
           type="file"
           multiple
-          accept="image/png, image/jpg, image/jpeg, image/webp"
+          accept={acceptedUploadMedia
+            .map((item) => {
+              return item;
+            })
+            .join(",")}
           onChange={handleFileUpload}
         />
       </label>

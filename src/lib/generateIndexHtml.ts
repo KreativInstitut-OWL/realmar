@@ -19,9 +19,14 @@ export default function generateIndexHTML(
       <a-assets>
 ${files
   .map((file, index) => {
-    const id = `image${index}`;
+    const id = `asset${index}`;
     const src = `${id}.${file.name.split(".").pop()}`;
-    return `<img id="${id}" src="./${src}" alt="${src}" />`;
+    if (file.type.includes("image")) {
+      return `<img id="${id}" src="./${src}" alt="${src}" />`;
+    }
+    if (file.type.includes("video")) {
+      return `<video id="${id}" src="./${src}" alt="${src}" loop="true" autoplay muted />`;
+    }
   })
   .join("\n")}
       </a-assets>
@@ -40,7 +45,7 @@ ${files
           height="${sizes[index].height}"
           id="plane${index}"
           color="#ffffff"
-          src="#image${index}"
+          src="#asset${index}"
         ></a-plane>
 </a-entity>`;
   })
