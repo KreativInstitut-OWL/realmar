@@ -10,7 +10,7 @@ describe("App", () => {
         <App />
       </LanguageProvider>,
     );
-    const appText = screen.getByText("BundlAR");
+    const appText = screen.getByText("BatchAR");
     expect(appText).not.toBeNull();
   });
 });
