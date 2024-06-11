@@ -1,5 +1,4 @@
 footer {
-  margin-top: 5rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,9 +27,12 @@ footer {
     grid-template-rows: 1fr 20px 1fr 20px 1fr;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 0.5rem 2rem;
-    @media (max-width: 480px) {
+    @media (min-width: 480px) {
       display: flex;
       flex-flow: column;
+      .col-span-full {
+        display: none;
+      }
     }
     .socials {
       display: flex;
