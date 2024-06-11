@@ -20,7 +20,7 @@ export function useLanguage(): LanguageContextType {
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
-  const [language, setLanguage] = useState<string>("en"); // default language
+  const [language, setLanguage] = useState<string>("de"); // default language
   return (
     <LanguageContext.Provider value={{ language, setLanguage }}>
       {children}

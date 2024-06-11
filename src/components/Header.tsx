@@ -9,22 +9,22 @@ function Header() {
       <ul className="language-options">
         <li>
           <button
-            onClick={() => setLanguage("en")}
-            className={language == "en" ? "active" : ""}
-          >
-            English
-          </button>
-        </li>
-        <li>
-          <button
             onClick={() => setLanguage("de")}
             className={language == "de" ? "active" : ""}
           >
             Deutsch
           </button>
         </li>
+        <li>
+          <button
+            onClick={() => setLanguage("en")}
+            className={language == "en" ? "active" : ""}
+          >
+            English
+          </button>
+        </li>
       </ul>
-      <h1>BundlAR</h1>
+      <h1>BatchAR</h1>
     </header>
   );
 }
