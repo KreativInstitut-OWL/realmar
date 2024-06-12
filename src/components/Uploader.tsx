@@ -31,6 +31,11 @@ function Uploader({
       .map((file) => ({
         id: URL.createObjectURL(file),
         file,
+        meta: {
+          rotation: 0,
+          faceCam: false,
+          spacing: 0,
+        },
       }));
 
     setFiles((prevFiles: FileType[]) => [...prevFiles, ...fileList]);
@@ -63,6 +68,26 @@ function Uploader({
       return newFiles;
     });
   }
+
+  const updateFileMetadata = (
+    id: string,
+    metadata: { rotation: number; faceCam: boolean; spacing: number },
+  ) => {
+    setFiles((prevFiles) => {
+      return prevFiles.map((file) => {
+        if (file.id === id) {
+          return {
+            ...file,
+            meta: {
+              ...file.meta,
+              ...metadata,
+            },
+          };
+        }
+        return file;
+      });
+    });
+  };
 
   const ref = useRef(null);
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
@@ -99,16 +124,12 @@ function Uploader({
             dragStatus={dragStatus}
             setDragStatus={setDragStatus}
             moveFile={moveFile}
+            updateFileMetadata={updateFileMetadata}
             removeFile={removeFile}
-            sectionName={sectionName}
             isAssetSection={isAssetSection}
           />
         ))}
-      <Dropzone
-        addFiles={addFiles}
-        sectionName={sectionName}
-        isAssetSection={isAssetSection}
-      />
+      <Dropzone addFiles={addFiles} isAssetSection={isAssetSection} />
     </div>
   );
 }

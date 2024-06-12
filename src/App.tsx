@@ -79,14 +79,19 @@ function App() {
 
       const imageSizeValues = await calculateImageValues(markers, images);
       if (!imageSizeValues) return;
+      const meta = images.map((image) => {
+        return image.meta ?? { rotation: 0, faceCam: false, spacing: 0 };
+      });
+      if (typeof meta === undefined) return;
       const indexHtml = generateIndexHtml(
         images.map((image) => image.file),
         imageSizeValues,
+        meta,
       );
       zip.file("index.html", indexHtml);
 
       zip.generateAsync({ type: "blob" }).then((content) => {
-        saveAs(content, "ARbundle.zip");
+        saveAs(content, "ARbatch.zip");
       });
     } catch (error) {
       console.error("Error bundling files: ", error);

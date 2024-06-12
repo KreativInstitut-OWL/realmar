@@ -3,6 +3,7 @@ import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import Preview from "./Preview";
 import DraggableInputMenu from "./DraggableInputMenu";
+import AssetOptions from "./AssetOptions";
 import { useLanguage } from "../LanguageProvider";
 import ui from "../content/ui";
 import {
@@ -20,6 +21,7 @@ function DraggableInput({
   setDragIndex,
   removeFile,
   moveFile,
+  updateFileMetadata,
   isAssetSection,
 }: {
   id: string;
@@ -32,6 +34,7 @@ function DraggableInput({
   setDragStatus: Function;
   removeFile: Function;
   moveFile: Function;
+  updateFileMetadata: Function;
   isAssetSection: boolean;
 }) {
   const { language } = useLanguage();
@@ -42,6 +45,21 @@ function DraggableInput({
   const [isDraggedOver, setIsDraggedOver] = useState<boolean>(false);
   const [edge, setEdge] = useState<Edge | null>(null);
   const [menu, setMenu] = useState<boolean>(false);
+  const [assetOptions, setAssetOptions] = useState<boolean>(false);
+  const [imageRotation, setImageRotation] = useState<number>(0);
+  const [faceCamera, setFaceCamera] = useState<boolean>(false);
+  const [spacing, setSpacing] = useState<number>(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const newMetadata = {
+      rotation: imageRotation,
+      faceCam: faceCamera,
+      spacing: spacing,
+    };
+    updateFileMetadata(id, newMetadata);
+  }, [imageRotation, faceCamera, spacing]);
 
   useEffect(() => {
     const el = ref.current;
@@ -121,18 +139,45 @@ function DraggableInput({
         menu && setMenu(false);
       }}
     >
-      <div>
+      <div className="draggable-input-header">
         <p>
           {isAssetSection ? uiText.asset : uiText.markerDescriptor} {index + 1}
         </p>
+        {isAssetSection && (
+          <button
+            className={`draggable-input-toggle-options ${
+              assetOptions ? "active" : ""
+            }`}
+            onClick={() => {
+              setAssetOptions(!assetOptions);
+              setMenu(false);
+            }}
+          >
+            Options
+          </button>
+        )}
         <button
           className={`draggable-input-toggle-options ${menu ? "active" : ""}`}
-          onClick={() => setMenu(!menu)}
+          onClick={() => {
+            setMenu(!menu);
+            setAssetOptions(false);
+          }}
         >
           ...
         </button>
       </div>
       <Preview src={id} id={id} alt={file.name} fileType={file.type} />
+      {isAssetSection && assetOptions && (
+        <AssetOptions
+          uiText={uiText}
+          imageRotation={imageRotation}
+          setImageRotation={setImageRotation}
+          spacing={spacing}
+          setSpacing={setSpacing}
+          faceCamera={faceCamera}
+          setFaceCamera={setFaceCamera}
+        />
+      )}
       {menu && (
         <DraggableInputMenu
           index={index}

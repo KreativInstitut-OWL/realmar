@@ -12,6 +12,11 @@ describe("generateIndexHTML", () => {
       { width: 1, height: 1 },
       { width: 1, height: 1 },
     ];
+    const meta = [
+      { rotation: 0, faceCam: false, spacing: 0 },
+      { rotation: 0, faceCam: false, spacing: 0 },
+      { rotation: 0, faceCam: false, spacing: 0 },
+    ];
 
     const expectedResult = `<!DOCTYPE html>
     <html lang="en">
@@ -20,6 +25,18 @@ describe("generateIndexHTML", () => {
         <title>AR Experience</title>
 <script src="./aframe.min.js"></script>
 <script src="./mindar-image-aframe.prod.js"></script>
+    <script>
+    AFRAME.registerComponent('look-at', {
+  schema: { type: 'selector' },
+
+  init: function () {},
+
+  tick: function () {
+    this.el.object3D.lookAt(this.data.object3D.position)
+  }
+})
+
+    </script>
     </head>
     <body>
 <a-scene
@@ -37,35 +54,39 @@ describe("generateIndexHTML", () => {
         look-controls="enabled: false"
         cursor="fuse: false; rayOrigin: mouse;"
         raycaster="far: 10000; objects: .clickable"
+        id="camera"
       ></a-camera>
 <a-entity mindar-image-target="targetIndex: 0" id="entity0">
 <a-plane
           position="0 0 0"
+          rotation="0 0 0"
           width="1"
           height="1"
           id="plane0"
           color="#ffffff"
-          src="#asset0"
+          src="#asset0"  
         ></a-plane>
 </a-entity>
 <a-entity mindar-image-target="targetIndex: 1" id="entity1">
 <a-plane
           position="0 0 0"
+          rotation="0 0 0"
           width="1"
           height="1"
           id="plane1"
           color="#ffffff"
-          src="#asset1"
+          src="#asset1"  
         ></a-plane>
 </a-entity>
 <a-entity mindar-image-target="targetIndex: 2" id="entity2">
 <a-plane
           position="0 0 0"
+          rotation="0 0 0"
           width="1"
           height="1"
           id="plane2"
           color="#ffffff"
-          src="#asset2"
+          src="#asset2"  
         ></a-plane>
 </a-entity>
 
@@ -74,7 +95,7 @@ describe("generateIndexHTML", () => {
     </html>
   `;
 
-    const result = generateIndexHTML(files, sizes);
+    const result = generateIndexHTML(files, sizes, meta);
     expect(result).toBe(expectedResult);
   });
 });

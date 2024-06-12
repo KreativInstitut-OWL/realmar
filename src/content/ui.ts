@@ -1,6 +1,6 @@
 const ui = {
   de: {
-    cta: "Bundle",
+    cta: "Batch",
     markers: "Marker",
     markerDescriptor: "Tracking-Marker für Asset ",
     image: "Bild",
@@ -12,7 +12,16 @@ const ui = {
     dropzone: "Ziehe Deine Dateien per Drag & Drop hierher",
     select: "Wähle Deine Dateien",
     calculatingMarkers: "Berechne Tracking-Marker...",
-    bundleFiles: "AR-Bundle packen...",
+    bundleFiles: "AR-Batch packen...",
+    assetOptions: {
+      heading: "Darstellungsoptionen",
+      angle: "Winkel Asset zu Marker",
+      flat: "Flach (0°)",
+      diagonally: "Schräg (45°)",
+      perpendicular: "Senkrecht (90°)",
+      faceCam: "Asset Richtung Kamera ausrichten",
+      spacing: "Abstand ziwschen Asset und Marker",
+    },
     move: {
       up: "Nach oben bewegen",
       down: "Nach unten bewegen",
@@ -29,7 +38,7 @@ const ui = {
     },
   },
   en: {
-    cta: "Bundle",
+    cta: "Batch",
     markers: "Markers",
     markerDescriptor: "Tracking marker for file ",
     image: "Image",
@@ -41,7 +50,16 @@ const ui = {
     dropzone: "Drop your files here",
     select: "Select files manually",
     calculatingMarkers: "Calculating tracking markers...",
-    bundleFiles: "Bundling AR files...",
+    bundleFiles: "Batching AR files...",
+    assetOptions: {
+      heading: "Display options",
+      angle: "Angle between Asset and Marker",
+      flat: "Flat (0°)",
+      diagonally: "Angled (45°)",
+      perpendicular: "Vertical (90°)",
+      faceCam: "Asset faces camera",
+      spacing: "Space between Asset and Marker",
+    },
     move: {
       up: "Move up",
       down: "Move down",
