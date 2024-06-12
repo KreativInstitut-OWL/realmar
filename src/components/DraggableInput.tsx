@@ -20,7 +20,7 @@ function DraggableInput({
   setDragIndex,
   removeFile,
   moveFile,
-  sectionName,
+  isAssetSection,
 }: {
   id: string;
   index: number;
@@ -32,7 +32,7 @@ function DraggableInput({
   setDragStatus: Function;
   removeFile: Function;
   moveFile: Function;
-  sectionName: string;
+  isAssetSection: boolean;
 }) {
   const { language } = useLanguage();
   const uiText = language === "en" ? ui.en : ui.de;
@@ -123,10 +123,7 @@ function DraggableInput({
     >
       <div>
         <p>
-          {sectionName === uiText.assets
-            ? uiText.asset
-            : uiText.markerDescriptor}{" "}
-          {index + 1}
+          {isAssetSection ? uiText.asset : uiText.markerDescriptor} {index + 1}
         </p>
         <button
           className={`draggable-input-toggle-options ${menu ? "active" : ""}`}

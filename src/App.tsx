@@ -183,7 +183,7 @@ function App() {
 
   function handleBundleFiles() {
     if (markers.length === 0 || images.length === 0) {
-      alert("Bitte lade mindestens einen Marker und ein Bild hoch.");
+      alert(uiText.errors.missingPair);
       return;
     }
 
@@ -223,11 +223,13 @@ function App() {
             files={markers}
             setFiles={setMarkers}
             sectionName={uiText.markers}
+            isAssetSection={false}
           />
           <Uploader
             files={images}
             setFiles={setImages}
             sectionName={uiText.assets}
+            isAssetSection={true}
           />
         </section>
       </main>

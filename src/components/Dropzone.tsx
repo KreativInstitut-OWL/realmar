@@ -10,10 +10,10 @@ import { acceptedUploadMedia } from "../content/supported-upload-media";
 
 function Dropzone({
   addFiles,
-  sectionName,
+  isAssetSection,
 }: {
   addFiles: (files: FileList | File[]) => void;
-  sectionName: string;
+  isAssetSection: boolean;
 }) {
   const { language } = useLanguage();
   const uiText = language === "en" ? ui.en : ui.de;
@@ -49,8 +49,7 @@ function Dropzone({
         const notValid: string[] = [];
         const validFiles = files.filter((file) => {
           const validAsset = acceptedUploadMedia.includes(file.type);
-          const noValidMarker =
-            sectionName == uiText.markers && !file.type.includes("image");
+          const noValidMarker = !isAssetSection && !file.type.includes("image");
           const valid = validAsset && !noValidMarker;
           if (!valid) {
             notValid.push(file.name);

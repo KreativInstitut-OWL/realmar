@@ -9,10 +9,12 @@ function Uploader({
   files,
   setFiles,
   sectionName,
+  isAssetSection,
 }: {
   files: FileType[];
   setFiles: Dispatch<SetStateAction<FileType[]>>;
   sectionName: string;
+  isAssetSection: boolean;
 }) {
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragStatus, setDragStatus] = useState<boolean>(false);
@@ -99,9 +101,14 @@ function Uploader({
             moveFile={moveFile}
             removeFile={removeFile}
             sectionName={sectionName}
+            isAssetSection={isAssetSection}
           />
         ))}
-      <Dropzone addFiles={addFiles} sectionName={sectionName} />
+      <Dropzone
+        addFiles={addFiles}
+        sectionName={sectionName}
+        isAssetSection={isAssetSection}
+      />
     </div>
   );
 }
