@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Protected Assets
+public/kio-assets
+public/kio-assets/*
+public/*.svg
+public/*.ico
+public/*.woff2
