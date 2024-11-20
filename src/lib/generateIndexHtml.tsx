@@ -23,6 +23,5 @@ export default function generateIndexHtml(
   flushSync(() => {
     root.render(<ArExperience files={files} sizes={sizes} meta={meta} />);
   });
-  console.log(container);
   return `<!DOCTYPE html>${container.innerHTML}`;
 }
