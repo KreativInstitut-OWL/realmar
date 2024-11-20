@@ -1,4 +1,5 @@
-import { renderToStaticMarkup } from "react-dom/server";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { ArExperience } from "./ArExperience";
 
 export type Size = {
@@ -17,7 +18,11 @@ export default function generateIndexHtml(
   sizes: Size[],
   meta: Meta[]
 ): string {
-  return `<!DOCTYPE html>${renderToStaticMarkup(
-    <ArExperience files={files} sizes={sizes} meta={meta} />
-  )}`;
+  const container = document.createElement("div");
+  const root = createRoot(container);
+  flushSync(() => {
+    root.render(<ArExperience files={files} sizes={sizes} meta={meta} />);
+  });
+  console.log(container);
+  return `<!DOCTYPE html>${container.innerHTML}`;
 }

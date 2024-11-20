@@ -1,5 +1,6 @@
 import React from "react";
 import { Size, Meta } from "./generateIndexHtml";
+import { getPositions } from "./getPositions";
 
 export const ArExperience = ({
   files,
@@ -48,13 +49,22 @@ export const ArExperience = ({
               const id = `asset${index}`;
               const src = `${id}.${file.name.split(".").pop()}`;
               if (file.type.includes("image")) {
-                return <img key={id} id={id} src={`./${src}`} alt={src} />;
+                return (
+                  <img
+                    key={id}
+                    id={id}
+                    data-testid={id}
+                    src={`./${src}`}
+                    alt={src}
+                  />
+                );
               }
               if (file.type.includes("video")) {
                 return (
                   <video
                     key={id}
                     id={id}
+                    data-testid={id}
                     src={`./${src}`}
                     loop
                     autoPlay
@@ -76,6 +86,7 @@ export const ArExperience = ({
               <a-entity
                 mindar-image-target={`targetIndex: ${index}`}
                 id={`entity${index}`}
+                key={`entity${index}`}
               >
                 <a-plane
                   position={`0 0 ${positions[index]}`}
@@ -86,6 +97,7 @@ export const ArExperience = ({
                   color="#ffffff"
                   src={`#asset${index}`}
                   look-at={meta[index].faceCam ? "camera" : undefined}
+                  data-testid={`plane${index}`}
                 />
               </a-entity>
             );
@@ -95,28 +107,6 @@ export const ArExperience = ({
     </html>
   );
 };
-
-function getPositions(meta: Meta[]): number[] {
-  const flatOffset = 0;
-  const diagonalOffset = 0.5;
-  const perpendicularOffset = 0.75;
-
-  const newPositions: number[] = meta.map((entry) => {
-    const rotation = entry.rotation;
-    const spacing = entry.spacing / 100;
-    if (rotation == 0) {
-      return flatOffset + spacing;
-    }
-    if (rotation === 45) {
-      return diagonalOffset + spacing;
-    }
-    if (rotation === 90) {
-      return perpendicularOffset + spacing;
-    }
-    return 0;
-  });
-  return newPositions;
-}
 
 declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
