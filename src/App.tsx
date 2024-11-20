@@ -33,7 +33,7 @@ function App() {
     if (description) {
       description.innerHTML = contentText.description;
     }
-  }, [language]);
+  }, [contentText.description, language]);
 
   useEffect(() => {
     const newErrors: ErrorState = {};
@@ -45,7 +45,13 @@ function App() {
     }
     setNoBundle(Object.keys(newErrors).length > 0);
     setErrors(newErrors);
-  }, [markers, images, language]);
+  }, [
+    markers,
+    images,
+    language,
+    uiText.errors.noInput,
+    uiText.errors.missingPair,
+  ]);
 
   const bundleFiles = async () => {
     try {
@@ -64,7 +70,7 @@ function App() {
       const targets = markers.map((marker) => marker.file);
       const { exportedBuffer } = await compileImageTargets(
         targets,
-        setProgress,
+        setProgress
       );
       zip.file("targets.mind", exportedBuffer);
       markers.forEach((marker, index) => {
@@ -82,11 +88,11 @@ function App() {
       const meta = images.map((image) => {
         return image.meta ?? { rotation: 0, faceCam: false, spacing: 0 };
       });
-      if (typeof meta === undefined) return;
+      if (typeof meta === "undefined") return;
       const indexHtml = generateIndexHtml(
         images.map((image) => image.file),
         imageSizeValues,
-        meta,
+        meta
       );
       zip.file("index.html", indexHtml);
 
@@ -101,7 +107,7 @@ function App() {
 
   const calculateImageValues = async (
     markers: FileType[],
-    images: FileType[],
+    images: FileType[]
   ) => {
     if (markers.length !== images.length) return;
     const imageSizes = [];

@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, Dispatch, SetStateAction } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import Preview from "./Preview";
@@ -29,12 +29,15 @@ function DraggableInput({
   lastIndex: number;
   file: File;
   dragIndex: number | null;
-  setDragIndex: Function;
+  setDragIndex: Dispatch<SetStateAction<number | null>>;
   dragStatus: boolean;
-  setDragStatus: Function;
-  removeFile: Function;
-  moveFile: Function;
-  updateFileMetadata: Function;
+  setDragStatus: Dispatch<SetStateAction<boolean>>;
+  removeFile: (index: number) => void;
+  moveFile: (startIndex: number | null, finishIndex: number) => void;
+  updateFileMetadata: (
+    id: string,
+    metadata: { rotation: number; faceCam: boolean; spacing: number }
+  ) => void;
   isAssetSection: boolean;
 }) {
   const { language } = useLanguage();
@@ -59,7 +62,7 @@ function DraggableInput({
       spacing: spacing,
     };
     updateFileMetadata(id, newMetadata);
-  }, [imageRotation, faceCamera, spacing]);
+  }, [imageRotation, faceCamera, spacing, updateFileMetadata, id]);
 
   useEffect(() => {
     const el = ref.current;
@@ -76,7 +79,7 @@ function DraggableInput({
         setDragIndex(null);
       },
     });
-  }, [dragIndex, index]);
+  }, [dragIndex, index, setDragIndex]);
 
   useEffect(() => {
     const el = ref.current;
@@ -115,19 +118,17 @@ function DraggableInput({
           if (index === lastIndex && thisEdge === "bottom") {
             return index;
           }
-          if (thisEdge === "top") {
-            return index;
-          }
           if (thisEdge === "bottom") {
             return index + 1;
           }
+          return index;
         };
 
         moveFile(dragIndex, dropIndex());
         setEdge(null);
       },
     });
-  }, [dragIndex, index]);
+  }, [dragIndex, index, lastIndex, moveFile]);
 
   return (
     <div

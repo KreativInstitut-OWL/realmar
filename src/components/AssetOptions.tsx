@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef } from "react";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { UiTextLang } from "../../types/types";
 
@@ -13,11 +13,11 @@ function AssetOptions({
 }: {
   uiText: UiTextLang;
   imageRotation: number;
-  setImageRotation: Function;
+  setImageRotation: Dispatch<SetStateAction<number>>;
   faceCamera: boolean;
-  setFaceCamera: Function;
+  setFaceCamera: Dispatch<SetStateAction<boolean>>;
   spacing: number;
-  setSpacing: Function;
+  setSpacing: Dispatch<SetStateAction<number>>;
 }) {
   const ref = useRef(null);
 

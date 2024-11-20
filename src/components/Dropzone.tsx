@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useLanguage } from "../LanguageProvider";
 import ui from "../content/ui";
 import {
@@ -27,9 +27,12 @@ function Dropzone({
     addFiles(files);
   };
 
-  const handleFileDrop = (files: File[]) => {
-    addFiles(files);
-  };
+  const handleFileDrop = useCallback(
+    (files: File[]) => {
+      addFiles(files);
+    },
+    [addFiles]
+  );
 
   useEffect(() => {
     const el = ref.current;
@@ -63,7 +66,7 @@ function Dropzone({
           alert(uiText.errors.notValid + notValid.join(", "));
       },
     });
-  }, []);
+  }, [isAssetSection, uiText.errors.notValid, handleFileDrop]);
 
   return (
     <div

@@ -1,3 +1,5 @@
+import { Dispatch, SetStateAction } from "react";
+
 function DraggableInputMenu({
   index,
   lastIndex,
@@ -8,9 +10,9 @@ function DraggableInputMenu({
 }: {
   index: number;
   lastIndex: number;
-  removeFile: Function;
-  moveFile: Function;
-  setMenu: Function;
+  removeFile: (index: number) => void;
+  moveFile: (startIndex: number | null, finishIndex: number) => void;
+  setMenu: Dispatch<SetStateAction<boolean>>;
   uiText: {
     move: {
       up: string;

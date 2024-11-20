@@ -5,14 +5,17 @@ const compiler = new Compiler();
 
 const loadImage = async (file: File) => {
   return new Promise<HTMLImageElement>((resolve, reject) => {
-    let img = new Image();
+    const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
   });
 };
 
-const compileImageTargets = async (files: File[], setProgress: Function) => {
+const compileImageTargets = async (
+  files: File[],
+  setProgress: (progress: number) => void
+) => {
   const images: HTMLImageElement[] = [];
   for (let i = 0; i < files.length; i++) {
     images.push(await loadImage(files[i]));
@@ -21,9 +24,9 @@ const compileImageTargets = async (files: File[], setProgress: Function) => {
     images,
     (progress: number) => {
       setProgress(progress);
-    },
+    }
   );
-  const exportedBuffer = await compiler.exportData();
+  const exportedBuffer = compiler.exportData();
   return { dataList, exportedBuffer };
 };
 
