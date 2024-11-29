@@ -33,7 +33,7 @@ function DraggableInput({
   dragStatus: boolean;
   setDragStatus: Dispatch<SetStateAction<boolean>>;
   removeFile: (index: number) => void;
-  moveFile: (startIndex: number | null, finishIndex: number) => void;
+  moveFile: (fromIndex: number | null, toIndex: number) => void;
   updateFileMetadata: (
     id: string,
     metadata: { rotation: number; faceCam: boolean; spacing: number }

@@ -11,7 +11,7 @@ function DraggableInputMenu({
   index: number;
   lastIndex: number;
   removeFile: (index: number) => void;
-  moveFile: (startIndex: number | null, finishIndex: number) => void;
+  moveFile: (fromIndex: number | null, toIndex: number) => void;
   setMenu: Dispatch<SetStateAction<boolean>>;
   uiText: {
     move: {

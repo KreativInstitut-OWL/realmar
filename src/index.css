@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+  @font-face {
+    font-family: "T-StarTW";
+    src: url("/T-StarTW-Medium.woff2") format("woff2");
+    font-weight: 500;
+  }
+
+  body {
+    @apply font-sans bg-gray-100 min-h-[100lvh] min-w-[100vw] bg-cover bg-center bg-fixed;
+    /* background-image: url(/kio-assets/kio_layer1_background_o.svg); */
+
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  * {
+    @apply ring-black dark:ring-gray-50;
+  }
+}

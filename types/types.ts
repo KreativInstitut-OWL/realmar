@@ -1,4 +1,6 @@
-export type FileType = {
+export type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
+
+export type Asset = {
   id: string;
   file: File;
   meta?: {
@@ -52,4 +54,9 @@ export type UiTextLang = {
     missingPair: string;
     notValid: string;
   };
+};
+export type Item = {
+  id: string;
+  marker?: File;
+  assets: Asset[];
 };

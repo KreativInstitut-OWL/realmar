@@ -1,58 +1,79 @@
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRightFromLine, ScanIcon } from "lucide-react";
 import { useState } from "react";
-import { ErrorState, FileType } from "../types/types";
-import Footer from "./components/Footer";
-import Header from "./components/Header";
-import ProgressToast from "./components/ProgressToast";
-import Uploader from "./components/Uploader";
-import content from "./content/content";
-import ui from "./content/ui";
-import { useLanguage } from "./LanguageProvider";
+import { useForm } from "react-hook-form";
+import ItemFieldArray from "./components/ItemFieldArray";
+import { Button } from "./components/ui/button";
+import { Form } from "./components/ui/form";
 import generateIndexHtml from "./lib/generateIndexHtml";
 import compileImageTargets from "./lib/uploadAndCompile";
+import { AppState, appStateSchema, Asset, getDefaultAppState } from "./schema";
 
 function App() {
-  const [markers, setMarkers] = useState<FileType[]>([]);
-  const [images, setImages] = useState<FileType[]>([]);
-  const [progress, setProgress] = useState<number>(0);
+  const [exportProgress, setExportProgress] = useState<number>(0);
 
-  const { language } = useLanguage();
-  const uiText = language === "en" ? ui.en : ui.de;
-  const contentText = language === "en" ? content.en : content.de;
+  const form = useForm<AppState>({
+    resolver: zodResolver(appStateSchema),
+    defaultValues: getDefaultAppState(),
+  });
 
-  const renameFile = (file: File, index: number) => {
-    const fileExtension = file.name.split(".").pop();
-    return `target${index}.${fileExtension}`;
-  };
-
-  const errors: ErrorState = {};
-  if (markers.length <= 0 && images.length <= 0) {
-    errors.noInput = uiText.errors.noInput;
-  }
-  if (markers.length !== images.length) {
-    errors.missingPair = uiText.errors.missingPair;
+  function onExport(appState: AppState) {
+    console.log(appState);
+    // bundleFiles(markers, setExportProgress, renameFile, images);
   }
 
-  const hasErrors = Object.keys(errors).length > 0;
+  // const { language } = useLanguage();
+  // const uiText = language === "en" ? ui.en : ui.de;
+  // const contentText = language === "en" ? content.en : content.de;
 
-  function handleBundleFiles() {
-    if (markers.length === 0 || images.length === 0) {
-      alert(uiText.errors.missingPair);
-      return;
-    }
+  // const renameFile = (file: File, index: number) => {
+  //   const fileExtension = file.name.split(".").pop();
+  //   return `target${index}.${fileExtension}`;
+  // };
 
-    bundleFiles(markers, setProgress, renameFile, images);
-  }
+  // const errors: ErrorState = {};
+  // if (markers.length <= 0 && images.length <= 0) {
+  //   errors.noInput = uiText.errors.noInput;
+  // }
+  // if (markers.length !== images.length) {
+  //   errors.missingPair = uiText.errors.missingPair;
+  // }
+
+  // const hasErrors = Object.keys(errors).length > 0;
+
+  // function handleBundleFiles() {
+  // if (markers.length === 0 || images.length === 0) {
+  //   alert(uiText.errors.missingPair);
+  //   return;
+  // }
+
+  // }
 
   return (
-    <>
-      <Header />
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onExport)} className="contents">
+        {/* <Header /> */}
 
-      <main className="container">
-        <section className="info-area">
+        <header className="z-50 flex gap-8 px-8 h-14 items-center sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+          <div className="text-lg bg-black text-white pt-[.1em] px-[.5em]">
+            Batch<span className="text-primary">AR</span>
+          </div>
+          <Button type="submit" className="ml-auto">
+            Export
+            <ArrowRightFromLine />
+          </Button>
+        </header>
+
+        <main className="flex flex-col min-h-lvh gap-8 m-8">
+          {/* <aside className="prose prose-gray">
           <h2>{contentText.title}</h2>
-          <div id="description">{contentText.description}</div>
+          <div
+            id="description"
+            dangerouslySetInnerHTML={{ __html: contentText.description }}
+          />
           <div className="bundle-area">
             <button
               className="btn btn-primary"
@@ -72,30 +93,23 @@ function App() {
               </div>
             ))}
           </div>
-        </section>
-        <section className="upload">
-          <Uploader
-            files={markers}
-            setFiles={setMarkers}
-            sectionName={uiText.markers}
-            isAssetSection={false}
-          />
-          <Uploader
-            files={images}
-            setFiles={setImages}
-            sectionName={uiText.assets}
-            isAssetSection={true}
-          />
-        </section>
-      </main>
-      <Footer />
-    </>
+        </aside> */}
+          <section className="">
+            <ItemFieldArray />
+          </section>
+
+          <section className=""></section>
+        </main>
+
+        {/* <Footer /> */}
+      </form>
+    </Form>
   );
 }
 
 export default App;
 
-async function calculateImageValues(markers: FileType[], images: FileType[]) {
+async function calculateImageValues(markers: Asset[], images: Asset[]) {
   if (markers.length !== images.length) return;
   const imageSizes = [];
   for (let i = 0; i < markers.length; i++) {
@@ -155,10 +169,10 @@ async function calculateImageValues(markers: FileType[], images: FileType[]) {
 }
 
 async function bundleFiles(
-  markers: FileType[],
+  markers: Asset[],
   setProgress: (progress: number) => void,
   renameFile: (file: File, index: number) => string,
-  images: FileType[]
+  images: Asset[]
 ) {
   try {
     const zip = new JSZip();
@@ -208,7 +222,7 @@ async function bundleFiles(
   setTimeout(() => setProgress(0), 1000);
 }
 
-const getAspectRatio = (file: FileType) => {
+const getAspectRatio = (file: Asset) => {
   return new Promise((resolve, reject) => {
     if (file.file.type.includes("image")) {
       const img = new Image();
