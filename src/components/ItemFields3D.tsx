@@ -1,14 +1,14 @@
 import { AppState } from "@/schema";
 
+import { degreesToRadians, radiansToDegrees } from "@/lib/math";
+import { Move3D } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
-import { Input } from "./ui/input";
-import { degreesToRadians, radiansToDegrees } from "@/lib/math";
+import { InputNumber } from "./ui/input-number";
+import { Label } from "./ui/label";
 
 export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
   const form = useFormContext<AppState>();
-
-  const item = form.watch(`items.${itemIndex}`);
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,10 +46,12 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
             `items.${itemIndex}.${vectorType}` as `items.${number}.rotation`
           }
           render={() => (
-            <FormItem>
-              <FormLabel>
-                {vectorType.charAt(0).toUpperCase() + vectorType.slice(1)}
-              </FormLabel>
+            <div>
+              <Label asChild className="text-lg">
+                <span>
+                  <Move3D className="size-4" />
+                </span>
+              </Label>
               <div className="grid grid-cols-3 gap-4">
                 {["x", "y", "z"].map((axis) => (
                   <FormField
@@ -60,27 +62,39 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
                     }
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="sr-only">{`${vectorType} ${axis}`}</FormLabel>
+                        <FormLabel>
+                          <span className="sr-only">{vectorType}</span>
+                          {axis.toUpperCase()}
+                        </FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            placeholder={axis.toUpperCase()}
+                          <InputNumber
                             step={0.1}
+                            formatOptions={
+                              vectorType === "rotation"
+                                ? {
+                                    style: "unit",
+                                    unit: "degree",
+                                    unitDisplay: "narrow",
+                                    maximumFractionDigits: 5,
+                                  }
+                                : {
+                                    style: "decimal",
+                                    maximumFractionDigits: 5,
+                                  }
+                            }
                             {...field}
                             value={
                               vectorType === "rotation"
                                 ? radiansToDegrees(field.value)
                                 : field.value
                             }
-                            onChange={(e) =>
+                            onChange={(value) =>
                               field.onChange(
-                                e.target.value === ""
+                                value === null
                                   ? 0
                                   : vectorType === "rotation"
-                                  ? degreesToRadians(
-                                      Number.parseFloat(e.target.value)
-                                    )
-                                  : Number.parseFloat(e.target.value)
+                                  ? degreesToRadians(value)
+                                  : value
                               )
                             }
                           />
@@ -90,7 +104,7 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
                   />
                 ))}
               </div>
-            </FormItem>
+            </div>
           )}
         />
       ))}

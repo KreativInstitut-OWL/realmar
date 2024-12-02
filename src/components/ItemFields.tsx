@@ -157,6 +157,7 @@ export function ItemFields({
               <TabsContent value="settings" className="mt-6">
                 <div>
                   <Item3dEditor
+                    id={item.id}
                     lookAt={
                       form.watch(`items.${itemIndex}.lookAt`) === "camera"
                         ? "camera"

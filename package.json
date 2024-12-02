@@ -11,6 +11,7 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@ark-ui/react": "^4.4.4",
     "@atlaskit/pragmatic-drag-and-drop": "^1.1.7",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.0.3",
     "@hookform/resolvers": "^3.9.1",

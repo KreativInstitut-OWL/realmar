@@ -29,6 +29,7 @@ function ItemFieldArray() {
       </ul>
       <div className="mt-8">
         <Button
+          type="button"
           variant="outline"
           onClick={() => {
             append(getDefaultItem());

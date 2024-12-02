@@ -24,7 +24,6 @@ interface Item3dEditorProps {
 }
 
 function Asset({
-  id,
   rotation: rotationProp,
   position: positionProp,
   onPositionChange,
@@ -152,8 +151,6 @@ function MarkerObject({ id }: { id: string }) {
 
     return texture;
   }, [id]);
-
-  console.log(renderedMarkerTexture);
 
   return (
     <mesh renderOrder={-1}>
