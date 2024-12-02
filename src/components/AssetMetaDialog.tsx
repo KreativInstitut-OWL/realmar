@@ -6,7 +6,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CogIcon } from "lucide-react";
-import { AssetMetaForm } from "./AssetMetaForm";
+import { ItemFields3D } from "./ItemFields3D";
 import { Button } from "./ui/button";
 
 export function AssetMetaDialog() {
@@ -21,7 +21,7 @@ export function AssetMetaDialog() {
         <DialogHeader>
           <DialogTitle>Asset Settings</DialogTitle>
         </DialogHeader>
-        <AssetMetaForm />
+        <ItemFields3D />
       </DialogContent>
     </Dialog>
   );

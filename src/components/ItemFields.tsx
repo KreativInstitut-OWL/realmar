@@ -18,10 +18,11 @@ import {
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import AlertDialogConfirmRemove from "./AlertDialogConfirmRemove";
-import { AssetMetaForm } from "./AssetMetaForm";
+import { ItemFields3D } from "./ItemFields3D";
 import { ItemAssetFieldArray } from "./ItemAssetFieldArray";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import Item3dEditor from "./Item3dEditor";
 
 export function ItemFields({
   itemIndex,
@@ -139,7 +140,7 @@ export function ItemFields({
           </div>
 
           <div className="col-span-5">
-            <Tabs defaultValue="assets">
+            <Tabs defaultValue="settings">
               <TabsList>
                 <TabsTrigger value="assets">
                   <ImagesIcon className="size-5 mr-3" />
@@ -154,7 +155,28 @@ export function ItemFields({
                 <ItemAssetFieldArray itemIndex={itemIndex} />
               </TabsContent>
               <TabsContent value="settings" className="mt-6">
-                <AssetMetaForm />
+                <div>
+                  <Item3dEditor
+                    lookAt={
+                      form.watch(`items.${itemIndex}.lookAt`) === "camera"
+                        ? "camera"
+                        : undefined
+                    }
+                    rotation={form.watch(`items.${itemIndex}.rotation`)}
+                    position={form.watch(`items.${itemIndex}.position`)}
+                    onPositionChange={({ x, y, z }) => {
+                      form.setValue(`items.${itemIndex}.position.x`, x);
+                      form.setValue(`items.${itemIndex}.position.y`, y);
+                      form.setValue(`items.${itemIndex}.position.z`, z);
+                    }}
+                    onRotationChange={({ x, y, z }) => {
+                      form.setValue(`items.${itemIndex}.rotation.x`, x);
+                      form.setValue(`items.${itemIndex}.rotation.y`, y);
+                      form.setValue(`items.${itemIndex}.rotation.z`, z);
+                    }}
+                  />
+                </div>
+                <ItemFields3D itemIndex={itemIndex} />
               </TabsContent>
             </Tabs>
           </div>

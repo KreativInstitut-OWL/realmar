@@ -34,7 +34,7 @@ export const getDefaultItem = () => itemSchema.parse({});
 export type Item = z.infer<typeof itemSchema>;
 
 export const appStateSchema = z.object({
-  items: z.array(itemSchema).default([]),
+  items: z.array(itemSchema).default(() => [getDefaultItem()]),
 });
 
 export type AppState = z.infer<typeof appStateSchema>;
