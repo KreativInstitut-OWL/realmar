@@ -1,7 +1,7 @@
 import { AppState } from "@/schema";
 
 import { degreesToRadians, radiansToDegrees } from "@/lib/math";
-import { Move3D } from "lucide-react";
+import { Move3D, Rotate3D, Scale3D } from "lucide-react";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { InputNumber } from "./ui/input-number";
@@ -11,7 +11,7 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
   const form = useFormContext<AppState>();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col divide-y">
       {/* <FormField
         control={form.control}
         name={`items.${itemIndex}.lookAt`}
@@ -46,11 +46,21 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
             `items.${itemIndex}.${vectorType}` as `items.${number}.rotation`
           }
           render={() => (
-            <div>
-              <Label asChild className="text-lg">
-                <span>
-                  <Move3D className="size-4" />
-                </span>
+            <div className="flex flex-col py-6">
+              <Label className="flex gap-3 items-center text-lg">
+                {vectorType === "rotation" ? (
+                  <>
+                    <Rotate3D className="size-4" /> Rotation
+                  </>
+                ) : vectorType === "position" ? (
+                  <>
+                    <Move3D className="size-4" /> Position
+                  </>
+                ) : (
+                  <>
+                    <Scale3D className="size-4" /> Scale
+                  </>
+                )}
               </Label>
               <div className="grid grid-cols-3 gap-4">
                 {["x", "y", "z"].map((axis) => (

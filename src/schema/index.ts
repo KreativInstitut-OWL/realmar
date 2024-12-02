@@ -24,8 +24,12 @@ export const itemSchema = z.object({
   id: z.string().default(() => nanoid(NANOID_LENGTH)),
   assets: z.array(assetSchema).default([]),
   marker: z.instanceof(File).nullable().default(null),
+
+  // transforms:
   position: vector3Schema,
   rotation: vector3Schema,
+  scale: vector3Schema.default({ x: 1, y: 1, z: 1 }),
+
   lookAt: z.enum(["camera"]).nullable().default(null),
 });
 
