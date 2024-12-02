@@ -3,6 +3,7 @@ import { AppState } from "@/schema";
 import { useFormContext } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
+import { degreesToRadians, radiansToDegrees } from "@/lib/math";
 
 export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
   const form = useFormContext<AppState>();
@@ -66,10 +67,19 @@ export function ItemFields3D({ itemIndex }: { itemIndex: number }) {
                             placeholder={axis.toUpperCase()}
                             step={0.1}
                             {...field}
+                            value={
+                              vectorType === "rotation"
+                                ? radiansToDegrees(field.value)
+                                : field.value
+                            }
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value === ""
                                   ? 0
+                                  : vectorType === "rotation"
+                                  ? degreesToRadians(
+                                      Number.parseFloat(e.target.value)
+                                    )
                                   : Number.parseFloat(e.target.value)
                               )
                             }

@@ -8,9 +8,13 @@ import {
 } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import * as THREE from "three";
+import { Marker } from "./Marker";
 
 interface Item3dEditorProps {
+  id: string;
   lookAt?: "camera";
   rotation: Vector3;
   position: Vector3;
@@ -20,6 +24,7 @@ interface Item3dEditorProps {
 }
 
 function Asset({
+  id,
   rotation: rotationProp,
   position: positionProp,
   onPositionChange,
@@ -114,7 +119,56 @@ function Asset({
   );
 }
 
+const MARKER_TEXTURE_SIZE = 128;
+
+function MarkerObject({ id }: { id: string }) {
+  const renderedMarkerTexture = useMemo(() => {
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    flushSync(() => {
+      root.render(<Marker id={id ?? ""} />);
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = MARKER_TEXTURE_SIZE;
+    canvas.height = MARKER_TEXTURE_SIZE;
+    const ctx = canvas.getContext("2d");
+
+    const img = document.createElement("img");
+    img.setAttribute(
+      "src",
+      "data:image/svg+xml;base64," + btoa(container.innerHTML)
+    );
+    img.width = MARKER_TEXTURE_SIZE;
+    img.height = MARKER_TEXTURE_SIZE;
+
+    const texture = new THREE.Texture(canvas);
+
+    img.onload = function () {
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      texture.needsUpdate = true;
+    };
+
+    return texture;
+  }, [id]);
+
+  console.log(renderedMarkerTexture);
+
+  return (
+    <mesh renderOrder={-1}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        map={renderedMarkerTexture}
+        side={THREE.DoubleSide}
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
+
 export default function Item3dEditor({
+  id,
   lookAt,
   rotation,
   position,
@@ -128,7 +182,9 @@ export default function Item3dEditor({
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
         <axesHelper args={[1]} />
         <OrbitControls makeDefault />
+        <MarkerObject id={id} />
         <Asset
+          id={id}
           lookAt={lookAt}
           rotation={rotation}
           position={position}
