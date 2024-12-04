@@ -14,7 +14,7 @@ import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedMarker } from "./GeneratedMarker";
 
-interface Item3dEditorProps {
+interface ItemArrangeEditorProps {
   id: string;
   lookAt?: "camera";
   rotation: Vector3;
@@ -199,7 +199,7 @@ function TransformableAssets({
   onScaleChange,
   assets,
   shouldPlayAnimation,
-}: Item3dEditorProps) {
+}: ItemArrangeEditorProps) {
   const matrixProp = useTransformsAsMatrix(
     positionProp,
     rotationProp,
@@ -353,7 +353,7 @@ function MarkerObject({ id }: { id: string }) {
   );
 }
 
-export default function Item3dEditor(props: Item3dEditorProps) {
+export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
   return (
     <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
       <Canvas camera={{ position: [2, 2, 2] }}>

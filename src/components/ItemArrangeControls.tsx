@@ -12,7 +12,7 @@ import {
 import { InputNumber } from "./ui/input-number";
 import { Switch } from "./ui/switch";
 
-export function ItemFieldsArrange({ itemIndex }: { itemIndex: number }) {
+export function ItemArrangeControls({ itemIndex }: { itemIndex: number }) {
   const form = useAppState();
 
   const lookAt = form.watch(`items.${itemIndex}.lookAt`);
