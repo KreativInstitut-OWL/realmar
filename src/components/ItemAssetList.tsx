@@ -4,13 +4,14 @@ import {
   DropzoneDragAcceptContent,
   DropzoneProvider,
 } from "@/components/ui/dropzone";
-import { AppState, assetSchema } from "@/schema";
+import { assetSchema } from "@/schema";
 import { ImagePlusIcon } from "lucide-react";
-import { useFieldArray, useFormContext } from "react-hook-form";
-import { ItemAssetFields } from "./ItemAssetFields";
+import { useFieldArray } from "react-hook-form";
+import { useAppState } from "./AppState";
+import { ItemAsset } from "./ItemAsset";
 
-export function ItemAssetFieldArray({ itemIndex }: { itemIndex: number }) {
-  const form = useFormContext<AppState>();
+export function ItemAssetList({ itemIndex }: { itemIndex: number }) {
+  const form = useAppState();
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -22,7 +23,7 @@ export function ItemAssetFieldArray({ itemIndex }: { itemIndex: number }) {
       {fields.length > 0 ? (
         <div className=" divide-gray-100 divide-y">
           {fields.map((asset, assetIndex) => (
-            <ItemAssetFields
+            <ItemAsset
               key={asset.id}
               itemIndex={itemIndex}
               assetIndex={assetIndex}
@@ -40,16 +41,21 @@ export function ItemAssetFieldArray({ itemIndex }: { itemIndex: number }) {
         </div>
       )}
       <DropzoneProvider
+        accept={{ "image/*": [], "model/*": [".glb"] }}
         onDrop={(files) => {
           append(files.map((file) => assetSchema.parse({ file })));
         }}
       >
-        <Dropzone className="group p-2 mt-12">
+        <Dropzone className="group p-8 mt-12">
           <DropzoneContent>
-            <ImagePlusIcon className="size-5 mr-6" />
-            Add one or more assets to this marker by dropping them here.
-            <br />
-            You can also click to select files.
+            <ImagePlusIcon className="size-5 mb-4" />
+            <div>
+              Add one or more assets to this marker by dropping them here or
+              click to select files.
+            </div>
+            <div className="text-gray-400">
+              Supported file types: images and 3D models (*.glb)
+            </div>
           </DropzoneContent>
           <DropzoneDragAcceptContent>
             Drop assets here to add them to this marker…

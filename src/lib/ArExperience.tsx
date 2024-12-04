@@ -19,7 +19,7 @@ export const ArExperience = ({
         <meta charSet="UTF-8" />
         <title>AR Experience</title>
         <script src="./aframe.min.js" />
-        <script src="./mindar-image-aframe.prod.js"></script>
+        <script src="./mindar-image-aframe.prod.js" />
         <script
           dangerouslySetInnerHTML={{
             __html: /* js */ `
@@ -36,7 +36,7 @@ export const ArExperience = ({
               .replace(/\n/g, "")
               .replace(/\s+/g, " "),
           }}
-        ></script>
+        />
       </head>
       <body>
         <a-scene

@@ -1,24 +1,15 @@
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRightFromLine, ScanIcon } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import ItemFieldArray from "./components/ItemFieldArray";
-import { Button } from "./components/ui/button";
-import { Form } from "./components/ui/form";
+import AppLayout from "./components/AppLayout";
+import { AppStateProvider } from "./components/AppState";
 import generateIndexHtml from "./lib/generateIndexHtml";
 import compileImageTargets from "./lib/uploadAndCompile";
-import { AppState, appStateSchema, Asset, getDefaultAppState } from "./schema";
+import { AppState, Asset } from "./schema";
 
 function App() {
   const [exportProgress, setExportProgress] = useState<number>(0);
-
-  const form = useForm<AppState>({
-    resolver: zodResolver(appStateSchema),
-    defaultValues: getDefaultAppState(),
-  });
 
   function onExport(appState: AppState) {
     console.log(appState);
@@ -53,57 +44,9 @@ function App() {
   // }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onExport)} className="contents">
-        {/* <Header /> */}
-
-        <header className="z-50 flex gap-8 px-8 h-14 items-center sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-100">
-          <div className="text-lg bg-black text-white pt-[.1em] px-[.5em]">
-            Batch<span className="text-primary">AR</span>
-          </div>
-          <Button type="submit" className="ml-auto">
-            Export
-            <ArrowRightFromLine />
-          </Button>
-        </header>
-
-        <main className="flex flex-col min-h-lvh gap-8 m-8">
-          {/* <aside className="prose prose-gray">
-          <h2>{contentText.title}</h2>
-          <div
-            id="description"
-            dangerouslySetInnerHTML={{ __html: contentText.description }}
-          />
-          <div className="bundle-area">
-            <button
-              className="btn btn-primary"
-              onClick={handleBundleFiles}
-              disabled={hasErrors || progress > 0}
-            >
-              {uiText.cta}!
-            </button>
-
-            {progress > 0 && (
-              <ProgressToast progress={progress} uiText={uiText} />
-            )}
-
-            {Object.keys(errors).map((error, i) => (
-              <div key={i} className="info info-attention fade-in">
-                <p>{errors[error]}</p>
-              </div>
-            ))}
-          </div>
-        </aside> */}
-          <section className="">
-            <ItemFieldArray />
-          </section>
-
-          <section className=""></section>
-        </main>
-
-        {/* <Footer /> */}
-      </form>
-    </Form>
+    <AppStateProvider onExport={onExport}>
+      <AppLayout />
+    </AppStateProvider>
   );
 }
 

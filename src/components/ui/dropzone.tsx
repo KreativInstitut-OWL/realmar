@@ -94,7 +94,15 @@ const DropzoneContent = ({
 
   if (dropzoneState.isDragAccept) return null;
 
-  if (children) return children;
+  if (children)
+    return (
+      <div
+        className={cn("flex items-center flex-col gap-1.5", className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
 
   return (
     <div

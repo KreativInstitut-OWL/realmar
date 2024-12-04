@@ -31,16 +31,26 @@ export const itemSchema = z.object({
   scale: vector3Schema.default({ x: 1, y: 1, z: 1 }),
 
   lookAt: z.enum(["camera"]).nullable().default(null),
+  isUniformScale: z.boolean().default(true),
+  shouldPlayAnimation: z.boolean().default(false),
 });
 
 export const getDefaultItem = () => itemSchema.parse({});
 
 export type Item = z.infer<typeof itemSchema>;
 
-export const appStateSchema = z.object({
-  items: z.array(itemSchema).default(() => [getDefaultItem()]),
-});
+export const appStateSchema = z
+  .object({
+    items: z.array(itemSchema).default([]),
+    selectedItemId: z.string().nullable().default(null),
+  })
+  .default(() => {
+    const item = getDefaultItem();
+    const item2 = getDefaultItem();
+    const item3 = getDefaultItem();
+    return { items: [item, item2, item3], selectedItemId: item.id };
+  });
 
 export type AppState = z.infer<typeof appStateSchema>;
 
-export const getDefaultAppState = () => appStateSchema.parse({});
+export const getDefaultAppState = () => appStateSchema.parse(undefined);

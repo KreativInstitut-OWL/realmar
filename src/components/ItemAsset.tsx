@@ -1,12 +1,10 @@
 import { byteFormatter } from "@/lib/utils";
-import { AppState } from "@/schema";
 import { FileIcon, Trash2Icon } from "lucide-react";
 import { useMemo } from "react";
-import { useFormContext } from "react-hook-form";
-import { AssetMetaDialog } from "./AssetMetaDialog";
 import { Button } from "./ui/button";
+import { useAppState } from "./AppState";
 
-export function ItemAssetFields({
+export function ItemAsset({
   itemIndex,
   assetIndex,
   onRemove,
@@ -15,7 +13,7 @@ export function ItemAssetFields({
   itemIndex: number;
   onRemove: () => void;
 }) {
-  const form = useFormContext<AppState>();
+  const form = useAppState();
 
   const asset = form.watch(`items.${itemIndex}.assets.${assetIndex}`);
 
@@ -38,7 +36,6 @@ export function ItemAssetFields({
         </span>
       </div>
       <div className="flex gap-2 ml-auto">
-        <AssetMetaDialog />
         <Button
           variant="outline"
           size="icon"

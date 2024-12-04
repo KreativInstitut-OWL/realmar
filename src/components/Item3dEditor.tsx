@@ -1,4 +1,4 @@
-import { Vector3 } from "@/schema";
+import { Asset, Vector3 } from "@/schema";
 import {
   GizmoHelper,
   GizmoViewport,
@@ -6,51 +6,209 @@ import {
   OrbitControls,
   PivotControls,
 } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import * as THREE from "three";
-import { Marker } from "./Marker";
+import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { GeneratedMarker } from "./GeneratedMarker";
 
 interface Item3dEditorProps {
   id: string;
   lookAt?: "camera";
   rotation: Vector3;
   position: Vector3;
+  scale: Vector3;
   onPositionChange: (newPosition: Vector3) => void;
   onRotationChange: (newRotation: Vector3) => void;
-  transformMode?: "translate" | "rotate" | "scale";
+  onScaleChange: (newScale: Vector3) => void;
+  assets: Asset[];
+  shouldPlayAnimation: boolean;
+  marker: File | null;
 }
 
-function Asset({
+const EulerNull = new THREE.Euler(0, 0, 0);
+
+function useTransformsAsMatrix(
+  position: Vector3,
+  rotation: Vector3,
+  scale: Vector3,
+  lookAt: "camera" | undefined
+): THREE.Matrix4 {
+  return useMemo(() => {
+    const matrix = new THREE.Matrix4();
+    if (lookAt !== "camera") {
+      matrix.makeRotationFromEuler(
+        new THREE.Euler(rotation.x, rotation.y, rotation.z)
+      );
+    }
+    matrix.setPosition(new THREE.Vector3(position.x, position.y, position.z));
+    matrix.scale(new THREE.Vector3(scale.x, scale.y, scale.z));
+
+    return matrix;
+  }, [
+    lookAt,
+    position.x,
+    position.y,
+    position.z,
+    rotation.x,
+    rotation.y,
+    rotation.z,
+    scale.x,
+    scale.y,
+    scale.z,
+  ]);
+}
+
+type TextureImageDimensions = {
+  width: number;
+  height: number;
+  aspectRatio: number;
+};
+
+const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
+  ({ asset }, ref) => {
+    const [dimensions, setDimensions] = useState<TextureImageDimensions>();
+
+    const texture = useMemo(() => {
+      return new THREE.TextureLoader().load(
+        URL.createObjectURL(asset.file),
+        (texture) => {
+          setDimensions({
+            width: texture.image.width,
+            height: texture.image.height,
+            aspectRatio: texture.image.width / texture.image.height,
+          });
+        }
+      );
+    }, [asset.file]);
+
+    if (!texture || !dimensions) {
+      return null;
+    }
+
+    return (
+      <mesh ref={ref}>
+        <planeGeometry
+          args={[
+            dimensions.width / Math.max(dimensions.width, dimensions.height),
+            dimensions.height / Math.max(dimensions.width, dimensions.height),
+          ]}
+        />
+        <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      </mesh>
+    );
+  }
+);
+
+const GltfAsset = forwardRef<
+  THREE.Mesh,
+  { asset: Asset; shouldPlayAnimation: boolean }
+>(({ asset, shouldPlayAnimation }, ref) => {
+  const [gltf, setGltf] = useState<GLTF>();
+  const [mixer, setMixer] = useState<THREE.AnimationMixer>();
+
+  useEffect(() => {
+    let isMounted = true;
+    const reader = new FileReader();
+    reader.onload = function () {
+      if (!reader.result || !isMounted) return;
+      const gltfLoader = new GLTFLoader();
+      gltfLoader.parse(reader.result, "/", (gltf) => {
+        if (!isMounted) return;
+        setGltf(gltf);
+
+        if (gltf.animations.length) {
+          const mixer = new THREE.AnimationMixer(gltf.scene);
+          setMixer(mixer);
+          const action = mixer.clipAction(gltf.animations[0]);
+          action.play();
+        } else {
+          setMixer(undefined);
+        }
+      });
+    };
+    reader.readAsArrayBuffer(asset.file);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [asset]);
+
+  useEffect(() => {
+    if (!shouldPlayAnimation && mixer) {
+      mixer.setTime(0);
+      mixer.update(0);
+    }
+  }, [shouldPlayAnimation, mixer]);
+
+  useFrame((_, delta) => {
+    if (shouldPlayAnimation && mixer) {
+      mixer.update(delta);
+    }
+  });
+
+  if (!gltf) {
+    return null;
+  }
+
+  console.log(gltf.animations);
+
+  return (
+    <mesh ref={ref}>
+      <primitive object={gltf.scene} />
+    </mesh>
+  );
+});
+
+const PlaceholderAsset = forwardRef<THREE.Mesh>((_, ref) => {
+  return (
+    <mesh ref={ref}>
+      <boxGeometry args={[0.25, 0.25, 0.25]} />
+      <meshBasicMaterial color="#55fc27" />
+    </mesh>
+  );
+});
+
+function getAssetComponent(asset: Asset) {
+  console.log("getAssetComponent", asset?.file.type);
+
+  if (!asset) {
+    return PlaceholderAsset;
+  }
+
+  if (asset.file.type.startsWith("image/")) {
+    return ImageAsset;
+  }
+
+  if (asset.file.type.startsWith("model/gltf")) {
+    return GltfAsset;
+  }
+
+  return PlaceholderAsset;
+}
+
+function TransformableAssets({
+  lookAt,
   rotation: rotationProp,
   position: positionProp,
+  scale: scaleProp,
   onPositionChange,
   onRotationChange,
+  onScaleChange,
+  assets,
+  shouldPlayAnimation,
 }: Item3dEditorProps) {
-  const matrixProp = useMemo(() => {
-    const m = new THREE.Matrix4();
-    m.makeRotationFromEuler(
-      new THREE.Euler(rotationProp.x, rotationProp.y, rotationProp.z)
-    );
-    m.setPosition(
-      new THREE.Vector3(positionProp.x, positionProp.y, positionProp.z)
-    );
-
-    return m;
-  }, [
-    positionProp.x,
-    positionProp.y,
-    positionProp.z,
-    rotationProp.x,
-    rotationProp.y,
-    rotationProp.z,
-  ]);
+  const matrixProp = useTransformsAsMatrix(
+    positionProp,
+    rotationProp,
+    scaleProp,
+    lookAt
+  );
+  const matrixRef = useRef<THREE.Matrix4>(matrixProp);
 
   const isDragging = useRef(false);
-
-  const matrixRef = useRef<THREE.Matrix4>(matrixProp);
 
   useEffect(() => {
     if (!isDragging.current && matrixRef.current) {
@@ -58,11 +216,30 @@ function Asset({
     }
   }, [matrixProp]);
 
-  const texture = useMemo(() => {
-    return new THREE.TextureLoader().load(
-      "https://picsum.photos/id/237/200/300"
-    );
-  }, []);
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useFrame(({ camera }) => {
+    if (lookAt === "camera") {
+      const matrixPosition = new THREE.Vector3();
+      matrixRef.current.decompose(
+        matrixPosition,
+        new THREE.Quaternion(),
+        new THREE.Vector3()
+      );
+
+      // add the matrix position to the camera position
+      const cameraPosition = camera.position.clone();
+      cameraPosition.add(matrixPosition);
+
+      meshRef.current?.lookAt(cameraPosition);
+    } else {
+      meshRef.current?.setRotationFromEuler(EulerNull);
+    }
+  });
+
+  const previewAsset = assets?.[0] ?? undefined;
+
+  const AssetComponent = getAssetComponent(previewAsset);
 
   return (
     <PivotControls
@@ -71,6 +248,7 @@ function Asset({
       onDragStart={() => {
         isDragging.current = true;
       }}
+      disableRotations={lookAt === "camera"}
       onDragEnd={() => {
         isDragging.current = false;
         // flush the matrix to the ref
@@ -107,13 +285,24 @@ function Asset({
             z: rotation.z,
           });
         }
+        if (
+          scaleProp.x !== scale.x ||
+          scaleProp.y !== scale.y ||
+          scaleProp.z !== scale.z
+        ) {
+          onScaleChange({
+            x: scale.x,
+            y: scale.y,
+            z: scale.z,
+          });
+        }
       }}
-      disableScaling
     >
-      <mesh>
-        <planeGeometry args={[1, 1.5]} />
-        <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
-      </mesh>
+      <AssetComponent
+        asset={previewAsset}
+        shouldPlayAnimation={shouldPlayAnimation}
+        ref={meshRef}
+      />
     </PivotControls>
   );
 }
@@ -125,7 +314,7 @@ function MarkerObject({ id }: { id: string }) {
     const container = document.createElement("div");
     const root = createRoot(container);
     flushSync(() => {
-      root.render(<Marker id={id ?? ""} />);
+      root.render(<GeneratedMarker id={id ?? ""} />);
     });
 
     const canvas = document.createElement("canvas");
@@ -164,30 +353,22 @@ function MarkerObject({ id }: { id: string }) {
   );
 }
 
-export default function Item3dEditor({
-  id,
-  lookAt,
-  rotation,
-  position,
-  onPositionChange,
-  onRotationChange,
-}: Item3dEditorProps) {
+export default function Item3dEditor(props: Item3dEditorProps) {
   return (
-    <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
+    <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
       <Canvas camera={{ position: [2, 2, 2] }}>
-        <ambientLight intensity={0.5} />
+        <ambientLight intensity={10} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
         <axesHelper args={[1]} />
         <OrbitControls makeDefault />
-        <MarkerObject id={id} />
-        <Asset
-          id={id}
-          lookAt={lookAt}
-          rotation={rotation}
-          position={position}
-          onPositionChange={onPositionChange}
-          onRotationChange={onRotationChange}
-        />
+
+        {props.marker ? (
+          <ImageAsset asset={{ id: "marker", file: props.marker }} />
+        ) : (
+          <MarkerObject id={props.id} />
+        )}
+        <TransformableAssets {...props} />
+
         <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
           <GizmoViewport
             axisColors={["red", "green", "blue"]}

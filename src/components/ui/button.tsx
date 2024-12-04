@@ -15,13 +15,15 @@ const buttonVariants = cva(
           "bg-black text-white hover:bg-gray-800 dark:bg-grey-400 dark:text-black dark:hover:bg-grey-500",
         outline:
           "bg-white border-2 border-black text-black hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        ghost:
+          "bg-transparent text-black ring-transparent hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-gray-50",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 px-3",
+        sm: "h-7 px-3",
         lg: "h-11 px-8",
         icon: "size-10",
-        "icon-sm": "size-8",
+        "icon-sm": "size-7",
       },
     },
     defaultVariants: {

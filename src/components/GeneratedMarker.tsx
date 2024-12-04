@@ -4,6 +4,7 @@ import {
   xoroshiro128plus,
 } from "pure-rand";
 import { useMemo } from "react";
+// @ts-expect-error Voronoi is not typed
 import Voronoi from "voronoi";
 
 function getSeed(id: string): number {
@@ -45,7 +46,13 @@ function round(value: number, precision = 1) {
   return Math.round(value * factor) / factor;
 }
 
-export function Marker({ id, className }: { id: string; className?: string }) {
+export function GeneratedMarker({
+  id,
+  className,
+}: {
+  id: string;
+  className?: string;
+}) {
   // use xoroshiro128plus to generate n pairs (x,y) of random numbers between 0 and MARKER_SIZE
   const rng = useMemo(() => xoroshiro128plus(getSeed(id)), [id]);
 
@@ -63,7 +70,14 @@ export function Marker({ id, className }: { id: string; className?: string }) {
 
     const bbox = { xl: 0, xr: MARKER_SIZE, yt: 0, yb: MARKER_SIZE };
 
-    return voronoi.compute(points, bbox);
+    return voronoi.compute(points, bbox) as {
+      // this type is incomplete
+      cells: {
+        halfedges: {
+          getStartpoint: () => { x: number; y: number };
+        }[];
+      }[];
+    };
   }, [rng]);
 
   const randomLines = useMemo(() => {
@@ -139,7 +153,7 @@ export function Marker({ id, className }: { id: string; className?: string }) {
           />
         );
       })} */}
-      {diagram.cells.map((cell: any, i) => {
+      {diagram.cells.map((cell, i) => {
         const halfedges = cell.halfedges;
         const points = halfedges.map((halfedge) => {
           const start = halfedge.getStartpoint();
