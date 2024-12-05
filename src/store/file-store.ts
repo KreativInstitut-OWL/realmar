@@ -1,5 +1,4 @@
 import * as idb from "idb-keyval";
-import { c } from "node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 const fileStore = idb.createStore("file-store", "file-store");
 
