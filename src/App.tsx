@@ -1,20 +1,16 @@
 import { saveAs } from "file-saver";
 import JSZip from "jszip";
 
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import AppLayout from "./components/AppLayout";
-import { AppStateProvider } from "./components/AppState";
 import generateIndexHtml from "./lib/generateIndexHtml";
 import compileImageTargets from "./lib/uploadAndCompile";
-import { AppState, Asset } from "./schema";
+import { queryClient } from "./store/query-client";
+import { AssetWithFile } from "./store";
 
 function App() {
   const [exportProgress, setExportProgress] = useState<number>(0);
-
-  function onExport(appState: AppState) {
-    console.log(appState);
-    // bundleFiles(markers, setExportProgress, renameFile, images);
-  }
 
   // const { language } = useLanguage();
   // const uiText = language === "en" ? ui.en : ui.de;
@@ -44,15 +40,18 @@ function App() {
   // }
 
   return (
-    <AppStateProvider onExport={onExport}>
+    <QueryClientProvider client={queryClient}>
       <AppLayout />
-    </AppStateProvider>
+    </QueryClientProvider>
   );
 }
 
 export default App;
 
-async function calculateImageValues(markers: Asset[], images: Asset[]) {
+async function calculateImageValues(
+  markers: AssetWithFile[],
+  images: AssetWithFile[]
+) {
   if (markers.length !== images.length) return;
   const imageSizes = [];
   for (let i = 0; i < markers.length; i++) {
@@ -112,10 +111,10 @@ async function calculateImageValues(markers: Asset[], images: Asset[]) {
 }
 
 async function bundleFiles(
-  markers: Asset[],
+  markers: AssetWithFile[],
   setProgress: (progress: number) => void,
   renameFile: (file: File, index: number) => string,
-  images: Asset[]
+  images: AssetWithFile[]
 ) {
   try {
     const zip = new JSZip();
@@ -165,7 +164,7 @@ async function bundleFiles(
   setTimeout(() => setProgress(0), 1000);
 }
 
-const getAspectRatio = (file: Asset) => {
+const getAspectRatio = (file: AssetWithFile) => {
   return new Promise((resolve, reject) => {
     if (file.file.type.includes("image")) {
       const img = new Image();

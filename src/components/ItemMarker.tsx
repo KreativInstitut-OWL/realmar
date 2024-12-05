@@ -7,12 +7,13 @@ import {
   DropzoneProvider,
 } from "@/components/ui/dropzone";
 import { ImagePlusIcon, XIcon } from "lucide-react";
-import { useAppState } from "./AppState";
+import { useStore, useCurrentItem } from "@/store";
 
-export function ItemMarker({ itemIndex }: { itemIndex: number }) {
-  const form = useAppState();
-
-  const item = form.watch(`items.${itemIndex}`);
+export function ItemMarker() {
+  const { data: item } = useCurrentItem();
+  const setItemMarker = useStore((state) => state.setItemMarker);
+  const removeItemMarker = useStore((state) => state.removeItemMarker);
+  if (!item) return null;
 
   return (
     <div className="grid grid-cols-3">
@@ -22,14 +23,14 @@ export function ItemMarker({ itemIndex }: { itemIndex: number }) {
         preventDropOnDocument
         onDrop={(files) => {
           // set file as item.marker
-          form.setValue(`items.${itemIndex}.marker`, files[0]);
+          setItemMarker(item.id, files[0]);
         }}
       >
         <Dropzone className="group p-2 relative aspect-square col-span-1">
-          {item.marker ? (
+          {item.marker?.src ? (
             <>
               <img
-                src={URL.createObjectURL(item.marker)}
+                src={item.marker.src}
                 alt=""
                 className="object-contain w-full h-full"
               />
@@ -54,8 +55,7 @@ export function ItemMarker({ itemIndex }: { itemIndex: number }) {
           size="sm"
           className="mt-2"
           onClick={() => {
-            // set marker as null
-            form.setValue(`items.${itemIndex}.marker`, null);
+            removeItemMarker(item.id);
           }}
         >
           <XIcon className="size-4" />

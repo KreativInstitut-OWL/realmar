@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
 import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
+import { Suspense } from "react";
 
 function AppLayout() {
   return (
@@ -28,7 +29,9 @@ function AppLayout() {
             </Button>
           </header>
 
-          <ItemListSelectedItemContent />
+          <Suspense fallback="loading...">
+            <ItemListSelectedItemContent />
+          </Suspense>
         </SidebarInset>
       </SidebarProvider>
     </ItemListRoot>

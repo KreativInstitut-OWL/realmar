@@ -1,4 +1,3 @@
-import { Asset, Vector3 } from "@/schema";
 import {
   GizmoHelper,
   GizmoViewport,
@@ -13,53 +12,19 @@ import { createRoot } from "react-dom/client";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedMarker } from "./GeneratedMarker";
+import { AssetWithFile } from "@/store";
 
 interface ItemArrangeEditorProps {
   id: string;
-  lookAt?: "camera";
-  rotation: Vector3;
-  position: Vector3;
-  scale: Vector3;
-  onPositionChange: (newPosition: Vector3) => void;
-  onRotationChange: (newRotation: Vector3) => void;
-  onScaleChange: (newScale: Vector3) => void;
-  assets: Asset[];
+  lookAtCamera: boolean;
+  transform: THREE.Matrix4Tuple;
+  onTransformChange: (transform: THREE.Matrix4Tuple) => void;
   shouldPlayAnimation: boolean;
-  marker: File | null;
+  assets: AssetWithFile[];
+  marker: AssetWithFile | null;
 }
 
 const EulerNull = new THREE.Euler(0, 0, 0);
-
-function useTransformsAsMatrix(
-  position: Vector3,
-  rotation: Vector3,
-  scale: Vector3,
-  lookAt: "camera" | undefined
-): THREE.Matrix4 {
-  return useMemo(() => {
-    const matrix = new THREE.Matrix4();
-    if (lookAt !== "camera") {
-      matrix.makeRotationFromEuler(
-        new THREE.Euler(rotation.x, rotation.y, rotation.z)
-      );
-    }
-    matrix.setPosition(new THREE.Vector3(position.x, position.y, position.z));
-    matrix.scale(new THREE.Vector3(scale.x, scale.y, scale.z));
-
-    return matrix;
-  }, [
-    lookAt,
-    position.x,
-    position.y,
-    position.z,
-    rotation.x,
-    rotation.y,
-    rotation.z,
-    scale.x,
-    scale.y,
-    scale.z,
-  ]);
-}
 
 type TextureImageDimensions = {
   width: number;
@@ -67,22 +32,20 @@ type TextureImageDimensions = {
   aspectRatio: number;
 };
 
-const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
+const ImageAsset = forwardRef<THREE.Mesh, { asset: AssetWithFile }>(
   ({ asset }, ref) => {
     const [dimensions, setDimensions] = useState<TextureImageDimensions>();
 
     const texture = useMemo(() => {
-      return new THREE.TextureLoader().load(
-        URL.createObjectURL(asset.file),
-        (texture) => {
-          setDimensions({
-            width: texture.image.width,
-            height: texture.image.height,
-            aspectRatio: texture.image.width / texture.image.height,
-          });
-        }
-      );
-    }, [asset.file]);
+      if (!asset.src) return null;
+      return new THREE.TextureLoader().load(asset.src, (texture) => {
+        setDimensions({
+          width: texture.image.width,
+          height: texture.image.height,
+          aspectRatio: texture.image.width / texture.image.height,
+        });
+      });
+    }, [asset.src]);
 
     if (!texture || !dimensions) {
       return null;
@@ -104,12 +67,14 @@ const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
 
 const GltfAsset = forwardRef<
   THREE.Mesh,
-  { asset: Asset; shouldPlayAnimation: boolean }
+  { asset: AssetWithFile; shouldPlayAnimation: boolean }
 >(({ asset, shouldPlayAnimation }, ref) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
 
   useEffect(() => {
+    if (!asset.file) return;
+
     let isMounted = true;
     const reader = new FileReader();
     reader.onload = function () {
@@ -153,8 +118,6 @@ const GltfAsset = forwardRef<
     return null;
   }
 
-  console.log(gltf.animations);
-
   return (
     <mesh ref={ref}>
       <primitive object={gltf.scene} />
@@ -171,10 +134,8 @@ const PlaceholderAsset = forwardRef<THREE.Mesh>((_, ref) => {
   );
 });
 
-function getAssetComponent(asset: Asset) {
-  console.log("getAssetComponent", asset?.file.type);
-
-  if (!asset) {
+function getAssetComponent(asset: AssetWithFile | undefined) {
+  if (!asset?.file) {
     return PlaceholderAsset;
   }
 
@@ -190,36 +151,29 @@ function getAssetComponent(asset: Asset) {
 }
 
 function TransformableAssets({
-  lookAt,
-  rotation: rotationProp,
-  position: positionProp,
-  scale: scaleProp,
-  onPositionChange,
-  onRotationChange,
-  onScaleChange,
   assets,
+  lookAtCamera,
+  transform,
+  onTransformChange,
   shouldPlayAnimation,
 }: ItemArrangeEditorProps) {
-  const matrixProp = useTransformsAsMatrix(
-    positionProp,
-    rotationProp,
-    scaleProp,
-    lookAt
+  const matrixRef = useRef<THREE.Matrix4>(
+    new THREE.Matrix4().fromArray(transform)
   );
-  const matrixRef = useRef<THREE.Matrix4>(matrixProp);
 
-  const isDragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    if (!isDragging.current && matrixRef.current) {
-      matrixRef.current.copy(matrixProp);
+    console.log("transform", transform);
+    if (!isDragging && matrixRef.current) {
+      matrixRef.current.fromArray(transform);
     }
-  }, [matrixProp]);
+  }, [transform, isDragging]);
 
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ camera }) => {
-    if (lookAt === "camera") {
+    if (lookAtCamera) {
       const matrixPosition = new THREE.Vector3();
       matrixRef.current.decompose(
         matrixPosition,
@@ -246,56 +200,14 @@ function TransformableAssets({
       matrix={matrixRef.current}
       annotations
       onDragStart={() => {
-        isDragging.current = true;
+        setIsDragging(true);
       }}
-      disableRotations={lookAt === "camera"}
+      disableRotations={lookAtCamera}
       onDragEnd={() => {
-        isDragging.current = false;
-        // flush the matrix to the ref
-        matrixRef.current.copy(matrixProp);
+        setIsDragging(false);
       }}
       onDrag={(l: THREE.Matrix4) => {
-        const position = new THREE.Vector3();
-        const quaternionRotation = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        l.decompose(position, quaternionRotation, scale);
-
-        const rotation = new THREE.Euler();
-        rotation.setFromQuaternion(quaternionRotation);
-
-        if (
-          positionProp.x !== position.x ||
-          positionProp.y !== position.y ||
-          positionProp.z !== position.z
-        ) {
-          onPositionChange({
-            x: position.x,
-            y: position.y,
-            z: position.z,
-          });
-        }
-        if (
-          rotationProp.x !== rotation.x ||
-          rotationProp.y !== rotation.y ||
-          rotationProp.z !== rotation.z
-        ) {
-          onRotationChange({
-            x: rotation.x,
-            y: rotation.y,
-            z: rotation.z,
-          });
-        }
-        if (
-          scaleProp.x !== scale.x ||
-          scaleProp.y !== scale.y ||
-          scaleProp.z !== scale.z
-        ) {
-          onScaleChange({
-            x: scale.x,
-            y: scale.y,
-            z: scale.z,
-          });
-        }
+        onTransformChange([...l.elements]);
       }}
     >
       <AssetComponent
@@ -363,7 +275,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         <OrbitControls makeDefault />
 
         {props.marker ? (
-          <ImageAsset asset={{ id: "marker", file: props.marker }} />
+          <ImageAsset asset={props.marker} />
         ) : (
           <MarkerObject id={props.id} />
         )}

@@ -4,33 +4,25 @@ import {
   DropzoneDragAcceptContent,
   DropzoneProvider,
 } from "@/components/ui/dropzone";
-import { assetSchema } from "@/schema";
+import { useStore, useCurrentItem } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
-import { useFieldArray } from "react-hook-form";
-import { useAppState } from "./AppState";
 import { ItemAsset } from "./ItemAsset";
 
-export function ItemAssetList({ itemIndex }: { itemIndex: number }) {
-  const form = useAppState();
+export function ItemAssetList() {
+  const { addItemAssets } = useStore();
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: `items.${itemIndex}.assets`,
-  });
+  const { data: item } = useCurrentItem();
+
+  if (!item) {
+    return "loading...";
+  }
 
   return (
     <>
-      {fields.length > 0 ? (
+      {item.assets && item.assets.length > 0 ? (
         <div className=" divide-gray-100 divide-y">
-          {fields.map((asset, assetIndex) => (
-            <ItemAsset
-              key={asset.id}
-              itemIndex={itemIndex}
-              assetIndex={assetIndex}
-              onRemove={() => {
-                remove(assetIndex);
-              }}
-            />
+          {item.assets.map((asset) => (
+            <ItemAsset key={asset.id} itemId={item.id} assetId={asset.id} />
           ))}
         </div>
       ) : (
@@ -41,9 +33,9 @@ export function ItemAssetList({ itemIndex }: { itemIndex: number }) {
         </div>
       )}
       <DropzoneProvider
-        accept={{ "image/*": [], "model/*": [".glb"] }}
-        onDrop={(files) => {
-          append(files.map((file) => assetSchema.parse({ file })));
+        // accept={{ "image/*": [], "model/*": [".glb"] }}
+        onDrop={async (files) => {
+          await addItemAssets(item.id, files);
         }}
       >
         <Dropzone className="group p-8 mt-12">

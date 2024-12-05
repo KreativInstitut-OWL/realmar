@@ -1,29 +1,38 @@
 import { byteFormatter } from "@/lib/utils";
+import { useStore, useItem } from "@/store";
 import { FileIcon, Trash2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "./ui/button";
-import { useAppState } from "./AppState";
 
 export function ItemAsset({
-  itemIndex,
-  assetIndex,
-  onRemove,
+  itemId,
+  assetId,
 }: {
-  assetIndex: number;
-  itemIndex: number;
-  onRemove: () => void;
+  itemId: string;
+  assetId: string;
 }) {
-  const form = useAppState();
+  const { removeItemAsset } = useStore();
 
-  const asset = form.watch(`items.${itemIndex}.assets.${assetIndex}`);
+  const { data: item } = useItem(itemId);
+  const asset = useMemo(() => {
+    return item?.assets.find((asset) => asset.id === assetId);
+  }, [item, assetId]);
 
-  const src = useMemo(() => URL.createObjectURL(asset.file), [asset.file]);
+  if (!asset?.file || !asset.src) {
+    return (
+      <div>
+        Something is wrong with this asset. Please remove it and re-add it.
+      </div>
+    );
+  }
+
+  console.log("file.type", asset.file.type);
 
   return (
     <div className="flex gap-4 items-center">
       <div className="size-20 grid place-items-center *:drop-shadow-md">
         {asset.file.type.startsWith("image/") && (
-          <img src={src} alt="" className="size-16 object-contain" />
+          <img src={asset.src} alt="" className="size-16 object-contain" />
         )}
         {!asset.file.type.startsWith("image/") && (
           <FileIcon className="size-8" />
@@ -41,7 +50,7 @@ export function ItemAsset({
           size="icon"
           aria-label="Remove asset"
           onClick={() => {
-            onRemove();
+            removeItemAsset(itemId, assetId);
           }}
         >
           <Trash2Icon />

@@ -15,8 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { getDefaultItem } from "@/schema";
-import { useItemFieldArray } from "./AppState";
+import { useStore } from "@/store";
 import { ItemListList } from "./ItemList";
 import { Button } from "./ui/button";
 
@@ -24,7 +23,7 @@ export function ItemNavigatorSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const { setOpen } = useSidebar();
-  const { append } = useItemFieldArray();
+  const addItem = useStore((state) => state.addItem);
 
   return (
     <Sidebar
@@ -94,7 +93,7 @@ export function ItemNavigatorSidebar({
               variant="ghost"
               size="icon-sm"
               onClick={() => {
-                append(getDefaultItem());
+                addItem();
               }}
             >
               <PlusIcon />

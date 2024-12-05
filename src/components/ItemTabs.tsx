@@ -4,10 +4,14 @@ import { ItemAssetList } from "./ItemAssetList";
 import { ItemMarker } from "./ItemMarker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-export function ItemTabs({ itemIndex }: { itemIndex: number }) {
+export function ItemTabs() {
   return (
     <Tabs defaultValue="arrange">
       <TabsList className="">
+        <TabsTrigger value="marker">
+          <Scan className="size-5 mr-3" />
+          Marker
+        </TabsTrigger>
         <TabsTrigger value="assetList">
           <Images className="size-5 mr-3" />
           Assets
@@ -16,19 +20,15 @@ export function ItemTabs({ itemIndex }: { itemIndex: number }) {
           <Move3D className="size-5 mr-3" />
           Arrange
         </TabsTrigger>
-        <TabsTrigger value="marker">
-          <Scan className="size-5 mr-3" />
-          Marker
-        </TabsTrigger>
       </TabsList>
       <TabsContent value="marker" className="mt-6">
-        <ItemMarker itemIndex={itemIndex} />
+        <ItemMarker />
       </TabsContent>
       <TabsContent value="assetList">
-        <ItemAssetList itemIndex={itemIndex} />
+        <ItemAssetList />
       </TabsContent>
       <TabsContent value="arrange" className="mt-0" asChild>
-        <ItemArrange itemIndex={itemIndex} />
+        <ItemArrange />
       </TabsContent>
     </Tabs>
   );
