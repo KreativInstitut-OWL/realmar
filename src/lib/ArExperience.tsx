@@ -1,17 +1,11 @@
+import { Item } from "@/store";
 import React from "react";
-import { Size, Meta } from "./generateIndexHtml";
-import { getPositions } from "./getPositions";
+// import { getPositions } from "./getPositions";
+import { getFileName } from "./export";
+import * as THREE from "three";
 
-export const ArExperience = ({
-  files,
-  sizes,
-  meta,
-}: {
-  files: File[];
-  sizes: Size[];
-  meta: Meta[];
-}) => {
-  const positions = getPositions(meta);
+export const ArExperience = ({ items }: { items: Item[] }) => {
+  // const positions = getPositions(meta);
 
   return (
     <html lang="en">
@@ -40,39 +34,47 @@ export const ArExperience = ({
       </head>
       <body>
         <a-scene
-          mindar-image="imageTargetSrc: ./targets.mind;"
+          mindar-image="imageTargetSrc: ./markers.mind;"
           vr-mode-ui="enabled: false"
           device-orientation-permission-ui="enabled: false"
         >
           <a-assets>
-            {files.map((file, index) => {
-              const id = `asset${index}`;
-              const src = `${id}.${file.name.split(".").pop()}`;
-              if (file.type.includes("image")) {
-                return (
-                  <img
-                    key={id}
-                    id={id}
-                    data-testid={id}
-                    src={`./${src}`}
-                    alt={src}
-                  />
-                );
-              }
-              if (file.type.includes("video")) {
-                return (
-                  <video
-                    key={id}
-                    id={id}
-                    data-testid={id}
-                    src={`./${src}`}
-                    loop
-                    autoPlay
-                    muted
-                  />
-                );
-              }
-            })}
+            {items
+              .map((item, index) => {
+                return item.assets.map((asset, assetIndex) => {
+                  if (!asset.file) return null;
+                  const src = getFileName(
+                    "asset",
+                    asset.file,
+                    index,
+                    assetIndex
+                  );
+                  if (asset.file.type.includes("image")) {
+                    return (
+                      <img
+                        key={asset.id}
+                        id={asset.id}
+                        data-testid={asset.id}
+                        src={`./${src}`}
+                      />
+                    );
+                  }
+                  if (asset.file.type.includes("video")) {
+                    return (
+                      <video
+                        key={asset.id}
+                        id={asset.id}
+                        data-testid={asset.id}
+                        src={`./${src}`}
+                        loop
+                        autoPlay
+                        muted
+                      />
+                    );
+                  }
+                });
+              })
+              .flat()}
           </a-assets>
           <a-camera
             position="0 0 0"
@@ -81,7 +83,14 @@ export const ArExperience = ({
             raycaster="far: 10000; objects: .clickable"
             id="camera"
           />
-          {files.map((_, index) => {
+          {items.map((item, index) => {
+            const matrix = new THREE.Matrix4().fromArray(item.transform);
+            const position = new THREE.Vector3();
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3();
+            matrix.decompose(position, quaternion, scale);
+            const rotation = new THREE.Euler().setFromQuaternion(quaternion);
+
             return (
               <a-entity
                 mindar-image-target={`targetIndex: ${index}`}
@@ -89,14 +98,15 @@ export const ArExperience = ({
                 key={`entity${index}`}
               >
                 <a-plane
-                  position={`0 0 ${positions[index]}`}
-                  rotation={`${meta[index].rotation} 0 0`}
-                  width={`${sizes[index].width}`}
-                  height={`${sizes[index].height}`}
+                  position={`${position.x} ${position.y} ${position.z}`}
+                  rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
+                  scale={`${scale.x} ${scale.y} ${scale.z}`}
+                  width={"1"}
+                  height={"1"}
                   id={`plane${index}`}
                   color="#ffffff"
-                  src={`#asset${index}`}
-                  look-at={meta[index].faceCam ? "camera" : undefined}
+                  src={`#${item.assets[0].id}`}
+                  look-at={item.lookAtCamera ? "camera" : undefined}
                   data-testid={`plane${index}`}
                 />
               </a-entity>
@@ -145,6 +155,7 @@ declare module "react" {
         React.HTMLAttributes<HTMLElement> & {
           position: string;
           rotation: string;
+          scale: string;
           width: string;
           height: string;
           id: string;

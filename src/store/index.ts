@@ -46,7 +46,7 @@ const DEFAULT_MATRIX_4_TUPLE: THREE.Matrix4Tuple = [
   1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 ];
 
-type Item = {
+export type Item = {
   id: string;
   marker: AssetWithFile | null;
   assets: AssetWithFile[];

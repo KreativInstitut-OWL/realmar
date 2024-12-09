@@ -7,12 +7,11 @@ import {
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedMarker } from "./GeneratedMarker";
 import { AssetWithFile } from "@/store";
+import { renderSvgReactNodeToBase64 } from "@/lib/render";
 
 interface ItemArrangeEditorProps {
   id: string;
@@ -223,12 +222,6 @@ const MARKER_TEXTURE_SIZE = 128;
 
 function MarkerObject({ id }: { id: string }) {
   const renderedMarkerTexture = useMemo(() => {
-    const container = document.createElement("div");
-    const root = createRoot(container);
-    flushSync(() => {
-      root.render(<GeneratedMarker id={id ?? ""} />);
-    });
-
     const canvas = document.createElement("canvas");
     canvas.width = MARKER_TEXTURE_SIZE;
     canvas.height = MARKER_TEXTURE_SIZE;
@@ -237,7 +230,7 @@ function MarkerObject({ id }: { id: string }) {
     const img = document.createElement("img");
     img.setAttribute(
       "src",
-      "data:image/svg+xml;base64," + btoa(container.innerHTML)
+      renderSvgReactNodeToBase64(<GeneratedMarker id={id} />)
     );
     img.width = MARKER_TEXTURE_SIZE;
     img.height = MARKER_TEXTURE_SIZE;

@@ -1,24 +1,23 @@
 import { Compiler } from "./image-target/compiler";
 
-// Assuming window.MINDAR.IMAGE.Compiler exists and has compileImageTargets and exportData methods.
 const compiler = new Compiler();
 
-const loadImage = async (file: File) => {
+const loadImage = async (src: string) => {
   return new Promise<HTMLImageElement>((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+    img.src = src;
   });
 };
 
 const compileImageTargets = async (
-  files: File[],
+  sources: string[],
   setProgress: (progress: number) => void
 ) => {
   const images: HTMLImageElement[] = [];
-  for (let i = 0; i < files.length; i++) {
-    images.push(await loadImage(files[i]));
+  for (const src of sources) {
+    images.push(await loadImage(src));
   }
   const dataList = await compiler.compileImageTargets(
     images,

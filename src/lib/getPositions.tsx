@@ -1,6 +1,4 @@
-import { Meta } from "./generateIndexHtml";
-
-export function getPositions(meta: Meta[]): number[] {
+export function getPositions(meta: any[]): number[] {
   const flatOffset = 0;
   const diagonalOffset = 0.5;
   const perpendicularOffset = 0.75;
