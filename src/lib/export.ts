@@ -82,7 +82,7 @@ export const getFileName = <T extends string>(
   return `${type}_${indices.join("-")}.${fileExtension}` as const;
 };
 
-async function fetchBlob(url: string) {
+async function fetchAsBlob(url: string) {
   const response = await fetch(url);
   return await response.blob();
 }
@@ -96,11 +96,11 @@ async function bundleFiles(
 
     zip.file(
       "aframe-master.min.js",
-      await fetchBlob("/js/aframe-master.min.js")
+      await fetchAsBlob("/js/aframe-master.min.js")
     );
     zip.file(
       "mindar-image-aframe.prod.js",
-      await fetchBlob("/js/mindar-image-aframe.prod.js")
+      await fetchAsBlob("/js/mindar-image-aframe.prod.js")
     );
 
     const license = await fetch("/LICENSE");
