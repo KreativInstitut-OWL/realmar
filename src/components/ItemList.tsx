@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useStore, useItem } from "@/store";
+import { useStore, useItemAssets } from "@/store";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as React from "react";
 import { GeneratedMarker } from "./GeneratedMarker";
@@ -64,7 +64,7 @@ const ItemListTabsTrigger = React.forwardRef<
     "children" | "value"
   > & { itemId: string; itemIndex: number }
 >(({ className, itemId, itemIndex, ...props }, ref) => {
-  const { data: item } = useItem(itemId);
+  const { data: item } = useItemAssets(itemId);
   if (!item) return null;
 
   return (

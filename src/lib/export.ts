@@ -1,5 +1,5 @@
 import { GeneratedMarker } from "@/components/GeneratedMarker";
-import { AssetWithFile, Item } from "@/store";
+import { Asset, Item } from "@/store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
 import React from "react";
@@ -11,10 +11,7 @@ import {
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
 
-async function calculateImageValues(
-  markers: AssetWithFile[],
-  images: AssetWithFile[]
-) {
+async function calculateImageValues(markers: Asset[], images: Asset[]) {
   if (markers.length !== images.length) return;
   const imageSizes = [];
   for (let i = 0; i < markers.length; i++) {
@@ -153,7 +150,7 @@ async function bundleFiles(
   }
 }
 
-const getAspectRatio = (file: AssetWithFile) => {
+const getAspectRatio = (file: Asset) => {
   return new Promise((resolve, reject) => {
     if (file.file?.type.includes("image")) {
       const img = new Image();

@@ -1,5 +1,5 @@
 import { byteFormatter } from "@/lib/utils";
-import { useStore, useItem } from "@/store";
+import { useStore, useItemAssets } from "@/store";
 import { FileIcon, Trash2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "./ui/button";
@@ -13,7 +13,7 @@ export function ItemAsset({
 }) {
   const { removeItemAsset } = useStore();
 
-  const { data: item } = useItem(itemId);
+  const { data: item } = useItemAssets(itemId);
   const asset = useMemo(() => {
     return item?.assets.find((asset) => asset.id === assetId);
   }, [item, assetId]);

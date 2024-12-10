@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useStore, useCurrentItem } from "@/store";
+import { useStore, useCurrentItemAssets } from "@/store";
 import { forwardRef, HTMLAttributes } from "react";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemArrangeControls } from "./ItemArrangeControls";
@@ -8,15 +8,14 @@ export const ItemArrange = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { data: item } = useCurrentItem();
+  const { data: itemAssets } = useCurrentItemAssets();
   const setItemTransform = useStore((state) => state.setItemTransform);
 
-  // item is async so we need to get the persisted item for fast changes to the item (like transform)
   const persistedItem = useStore((state) =>
-    state.items.find((i) => i.id === item?.id)
+    state.items.find((i) => i.id === itemAssets?.id)
   );
 
-  if (!item || !persistedItem) return null;
+  if (!itemAssets || !persistedItem) return null;
 
   return (
     <div
@@ -25,8 +24,8 @@ export const ItemArrange = forwardRef<
       {...props}
     >
       <ItemArrangeEditor
-        assets={item.assets}
-        marker={item.marker}
+        assets={itemAssets.assets}
+        marker={itemAssets.marker}
         id={persistedItem.id}
         lookAtCamera={persistedItem.lookAtCamera}
         shouldPlayAnimation={persistedItem.shouldPlayAnimation}

@@ -30,7 +30,7 @@ type AssetRef = {
   id: string;
 };
 
-export type AssetWithFile = AssetRef & {
+export type Asset = AssetRef & {
   file: File | null;
   src: string | null;
 };
@@ -48,17 +48,18 @@ const DEFAULT_MATRIX_4_TUPLE: THREE.Matrix4Tuple = [
 
 export type Item = {
   id: string;
-  marker: AssetWithFile | null;
-  assets: AssetWithFile[];
+  marker: AssetRef | null;
+  assets: AssetRef[];
   transform: THREE.Matrix4Tuple;
   lookAtCamera: boolean;
   shouldScaleUniformly: boolean;
   shouldPlayAnimation: boolean;
 };
 
-type ItemPersist = Omit<Item, "marker" | "assets"> & {
-  marker: AssetRef | null;
-  assets: AssetRef[];
+export type ItemAssets = {
+  id: string;
+  marker: Asset | null;
+  assets: Asset[];
 };
 
 function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
@@ -75,12 +76,12 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
 }
 
 type AppState = {
-  items: ItemPersist[];
+  items: Item[];
   addItem: () => void;
   currentItemId: string | null;
   setCurrentItemId: (id: string) => void;
-  getItem: (id: string) => Promise<Item | null>;
-  getCurrentItem: () => Promise<Item | null>;
+  getItemAssets: (id: string) => Promise<ItemAssets | null>;
+  getCurrentItemAssets: () => Promise<ItemAssets | null>;
   setItemMarker: (itemId: string, file: File) => Promise<void>;
   setItemTransform: (
     itemId: string,
@@ -118,7 +119,7 @@ export const useStore = create<AppState>()(
             state.items.push(createItem());
           });
         },
-        getItem: async (id: string) => {
+        getItemAssets: async (id: string) => {
           const { items } = get();
           const itemPersist = items.find((item) => item.id === id) || null;
           if (!itemPersist) return null;
@@ -151,8 +152,8 @@ export const useStore = create<AppState>()(
             ),
           };
         },
-        getCurrentItem: async () => {
-          const { currentItemId, getItem } = get();
+        getCurrentItemAssets: async () => {
+          const { currentItemId, getItemAssets: getItem } = get();
           if (!currentItemId) return null;
           return getItem(currentItemId);
         },
@@ -259,26 +260,14 @@ export const useStore = create<AppState>()(
   )
 );
 
-export function useItemIndex(id: string | null) {
-  return useStore((state) => state.items.findIndex((item) => item.id === id));
-}
-
-export function useCurrentItemIndex() {
-  return useItemIndex(useStore((state) => state.currentItemId));
-}
-
-export function useItems() {
-  return useStore((state) => state.items);
-}
-
-export function useItem(id: string | null) {
-  const getItem = useStore((state) => state.getItem);
+export function useItemAssets(id: string | null) {
+  const getItem = useStore((state) => state.getItemAssets);
   return useSuspenseQuery({
     queryKey: ["item", id],
     queryFn: () => (id ? getItem(id) : null),
   });
 }
 
-export function useCurrentItem() {
-  return useItem(useStore((state) => state.currentItemId));
+export function useCurrentItemAssets() {
+  return useItemAssets(useStore((state) => state.currentItemId));
 }

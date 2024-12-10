@@ -4,25 +4,29 @@ import {
   DropzoneDragAcceptContent,
   DropzoneProvider,
 } from "@/components/ui/dropzone";
-import { useStore, useCurrentItem } from "@/store";
+import { useStore, useCurrentItemAssets } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
 import { ItemAsset } from "./ItemAsset";
 
 export function ItemAssetList() {
   const { addItemAssets } = useStore();
 
-  const { data: item } = useCurrentItem();
+  const { data: itemAssets } = useCurrentItemAssets();
 
-  if (!item) {
+  if (!itemAssets) {
     return "loading...";
   }
 
   return (
     <>
-      {item.assets && item.assets.length > 0 ? (
+      {itemAssets.assets && itemAssets.assets.length > 0 ? (
         <div className=" divide-gray-100 divide-y">
-          {item.assets.map((asset) => (
-            <ItemAsset key={asset.id} itemId={item.id} assetId={asset.id} />
+          {itemAssets.assets.map((asset) => (
+            <ItemAsset
+              key={asset.id}
+              itemId={itemAssets.id}
+              assetId={asset.id}
+            />
           ))}
         </div>
       ) : (
@@ -35,7 +39,7 @@ export function ItemAssetList() {
       <DropzoneProvider
         // accept={{ "image/*": [], "model/*": [".glb"] }}
         onDrop={async (files) => {
-          await addItemAssets(item.id, files);
+          await addItemAssets(itemAssets.id, files);
         }}
       >
         <Dropzone className="group p-8 mt-12">

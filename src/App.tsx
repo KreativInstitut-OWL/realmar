@@ -7,7 +7,7 @@ import AppLayout from "./components/AppLayout";
 import generateIndexHtml from "./lib/generateIndexHtml";
 import compileImageTargets from "./lib/uploadAndCompile";
 import { queryClient } from "./store/query-client";
-import { AssetWithFile } from "./store";
+import { Asset } from "./store";
 
 function App() {
   const [exportProgress, setExportProgress] = useState<number>(0);

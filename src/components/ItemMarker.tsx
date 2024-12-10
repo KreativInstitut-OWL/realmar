@@ -7,13 +7,13 @@ import {
   DropzoneProvider,
 } from "@/components/ui/dropzone";
 import { ImagePlusIcon, XIcon } from "lucide-react";
-import { useStore, useCurrentItem } from "@/store";
+import { useStore, useCurrentItemAssets } from "@/store";
 
 export function ItemMarker() {
-  const { data: item } = useCurrentItem();
+  const { data: itemAssets } = useCurrentItemAssets();
   const setItemMarker = useStore((state) => state.setItemMarker);
   const removeItemMarker = useStore((state) => state.removeItemMarker);
-  if (!item) return null;
+  if (!itemAssets) return null;
 
   return (
     <div className="grid grid-cols-3">
@@ -23,14 +23,14 @@ export function ItemMarker() {
         preventDropOnDocument
         onDrop={(files) => {
           // set file as item.marker
-          setItemMarker(item.id, files[0]);
+          setItemMarker(itemAssets.id, files[0]);
         }}
       >
         <Dropzone className="group p-2 relative aspect-square col-span-1">
-          {item.marker?.src ? (
+          {itemAssets.marker?.src ? (
             <>
               <img
-                src={item.marker.src}
+                src={itemAssets.marker.src}
                 alt=""
                 className="object-contain w-full h-full"
               />
@@ -38,7 +38,7 @@ export function ItemMarker() {
             </>
           ) : (
             <>
-              <GeneratedMarker id={item.id} />
+              <GeneratedMarker id={itemAssets.id} />
               <Badge className="absolute bottom-3 right-3 z-10">Auto</Badge>
             </>
           )}
@@ -50,12 +50,12 @@ export function ItemMarker() {
           </DropzoneDragAcceptContent>
         </Dropzone>
       </DropzoneProvider>
-      {item.marker ? (
+      {itemAssets.marker ? (
         <Button
           size="sm"
           className="mt-2"
           onClick={() => {
-            removeItemMarker(item.id);
+            removeItemMarker(itemAssets.id);
           }}
         >
           <XIcon className="size-4" />

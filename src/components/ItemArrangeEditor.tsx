@@ -10,7 +10,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedMarker } from "./GeneratedMarker";
-import { AssetWithFile } from "@/store";
+import { Asset } from "@/store";
 import { renderSvgReactNodeToBase64 } from "@/lib/render";
 
 interface ItemArrangeEditorProps {
@@ -19,8 +19,8 @@ interface ItemArrangeEditorProps {
   transform: THREE.Matrix4Tuple;
   onTransformChange: (transform: THREE.Matrix4Tuple) => void;
   shouldPlayAnimation: boolean;
-  assets: AssetWithFile[];
-  marker: AssetWithFile | null;
+  assets: Asset[];
+  marker: Asset | null;
 }
 
 const EulerNull = new THREE.Euler(0, 0, 0);
@@ -31,7 +31,7 @@ type TextureImageDimensions = {
   aspectRatio: number;
 };
 
-const ImageAsset = forwardRef<THREE.Mesh, { asset: AssetWithFile }>(
+const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
   ({ asset }, ref) => {
     const [dimensions, setDimensions] = useState<TextureImageDimensions>();
 
@@ -66,7 +66,7 @@ const ImageAsset = forwardRef<THREE.Mesh, { asset: AssetWithFile }>(
 
 const GltfAsset = forwardRef<
   THREE.Mesh,
-  { asset: AssetWithFile; shouldPlayAnimation: boolean }
+  { asset: Asset; shouldPlayAnimation: boolean }
 >(({ asset, shouldPlayAnimation }, ref) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
@@ -133,7 +133,7 @@ const PlaceholderAsset = forwardRef<THREE.Mesh>((_, ref) => {
   );
 });
 
-function getAssetComponent(asset: AssetWithFile | undefined) {
+function getAssetComponent(asset: Asset | undefined) {
   if (!asset?.file) {
     return PlaceholderAsset;
   }
