@@ -4,45 +4,43 @@ import {
   DropzoneDragAcceptContent,
   DropzoneProvider,
 } from "@/components/ui/dropzone";
-import { useStore, useCurrentItemAssetData } from "@/store";
+import { useCurrentItem, useStore } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
-import { ItemAsset } from "./ItemAsset";
+import { ItemEntity } from "./ItemEntity";
 
-export function ItemAssetList() {
-  const { addItemAssets } = useStore();
+export function ItemEntities() {
+  const addItemEntities = useStore((state) => state.addItemEntities);
 
-  const { data } = useCurrentItemAssetData();
+  const item = useCurrentItem();
 
-  if (!data) {
-    return "loading...";
-  }
+  if (!item) return null;
 
   return (
     <>
-      {data.assets && data.assets.length > 0 ? (
+      {item?.entities && item?.entities.length > 0 ? (
         <div className=" divide-gray-100 divide-y">
-          {data.assets.map((asset) => (
-            <ItemAsset key={asset.id} itemId={data.id} assetId={asset.id} />
+          {item?.entities.map((entity) => (
+            <ItemEntity key={entity.id} itemId={item.id} entityId={entity.id} />
           ))}
         </div>
       ) : (
         <div>
           <div className="text-gray-400 text-sm">
-            Add one or more assets to this marker.
+            Add one or more entities to this marker.
           </div>
         </div>
       )}
       <DropzoneProvider
         // accept={{ "image/*": [], "model/*": [".glb"] }}
         onDrop={async (files) => {
-          await addItemAssets(data.id, files);
+          await addItemEntities(item.id, files);
         }}
       >
         <Dropzone className="group p-8 mt-12">
           <DropzoneContent>
             <ImagePlusIcon className="size-5 mb-4" />
             <div>
-              Add one or more assets to this marker by dropping them here or
+              Add one or more entities to this marker by dropping them here or
               click to select files.
             </div>
             <div className="text-gray-400">
@@ -50,7 +48,7 @@ export function ItemAssetList() {
             </div>
           </DropzoneContent>
           <DropzoneDragAcceptContent>
-            Drop assets here to add them to this marker…
+            Drop entities here to add them to this marker…
           </DropzoneDragAcceptContent>
         </Dropzone>
       </DropzoneProvider>

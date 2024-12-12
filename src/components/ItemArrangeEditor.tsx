@@ -23,7 +23,7 @@ interface ItemArrangeEditorProps {
   lookAtCamera: boolean;
   transform: THREE.Matrix4Tuple;
   onTransformChange: (transform: THREE.Matrix4Tuple) => void;
-  shouldPlayAnimation: boolean;
+  playAnimation: boolean;
   asset: Asset | null;
   marker: Asset | null;
   cameraPosition: THREE.Vector3Tuple;
@@ -73,8 +73,8 @@ const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
 
 const GltfAsset = forwardRef<
   THREE.Mesh,
-  { asset: Asset; shouldPlayAnimation: boolean }
->(({ asset, shouldPlayAnimation }, ref) => {
+  { asset: Asset; playAnimation: boolean }
+>(({ asset, playAnimation }, ref) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
 
@@ -108,14 +108,14 @@ const GltfAsset = forwardRef<
   }, [asset]);
 
   useEffect(() => {
-    if (!shouldPlayAnimation && mixer) {
+    if (!playAnimation && mixer) {
       mixer.setTime(0);
       mixer.update(0);
     }
-  }, [shouldPlayAnimation, mixer]);
+  }, [playAnimation, mixer]);
 
   useFrame((_, delta) => {
-    if (shouldPlayAnimation && mixer) {
+    if (playAnimation && mixer) {
       mixer.update(delta);
     }
   });
@@ -161,7 +161,7 @@ function TransformableAsset({
   lookAtCamera,
   transform,
   onTransformChange,
-  shouldPlayAnimation,
+  playAnimation,
 }: ItemArrangeEditorProps) {
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
@@ -217,7 +217,7 @@ function TransformableAsset({
     >
       <AssetComponent
         asset={asset!}
-        shouldPlayAnimation={shouldPlayAnimation}
+        playAnimation={playAnimation}
         ref={meshRef}
       />
     </PivotControls>

@@ -38,7 +38,7 @@ export const ArExperience = ({ items }: { items: Item[] }) => {
           <a-assets>
             {items
               .map((item, index) => {
-                return item.assets.map((asset, assetIndex) => {
+                return item.entity.map((asset, assetIndex) => {
                   if (!asset.file) return null;
                   const src = getFileName(
                     "asset",
@@ -102,7 +102,7 @@ export const ArExperience = ({ items }: { items: Item[] }) => {
                   height={"1"}
                   id={`plane${index}`}
                   color="#ffffff"
-                  src={`#${item.assets[0].id}`}
+                  src={`#${item.entity[0].id}`}
                   look-at={item.lookAtCamera ? "camera" : undefined}
                   data-testid={`plane${index}`}
                 />

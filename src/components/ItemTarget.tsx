@@ -7,13 +7,16 @@ import {
   DropzoneProvider,
 } from "@/components/ui/dropzone";
 import { ImagePlusIcon, XIcon } from "lucide-react";
-import { useStore, useCurrentItemAssetData } from "@/store";
+import { useAsset, useCurrentItem, useStore } from "@/store";
 
-export function ItemMarker() {
-  const { data } = useCurrentItemAssetData();
-  const setItemMarker = useStore((state) => state.setItemMarker);
-  const removeItemMarker = useStore((state) => state.removeItemMarker);
-  if (!data) return null;
+export function ItemTarget() {
+  const item = useCurrentItem();
+  const setItemTarget = useStore((state) => state.setItemTarget);
+  const removeItemTarget = useStore((state) => state.removeItemTarget);
+
+  const { data: targetAsset } = useAsset(item?.targetAssetId);
+
+  if (!item) return null;
 
   return (
     <div className="grid grid-cols-3">
@@ -22,15 +25,14 @@ export function ItemMarker() {
         accept={{ "image/*": [] }}
         preventDropOnDocument
         onDrop={(files) => {
-          // set file as item.marker
-          setItemMarker(data.id, files[0]);
+          setItemTarget(item.id, files[0]);
         }}
       >
         <Dropzone className="group p-2 relative aspect-square col-span-1">
-          {data.marker?.src ? (
+          {targetAsset?.src ? (
             <>
               <img
-                src={data.marker.src}
+                src={targetAsset.src}
                 alt=""
                 className="object-contain w-full h-full"
               />
@@ -38,7 +40,7 @@ export function ItemMarker() {
             </>
           ) : (
             <>
-              <GeneratedMarker id={data.id} />
+              <GeneratedMarker id={item.id} />
               <Badge className="absolute bottom-3 right-3 z-10">Auto</Badge>
             </>
           )}
@@ -50,16 +52,16 @@ export function ItemMarker() {
           </DropzoneDragAcceptContent>
         </Dropzone>
       </DropzoneProvider>
-      {data.marker ? (
+      {targetAsset ? (
         <Button
           size="sm"
           className="mt-2"
           onClick={() => {
-            removeItemMarker(data.id);
+            removeItemTarget(item.id);
           }}
         >
           <XIcon className="size-4" />
-          Remove custom marker
+          Remove custom target
         </Button>
       ) : null}
     </div>

@@ -1,5 +1,5 @@
 import { degreesToRadians, radiansToDegrees } from "@/lib/math";
-import { useCurrentItemAssetData, useStore } from "@/store";
+import { useAsset, useCurrentItem, useStore } from "@/store";
 import { ChevronLeft, RotateCcw } from "lucide-react";
 import * as THREE from "three";
 import { Button } from "./ui/button";
@@ -10,17 +10,16 @@ import { Switch } from "./ui/switch";
 const safeScale = (value: number) => (value === 0 ? 1e-6 : value);
 
 export function ItemArrangeControls() {
-  const currentItemId = useStore((state) => state.currentItemId);
-  const item = useStore((state) =>
-    state.items.find((i) => i.id === currentItemId)
-  );
   const setItem = useStore((state) => state.setItem);
+  const setItemEntity = useStore((state) => state.setItemEntity);
 
-  const { data } = useCurrentItemAssetData();
+  const item = useCurrentItem();
+  const currentEntity = item?.entityNavigation.current;
+  const { data: currentEntityAsset } = useAsset(currentEntity?.assetId);
 
-  if (!item || !data) return null;
+  if (!item || !currentEntity || !currentEntityAsset) return null;
 
-  const matrix = new THREE.Matrix4().fromArray(item.transform);
+  const matrix = new THREE.Matrix4().fromArray(currentEntity.transform);
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
@@ -33,24 +32,29 @@ export function ItemArrangeControls() {
         <Button
           variant="ghost"
           size="icon"
-          disabled={!data.prevAsset}
+          disabled={!item.entityNavigation.prev}
           onClick={() => {
-            setItem(item.id, { editorSelectedAssetId: data.prevAsset?.id });
+            setItem(item.id, {
+              editorCurrentEntityId: item.entityNavigation.prev?.id,
+            });
           }}
         >
           <ChevronLeft />
         </Button>
         <div className="col-span-4 text-center truncate">
-          {data.selectedAsset?.file?.name ?? "No asset"} (
-          {data.selectedAssetIndex + 1}/{data.assetCount})
+          {currentEntityAsset?.file?.name ?? "No asset"} (
+          {item.entityNavigation.currentIndex + 1}/{item.entityNavigation.count}
+          )
         </div>
         <Button
           className="ml-auto"
           variant="ghost"
           size="icon"
-          disabled={!data.nextAsset}
+          disabled={!item.entityNavigation.next}
           onClick={() => {
-            setItem(item.id, { editorSelectedAssetId: data.nextAsset?.id });
+            setItem(item.id, {
+              editorCurrentEntityId: item.entityNavigation.next?.id,
+            });
           }}
         >
           <ChevronLeft className="transform rotate-180" />
@@ -58,7 +62,9 @@ export function ItemArrangeControls() {
       </div>
       <Button
         onClick={() => {
-          setItem(item.id, { transform: new THREE.Matrix4().toArray() });
+          setItemEntity(item.id, currentEntity.id, {
+            transform: new THREE.Matrix4().toArray(),
+          });
         }}
       >
         Reset Transform
@@ -77,21 +83,21 @@ export function ItemArrangeControls() {
               onClick={() => {
                 switch (vectorType) {
                   case "rotation":
-                    setItem(item.id, {
+                    setItemEntity(item.id, currentEntity.id, {
                       transform: new THREE.Matrix4()
                         .compose(position, new THREE.Quaternion(), scale)
                         .toArray(),
                     });
                     break;
                   case "position":
-                    setItem(item.id, {
+                    setItemEntity(item.id, currentEntity.id, {
                       transform: new THREE.Matrix4()
                         .compose(new THREE.Vector3(), quaternion, scale)
                         .toArray(),
                     });
                     break;
                   case "scale":
-                    setItem(item.id, {
+                    setItemEntity(item.id, currentEntity.id, {
                       transform: new THREE.Matrix4()
                         .compose(
                           position,
@@ -111,9 +117,11 @@ export function ItemArrangeControls() {
                 <FormLabel>Look at camera</FormLabel>
                 <Switch
                   onCheckedChange={(checked) => {
-                    setItem(item.id, { lookAtCamera: checked });
+                    setItemEntity(item.id, currentEntity.id, {
+                      lookAtCamera: checked,
+                    });
                   }}
-                  checked={item.lookAtCamera}
+                  checked={currentEntity.lookAtCamera}
                 />
               </FormItem>
             )}
@@ -122,9 +130,9 @@ export function ItemArrangeControls() {
                 <FormLabel>Uniform</FormLabel>
                 <Switch
                   onCheckedChange={(checked) => {
-                    setItem(item.id, { editorShouldScaleUniformly: checked });
+                    setItem(item.id, { editorScaleUniformly: checked });
                   }}
-                  checked={item.editorShouldScaleUniformly}
+                  checked={item.editorScaleUniformly}
                 />
               </FormItem>
             )}
@@ -192,20 +200,22 @@ export function ItemArrangeControls() {
                             : quaternion,
                           vectorType === "scale"
                             ? new THREE.Vector3(
-                                axis === "x" || item.editorShouldScaleUniformly
+                                axis === "x" || item.editorScaleUniformly
                                   ? safeScale(newValue)
                                   : scale.x,
-                                axis === "y" || item.editorShouldScaleUniformly
+                                axis === "y" || item.editorScaleUniformly
                                   ? safeScale(newValue)
                                   : scale.y,
-                                axis === "z" || item.editorShouldScaleUniformly
+                                axis === "z" || item.editorScaleUniformly
                                   ? safeScale(newValue)
                                   : scale.z
                               )
                             : scale
                         );
 
-                        setItem(item.id, { transform: newTransform.toArray() });
+                        setItemEntity(item.id, currentEntity.id, {
+                          transform: newTransform.toArray(),
+                        });
                       }}
                     />
                   </FormControl>
@@ -224,9 +234,29 @@ export function ItemArrangeControls() {
         <Switch
           className="ml-auto"
           onCheckedChange={(checked) => {
-            setItem(item.id, { shouldPlayAnimation: checked });
+            setItemEntity(item.id, currentEntity.id, {
+              playAnimation: checked,
+            });
           }}
-          checked={item.shouldPlayAnimation}
+          checked={currentEntity.playAnimation}
+        />
+      </FormItem>
+
+      <FormItem className="flex gap-2 items-center space-y-0 w-full">
+        <div className="space-y-0.5">
+          <FormLabel>Link Transforms</FormLabel>
+          <FormDescription>
+            Link transforms of all entities in this item
+          </FormDescription>
+        </div>
+        <Switch
+          className="ml-auto"
+          onCheckedChange={(checked) => {
+            setItem(item.id, {
+              editorLinkTransforms: checked,
+            });
+          }}
+          checked={item.editorLinkTransforms}
         />
       </FormItem>
     </div>

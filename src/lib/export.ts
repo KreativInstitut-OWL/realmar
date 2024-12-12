@@ -124,7 +124,7 @@ async function bundleFiles(
     });
 
     items.forEach((item, index) => {
-      item.assets.forEach((asset, assetIndex) => {
+      item.entity.forEach((asset, assetIndex) => {
         if (!asset.file) return;
         zip.file(
           getFileName("asset", asset.file, index, assetIndex),

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useStore, useCurrentItemAssetData } from "@/store";
+import { useStore, useCurrentItem, useAsset } from "@/store";
 import { forwardRef, HTMLAttributes } from "react";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemArrangeControls } from "./ItemArrangeControls";
@@ -8,12 +8,20 @@ export const ItemArrange = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { data } = useCurrentItemAssetData();
   const setItem = useStore((state) => state.setItem);
+  const setItemEntity = useStore((state) => state.setItemEntity);
 
-  const item = useStore((state) => state.items.find((i) => i.id === data?.id));
+  const item = useCurrentItem();
+  const currentEntity = item?.entityNavigation?.current;
+  const { data: currentEntityAsset } = useAsset(currentEntity?.assetId);
 
-  if (!item || !data) return null;
+  const { data: targetAsset } = useAsset(item?.targetAssetId);
+
+  if (!item) return null;
+
+  if (!currentEntityAsset || !currentEntity) {
+    return <div>Please add entities to this item.</div>;
+  }
 
   return (
     <div
@@ -22,18 +30,18 @@ export const ItemArrange = forwardRef<
       {...props}
     >
       <ItemArrangeEditor
-        asset={data.selectedAsset}
-        marker={data.marker}
+        asset={currentEntityAsset}
+        marker={targetAsset}
         id={item.id}
-        lookAtCamera={item.lookAtCamera}
-        shouldPlayAnimation={item.shouldPlayAnimation}
+        lookAtCamera={currentEntity.lookAtCamera}
+        playAnimation={currentEntity.playAnimation}
         cameraPosition={item.editorCameraPosition}
         onCameraPositionChange={(cameraPosition) => {
           setItem(item.id, { editorCameraPosition: cameraPosition });
         }}
-        transform={item.transform}
+        transform={currentEntity.transform}
         onTransformChange={(transform) => {
-          setItem(item.id, { transform });
+          setItemEntity(item.id, currentEntity.id, { transform });
         }}
       />
 

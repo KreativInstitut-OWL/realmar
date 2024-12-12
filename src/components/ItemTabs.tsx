@@ -1,15 +1,12 @@
 import { Images, Move3D, Scan } from "lucide-react";
 import { ItemArrange } from "./ItemArrange";
-import { ItemAssetList } from "./ItemAssetList";
-import { ItemMarker } from "./ItemMarker";
+import { ItemEntities } from "./ItemEntities";
+import { ItemTarget } from "./ItemTarget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useStore } from "@/store";
+import { useCurrentItem, useStore } from "@/store";
 
 export function ItemTabs() {
-  const currentItemId = useStore((state) => state.currentItemId);
-  const item = useStore((state) =>
-    state.items.find((i) => i.id === currentItemId)
-  );
+  const item = useCurrentItem();
   const setItem = useStore((state) => state.setItem);
 
   if (!item) return null;
@@ -17,32 +14,32 @@ export function ItemTabs() {
   return (
     <Tabs
       defaultValue="arrange"
-      value={item.editorSelectedTab}
+      value={item.editorCurrentTab}
       onValueChange={(value) =>
         setItem(item.id, {
-          editorSelectedTab: value as "marker" | "assets" | "arrange",
+          editorCurrentTab: value as "target" | "entities" | "arrange",
         })
       }
     >
       <TabsList className="">
-        <TabsTrigger value="marker">
+        <TabsTrigger value="target">
           <Scan className="size-5 mr-3" />
-          Marker
+          Target
         </TabsTrigger>
-        <TabsTrigger value="assetList">
+        <TabsTrigger value="entities">
           <Images className="size-5 mr-3" />
-          Assets
+          Entities
         </TabsTrigger>
         <TabsTrigger value="arrange">
           <Move3D className="size-5 mr-3" />
           Arrange
         </TabsTrigger>
       </TabsList>
-      <TabsContent value="marker" className="mt-6">
-        <ItemMarker />
+      <TabsContent value="target" className="mt-6">
+        <ItemTarget />
       </TabsContent>
-      <TabsContent value="assetList">
-        <ItemAssetList />
+      <TabsContent value="entities">
+        <ItemEntities />
       </TabsContent>
       <TabsContent value="arrange" className="mt-0" asChild>
         <ItemArrange />

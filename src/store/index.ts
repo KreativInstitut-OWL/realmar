@@ -2,88 +2,126 @@ import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
 import { nanoid } from "nanoid";
+import { useMemo } from "react";
 import * as THREE from "three";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
-import { queryClient } from "./query-client";
 
-const appStateStore = idb.createStore("app-state-store", "app-state-store");
+const appStateStore = idb.createStore("batchar-state", "state");
 
-// Custom storage object
 const storage: StateStorage = {
-  getItem: async (name: string): Promise<string | null> => {
-    // console.log(name, "has been retrieved");
-    return (await idb.get(name, appStateStore)) || null;
-  },
-  setItem: async (name: string, value: string): Promise<void> => {
-    // console.log(name, "with value", value, "has been saved");
-    await idb.set(name, value, appStateStore);
-  },
-  removeItem: async (name: string): Promise<void> => {
-    // console.log(name, "has been deleted");
-    await idb.del(name, appStateStore);
-  },
+  getItem: async (name: string): Promise<string | null> =>
+    (await idb.get(name, appStateStore)) || null,
+  setItem: async (name: string, value: string): Promise<void> =>
+    await idb.set(name, value, appStateStore),
+  removeItem: async (name: string): Promise<void> =>
+    await idb.del(name, appStateStore),
 };
 
-type AssetRef = {
+export type Asset = {
   id: string;
+  file: File;
+  src: string;
 };
 
-export type Asset = AssetRef & {
-  file: File | null;
-  src: string | null;
+export function createAsset({
+  id,
+  file,
+  src,
+}: Partial<Asset> & { file: File }): Asset {
+  return {
+    id: id ?? nanoid(5),
+    file,
+    src: src ?? URL.createObjectURL(file),
+  };
+}
+
+// prettier-ignore
+const DEFAULT_TRANSFORM: THREE.Matrix4Tuple = [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1,
+];
+
+const DEFAULT_CAMERA_POSITION: THREE.Vector3Tuple = [2, 2, 2];
+
+export type Entity = {
+  id: string;
+  assetId: string;
+  transform: THREE.Matrix4Tuple;
+  lookAtCamera: boolean;
+  playAnimation: boolean;
 };
 
-function createAssetRef(props: Partial<Omit<AssetRef, "id">> = {}): AssetRef {
+function createEntity(
+  props: Partial<Omit<Entity, "id">> & { assetId: string }
+): Entity {
   return {
     id: nanoid(5),
+    transform: DEFAULT_TRANSFORM,
+    lookAtCamera: false,
+    playAnimation: false,
     ...props,
   };
 }
 
-const DEFAULT_MATRIX_4_TUPLE: THREE.Matrix4Tuple = [
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-];
-
 export type Item = {
   id: string;
-  marker: AssetRef | null;
-  assets: AssetRef[];
-  transform: THREE.Matrix4Tuple;
-  lookAtCamera: boolean;
-  shouldPlayAnimation: boolean;
-  // editor state
-  editorShouldScaleUniformly: boolean;
-  editorSelectedAssetId: string | null;
-  editorSelectedTab: "marker" | "assets" | "arrange";
-  editorCameraPosition: THREE.Vector3Tuple;
-};
+  targetAssetId: string | null;
+  entities: Entity[];
 
-export type ItemAssetData = {
-  id: string;
-  marker: Asset | null;
-  assets: Asset[];
-  selectedAssetIndex: number;
-  selectedAsset: Asset | null;
-  nextAsset: Asset | null;
-  prevAsset: Asset | null;
-  assetCount: number;
+  // editor state (these have no effect for the export)
+  editorLinkTransforms: boolean;
+  editorScaleUniformly: boolean;
+  editorCurrentEntityId: string | null;
+  editorCurrentTab: "target" | "entities" | "arrange";
+  editorCameraPosition: THREE.Vector3Tuple;
 };
 
 function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
   return {
     id: nanoid(5),
-    marker: null,
-    assets: [],
-    transform: DEFAULT_MATRIX_4_TUPLE,
-    lookAtCamera: false,
-    shouldPlayAnimation: false,
-    editorShouldScaleUniformly: true,
-    editorSelectedAssetId: null,
-    editorSelectedTab: "marker",
-    editorCameraPosition: [2, 2, 2],
+    targetAssetId: null,
+    entities: [],
+
+    editorLinkTransforms: true,
+    editorScaleUniformly: true,
+    editorCurrentEntityId: null,
+    editorCurrentTab: "target",
+    editorCameraPosition: DEFAULT_CAMERA_POSITION,
     ...props,
+  };
+}
+
+export type EntityNavigation = {
+  currentIndex: number;
+  current: Entity | null;
+  next: Entity | null;
+  prev: Entity | null;
+  count: number;
+};
+
+function createEntityNavigation({
+  entities,
+  editorCurrentEntityId,
+}: Pick<Item, "entities" | "editorCurrentEntityId">): EntityNavigation {
+  const currentIndex = Math.max(
+    entities.findIndex((entity) => entity.id === editorCurrentEntityId),
+    0
+  );
+  const current = entities[currentIndex] ?? null;
+  const next = entities[currentIndex + 1] ?? null;
+  const prev = entities[currentIndex - 1] ?? null;
+  const count = entities.length;
+
+  return {
+    currentIndex,
+    current,
+    next,
+    prev,
+    count,
   };
 }
 
@@ -94,16 +132,18 @@ type AppState = {
   setCurrentItemId: (id: string) => void;
 
   addItem: () => void;
-
-  getItemAssetData: (id: string) => Promise<ItemAssetData | null>;
-
   setItem: (itemId: string, item: Partial<Item>) => void;
+  setItemEntity: (
+    itemId: string,
+    entityId: string,
+    entity: Partial<Entity>
+  ) => void;
 
-  setItemMarker: (itemId: string, file: File) => Promise<void>;
-  removeItemMarker: (itemId: string) => Promise<void>;
+  setItemTarget: (itemId: string, file: File) => Promise<void>;
+  removeItemTarget: (itemId: string) => Promise<void>;
 
-  addItemAssets: (id: string, files: File[]) => Promise<void>;
-  removeItemAsset: (itemId: string, assetId: string) => Promise<void>;
+  addItemEntities: (id: string, files: File[]) => Promise<void>;
+  removeItemEntity: (itemId: string, entityId: string) => Promise<void>;
 };
 
 export const useStore = create<AppState>()(
@@ -119,132 +159,102 @@ export const useStore = create<AppState>()(
             state.currentItemId = id;
           });
         },
+
         addItem: () => {
           set((state) => {
             state.items.push(createItem());
           });
         },
-        getItemAssetData: async (id: string) => {
-          const { items } = get();
-          const item = items.find((item) => item.id === id) || null;
-          if (!item) return null;
 
-          const markerFile = item.marker
-            ? await FileStore.get(item.marker.id)
-            : null;
-
-          const marker = item.marker
-            ? {
-                ...item.marker,
-                file: markerFile,
-                src: markerFile ? URL.createObjectURL(markerFile) : null,
-              }
-            : null;
-
-          const selectedAssetId = item.editorSelectedAssetId;
-          const selectedAssetIndex = Math.max(
-            item?.assets.findIndex((asset) => asset.id === selectedAssetId) ??
-              0,
-            0
-          );
-
-          const assets = await Promise.all(
-            item.assets.map(async (assetRef) => {
-              const assetFile = await FileStore.get(assetRef.id);
-              return {
-                ...assetRef,
-                file: assetFile,
-                src: assetFile ? URL.createObjectURL(assetFile) : null,
-              };
-            })
-          );
-
-          const selectedAsset = assets[selectedAssetIndex];
-          const nextAsset = assets[selectedAssetIndex + 1];
-          const prevAsset = assets[selectedAssetIndex - 1];
-
-          // wait 2000ms
-          // await new Promise((resolve) => setTimeout(resolve, 2000));
-
-          return {
-            id: item.id,
-            marker,
-            assets,
-            selectedAssetIndex,
-            selectedAsset,
-            nextAsset,
-            prevAsset,
-            assetCount: item.assets.length,
-          };
-        },
-        setItemMarker: async (itemId, file) => {
-          const markerRef = createAssetRef();
-          await FileStore.add(markerRef.id, file);
+        setItemTarget: async (itemId, file) => {
+          const targetAsset = createAsset({ file });
+          await FileStore.add(targetAsset);
 
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
-            item.marker = markerRef;
+            item.targetAssetId = targetAsset.id;
           });
-
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
         },
-        setItem: async (itemId, itemUpdate) => {
+
+        setItem: (itemId, itemUpdate) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             Object.assign(item, itemUpdate);
           });
-
-          if ("editorSelectedAssetId" in itemUpdate) {
-            await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-          }
         },
-        removeItemMarker: async (itemId) => {
-          const markerRef =
-            get().items.find((item) => item.id === itemId)?.marker ?? null;
 
+        setItemEntity: (itemId, entityId, entityUpdate) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
-            item.marker = null;
+            if (item.editorLinkTransforms) {
+              item.entities.forEach((entity) => {
+                Object.assign(entity, entityUpdate);
+              });
+            } else {
+              const entity = item.entities.find(
+                (entity) => entity.id === entityId
+              );
+              if (!entity) return;
+              Object.assign(entity, entityUpdate);
+            }
+          });
+        },
+
+        removeItemTarget: async (itemId) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            item.targetAssetId = null;
           });
 
-          if (markerRef) {
-            await FileStore.del(markerRef.id);
-          }
+          const targetAssetId =
+            get().items.find((item) => item.id === itemId)?.targetAssetId ??
+            null;
 
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+          if (targetAssetId) {
+            await FileStore.del(targetAssetId);
+          }
         },
-        addItemAssets: async (id, files) => {
-          const newAssets: AssetRef[] = [];
+
+        addItemEntities: async (id, files) => {
+          const newEntities: Entity[] = [];
+
           for (const file of files) {
-            const assetRef = createAssetRef();
-            await FileStore.add(assetRef.id, file);
-            newAssets.push(assetRef);
+            const asset = createAsset({ file });
+            await FileStore.add(asset);
+            const entity = createEntity({ assetId: asset.id });
+
+            newEntities.push(entity);
           }
 
           set((state) => {
             const item = state.items.find((item) => item.id === id);
             if (!item) return;
-            item.assets.push(...newAssets);
+            item.entities.push(...newEntities);
           });
-
-          await queryClient.invalidateQueries({ queryKey: ["item", id] });
         },
-        removeItemAsset: async (itemId, assetId) => {
+
+        removeItemEntity: async (itemId, entityId) => {
+          const entity = get()
+            .items.find((item) => item.id === itemId)
+            ?.entities.find((entity) => entity.id === entityId);
+
+          if (entity) {
+            await FileStore.del(entity.assetId);
+          }
+
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
-            const assetIndex = item.assets.findIndex(
-              (asset) => asset.id === assetId
+            const entityIndex = item.entities.findIndex(
+              (entity) => entity.id === entityId
             );
-            if (assetIndex === -1) return;
-            item.assets.splice(assetIndex, 1);
+            if (entityIndex === -1) return;
+            item.entities.splice(entityIndex, 1);
           });
-
-          await FileStore.del(assetId);
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
         },
       };
     }),
@@ -255,14 +265,36 @@ export const useStore = create<AppState>()(
   )
 );
 
-export function useItemAssetData(id: string | null) {
-  const getItemAssets = useStore((state) => state.getItemAssetData);
-  return useSuspenseQuery({
-    queryKey: ["item", id],
-    queryFn: () => (id ? getItemAssets(id) : null),
-  });
+export function useItem(
+  itemId: string
+): (Item & { entityNavigation: EntityNavigation }) | null {
+  const item = useStore((state) =>
+    state.items.find((item) => item.id === itemId)
+  );
+
+  const entityNavigation = useMemo(
+    () =>
+      item?.entities
+        ? createEntityNavigation({
+            entities: item.entities,
+            editorCurrentEntityId: item.editorCurrentEntityId,
+          })
+        : null,
+    [item?.entities, item?.editorCurrentEntityId]
+  );
+
+  if (!item) return null;
+
+  return { ...item, entityNavigation: entityNavigation! };
 }
 
-export function useCurrentItemAssetData() {
-  return useItemAssetData(useStore((state) => state.currentItemId));
+export function useCurrentItem() {
+  return useItem(useStore((state) => state.currentItemId!));
+}
+
+export function useAsset(assetId: string | null | undefined) {
+  return useSuspenseQuery({
+    queryKey: ["asset", assetId],
+    queryFn: () => FileStore.get(assetId),
+  });
 }
