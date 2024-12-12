@@ -1,9 +1,5 @@
 import { useStore } from "@/store";
-import {
-  Combobox,
-  ComboboxTriggerButton,
-  ComboboxTriggerButtonSimple,
-} from "./ui/combobox";
+import { Combobox, ComboboxTriggerButton } from "./ui/combobox";
 
 export function ItemCombobox() {
   const items = useStore((state) => state.items);
