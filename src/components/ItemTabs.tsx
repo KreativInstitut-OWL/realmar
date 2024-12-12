@@ -14,8 +14,6 @@ export function ItemTabs({
   const item = useCurrentItem();
   const setItem = useStore((state) => state.setItem);
 
-  if (!item) return null;
-
   return (
     <Tabs
       defaultValue="arrange"
@@ -26,23 +24,25 @@ export function ItemTabs({
         })
       }
     >
-      {createPortal(
-        <TabsList className="">
-          <TabsTrigger value="target">
-            <Scan className="size-5 mr-3" />
-            Target
-          </TabsTrigger>
-          <TabsTrigger value="entities">
-            <Images className="size-5 mr-3" />
-            Entities
-          </TabsTrigger>
-          <TabsTrigger value="arrange">
-            <Move3D className="size-5 mr-3" />
-            Arrange
-          </TabsTrigger>
-        </TabsList>,
-        itemHeaderRef.current!
-      )}
+      {itemHeaderRef.current
+        ? createPortal(
+            <TabsList className="">
+              <TabsTrigger value="target">
+                <Scan className="size-5 mr-3" />
+                Target
+              </TabsTrigger>
+              <TabsTrigger value="entities">
+                <Images className="size-5 mr-3" />
+                Entities
+              </TabsTrigger>
+              <TabsTrigger value="arrange">
+                <Move3D className="size-5 mr-3" />
+                Arrange
+              </TabsTrigger>
+            </TabsList>,
+            itemHeaderRef.current
+          )
+        : null}
       <TabsContent value="target" className="mt-6">
         <ItemTarget />
       </TabsContent>

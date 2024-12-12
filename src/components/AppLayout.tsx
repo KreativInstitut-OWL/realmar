@@ -7,19 +7,18 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Suspense, useRef } from "react";
+import { ItemCombobox } from "./ItemCombobox";
 import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
 import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
-import { Suspense, useRef } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
-import { useCurrentItem } from "@/store";
 
 function AppLayout() {
-  const item = useCurrentItem();
   const itemHeaderRef = useRef<HTMLLIElement>(null);
 
   return (
@@ -35,13 +34,15 @@ function AppLayout() {
 
             <Breadcrumb>
               <BreadcrumbList>
-                <BreadcrumbItem>Marker {item.index + 1}</BreadcrumbItem>
+                <BreadcrumbItem>
+                  <ItemCombobox />
+                </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem ref={itemHeaderRef} />
               </BreadcrumbList>
             </Breadcrumb>
 
-            <Button type="submit" className="ml-auto" size="sm">
+            <Button type="submit" className="ml-auto">
               Export
               <ArrowRightFromLine />
             </Button>
