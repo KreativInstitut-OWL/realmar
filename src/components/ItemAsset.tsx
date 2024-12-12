@@ -1,5 +1,5 @@
 import { byteFormatter } from "@/lib/utils";
-import { useStore, useItemAssets } from "@/store";
+import { useStore, useItemAssetData } from "@/store";
 import { FileIcon, Trash2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "./ui/button";
@@ -13,7 +13,7 @@ export function ItemAsset({
 }) {
   const { removeItemAsset } = useStore();
 
-  const { data: item } = useItemAssets(itemId);
+  const { data: item } = useItemAssetData(itemId);
   const asset = useMemo(() => {
     return item?.assets.find((asset) => asset.id === assetId);
   }, [item, assetId]);
@@ -25,8 +25,6 @@ export function ItemAsset({
       </div>
     );
   }
-
-  console.log("file.type", asset.file.type);
 
   return (
     <div className="flex gap-4 items-center">

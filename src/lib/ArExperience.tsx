@@ -1,12 +1,9 @@
 import { Item } from "@/store";
 import React from "react";
-// import { getPositions } from "./getPositions";
 import { getFileName } from "./export";
 import * as THREE from "three";
 
 export const ArExperience = ({ items }: { items: Item[] }) => {
-  // const positions = getPositions(meta);
-
   return (
     <html lang="en">
       <head>

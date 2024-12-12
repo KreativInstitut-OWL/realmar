@@ -3,10 +3,27 @@ import { ItemArrange } from "./ItemArrange";
 import { ItemAssetList } from "./ItemAssetList";
 import { ItemMarker } from "./ItemMarker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { useStore } from "@/store";
 
 export function ItemTabs() {
+  const currentItemId = useStore((state) => state.currentItemId);
+  const item = useStore((state) =>
+    state.items.find((i) => i.id === currentItemId)
+  );
+  const setItem = useStore((state) => state.setItem);
+
+  if (!item) return null;
+
   return (
-    <Tabs defaultValue="arrange">
+    <Tabs
+      defaultValue="arrange"
+      value={item.editorSelectedTab}
+      onValueChange={(value) =>
+        setItem(item.id, {
+          editorSelectedTab: value as "marker" | "assets" | "arrange",
+        })
+      }
+    >
       <TabsList className="">
         <TabsTrigger value="marker">
           <Scan className="size-5 mr-3" />

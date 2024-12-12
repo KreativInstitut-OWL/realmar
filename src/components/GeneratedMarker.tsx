@@ -49,9 +49,11 @@ function round(value: number, precision = 1) {
 export function GeneratedMarker({
   id,
   className,
+  size,
 }: {
   id: string;
   className?: string;
+  size?: number;
 }) {
   // use xoroshiro128plus to generate n pairs (x,y) of random numbers between 0 and MARKER_SIZE
   const rng = useMemo(() => xoroshiro128plus(getSeed(id)), [id]);
@@ -132,6 +134,8 @@ export function GeneratedMarker({
   return (
     <svg
       viewBox={`0 0 ${MARKER_SIZE} ${MARKER_SIZE}`}
+      width={size}
+      height={size}
       fill="white"
       xmlns="http://www.w3.org/2000/svg"
       className={className}

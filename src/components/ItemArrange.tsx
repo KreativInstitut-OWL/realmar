@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { useStore, useCurrentItemAssets } from "@/store";
+import { useStore, useCurrentItemAssetData } from "@/store";
 import { forwardRef, HTMLAttributes } from "react";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemArrangeControls } from "./ItemArrangeControls";
@@ -8,14 +8,12 @@ export const ItemArrange = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => {
-  const { data: itemAssets } = useCurrentItemAssets();
-  const setItemTransform = useStore((state) => state.setItemTransform);
+  const { data } = useCurrentItemAssetData();
+  const setItem = useStore((state) => state.setItem);
 
-  const persistedItem = useStore((state) =>
-    state.items.find((i) => i.id === itemAssets?.id)
-  );
+  const item = useStore((state) => state.items.find((i) => i.id === data?.id));
 
-  if (!itemAssets || !persistedItem) return null;
+  if (!item || !data) return null;
 
   return (
     <div
@@ -24,14 +22,18 @@ export const ItemArrange = forwardRef<
       {...props}
     >
       <ItemArrangeEditor
-        assets={itemAssets.assets}
-        marker={itemAssets.marker}
-        id={persistedItem.id}
-        lookAtCamera={persistedItem.lookAtCamera}
-        shouldPlayAnimation={persistedItem.shouldPlayAnimation}
-        transform={persistedItem.transform}
+        asset={data.selectedAsset}
+        marker={data.marker}
+        id={item.id}
+        lookAtCamera={item.lookAtCamera}
+        shouldPlayAnimation={item.shouldPlayAnimation}
+        cameraPosition={item.editorCameraPosition}
+        onCameraPositionChange={(cameraPosition) => {
+          setItem(item.id, { editorCameraPosition: cameraPosition });
+        }}
+        transform={item.transform}
         onTransformChange={(transform) => {
-          setItemTransform(persistedItem.id, transform);
+          setItem(item.id, { transform });
         }}
       />
 

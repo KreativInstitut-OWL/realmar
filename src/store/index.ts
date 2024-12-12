@@ -52,14 +52,23 @@ export type Item = {
   assets: AssetRef[];
   transform: THREE.Matrix4Tuple;
   lookAtCamera: boolean;
-  shouldScaleUniformly: boolean;
   shouldPlayAnimation: boolean;
+  // editor state
+  editorShouldScaleUniformly: boolean;
+  editorSelectedAssetId: string | null;
+  editorSelectedTab: "marker" | "assets" | "arrange";
+  editorCameraPosition: THREE.Vector3Tuple;
 };
 
-export type ItemAssets = {
+export type ItemAssetData = {
   id: string;
   marker: Asset | null;
   assets: Asset[];
+  selectedAssetIndex: number;
+  selectedAsset: Asset | null;
+  nextAsset: Asset | null;
+  prevAsset: Asset | null;
+  assetCount: number;
 };
 
 function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
@@ -69,34 +78,30 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     assets: [],
     transform: DEFAULT_MATRIX_4_TUPLE,
     lookAtCamera: false,
-    shouldScaleUniformly: true,
     shouldPlayAnimation: false,
+    editorShouldScaleUniformly: true,
+    editorSelectedAssetId: null,
+    editorSelectedTab: "marker",
+    editorCameraPosition: [2, 2, 2],
     ...props,
   };
 }
 
 type AppState = {
   items: Item[];
-  addItem: () => void;
   currentItemId: string | null;
+
   setCurrentItemId: (id: string) => void;
-  getItemAssets: (id: string) => Promise<ItemAssets | null>;
-  getCurrentItemAssets: () => Promise<ItemAssets | null>;
+
+  addItem: () => void;
+
+  getItemAssetData: (id: string) => Promise<ItemAssetData | null>;
+
+  setItem: (itemId: string, item: Partial<Item>) => void;
+
   setItemMarker: (itemId: string, file: File) => Promise<void>;
-  setItemTransform: (
-    itemId: string,
-    transform: THREE.Matrix4Tuple
-  ) => Promise<void>;
-  setItemLookAtCamera: (itemId: string, lookAtCamera: boolean) => Promise<void>;
-  setItemShouldScaleUniformly: (
-    itemId: string,
-    shouldScaleUniformly: boolean
-  ) => Promise<void>;
-  setItemShouldPlayAnimation: (
-    itemId: string,
-    shouldPlayAnimation: boolean
-  ) => Promise<void>;
   removeItemMarker: (itemId: string) => Promise<void>;
+
   addItemAssets: (id: string, files: File[]) => Promise<void>;
   removeItemAsset: (itemId: string, assetId: string) => Promise<void>;
 };
@@ -119,43 +124,58 @@ export const useStore = create<AppState>()(
             state.items.push(createItem());
           });
         },
-        getItemAssets: async (id: string) => {
+        getItemAssetData: async (id: string) => {
           const { items } = get();
-          const itemPersist = items.find((item) => item.id === id) || null;
-          if (!itemPersist) return null;
+          const item = items.find((item) => item.id === id) || null;
+          if (!item) return null;
 
-          const markerFile = itemPersist.marker
-            ? await FileStore.get(itemPersist.marker.id)
+          const markerFile = item.marker
+            ? await FileStore.get(item.marker.id)
             : null;
+
+          const marker = item.marker
+            ? {
+                ...item.marker,
+                file: markerFile,
+                src: markerFile ? URL.createObjectURL(markerFile) : null,
+              }
+            : null;
+
+          const selectedAssetId = item.editorSelectedAssetId;
+          const selectedAssetIndex = Math.max(
+            item?.assets.findIndex((asset) => asset.id === selectedAssetId) ??
+              0,
+            0
+          );
+
+          const assets = await Promise.all(
+            item.assets.map(async (assetRef) => {
+              const assetFile = await FileStore.get(assetRef.id);
+              return {
+                ...assetRef,
+                file: assetFile,
+                src: assetFile ? URL.createObjectURL(assetFile) : null,
+              };
+            })
+          );
+
+          const selectedAsset = assets[selectedAssetIndex];
+          const nextAsset = assets[selectedAssetIndex + 1];
+          const prevAsset = assets[selectedAssetIndex - 1];
 
           // wait 2000ms
           // await new Promise((resolve) => setTimeout(resolve, 2000));
 
           return {
-            ...itemPersist,
-            marker: itemPersist.marker
-              ? {
-                  ...itemPersist.marker,
-                  file: markerFile,
-                  src: markerFile ? URL.createObjectURL(markerFile) : null,
-                }
-              : null,
-            assets: await Promise.all(
-              itemPersist.assets.map(async (assetRef) => {
-                const assetFile = await FileStore.get(assetRef.id);
-                return {
-                  ...assetRef,
-                  file: assetFile,
-                  src: assetFile ? URL.createObjectURL(assetFile) : null,
-                };
-              })
-            ),
+            id: item.id,
+            marker,
+            assets,
+            selectedAssetIndex,
+            selectedAsset,
+            nextAsset,
+            prevAsset,
+            assetCount: item.assets.length,
           };
-        },
-        getCurrentItemAssets: async () => {
-          const { currentItemId, getItemAssets: getItem } = get();
-          if (!currentItemId) return null;
-          return getItem(currentItemId);
         },
         setItemMarker: async (itemId, file) => {
           const markerRef = createAssetRef();
@@ -169,41 +189,16 @@ export const useStore = create<AppState>()(
 
           await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
         },
-        setItemTransform: async (itemId, transform) => {
+        setItem: async (itemId, itemUpdate) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
-            item.transform = transform;
+            Object.assign(item, itemUpdate);
           });
 
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-        },
-        setItemLookAtCamera: async (itemId, lookAtCamera) => {
-          set((state) => {
-            const item = state.items.find((item) => item.id === itemId);
-            if (!item) return;
-            item.lookAtCamera = lookAtCamera;
-          });
-
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-        },
-        setItemShouldScaleUniformly: async (itemId, shouldScaleUniformly) => {
-          set((state) => {
-            const item = state.items.find((item) => item.id === itemId);
-            if (!item) return;
-            item.shouldScaleUniformly = shouldScaleUniformly;
-          });
-
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
-        },
-        setItemShouldPlayAnimation: async (itemId, shouldPlayAnimation) => {
-          set((state) => {
-            const item = state.items.find((item) => item.id === itemId);
-            if (!item) return;
-            item.shouldPlayAnimation = shouldPlayAnimation;
-          });
-
-          await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+          if ("editorSelectedAssetId" in itemUpdate) {
+            await queryClient.invalidateQueries({ queryKey: ["item", itemId] });
+          }
         },
         removeItemMarker: async (itemId) => {
           const markerRef =
@@ -260,14 +255,14 @@ export const useStore = create<AppState>()(
   )
 );
 
-export function useItemAssets(id: string | null) {
-  const getItem = useStore((state) => state.getItemAssets);
+export function useItemAssetData(id: string | null) {
+  const getItemAssets = useStore((state) => state.getItemAssetData);
   return useSuspenseQuery({
     queryKey: ["item", id],
-    queryFn: () => (id ? getItem(id) : null),
+    queryFn: () => (id ? getItemAssets(id) : null),
   });
 }
 
-export function useCurrentItemAssets() {
-  return useItemAssets(useStore((state) => state.currentItemId));
+export function useCurrentItemAssetData() {
+  return useItemAssetData(useStore((state) => state.currentItemId));
 }

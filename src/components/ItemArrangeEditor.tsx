@@ -1,17 +1,22 @@
 import {
+  createSquareThreeTextureFromSrc,
+  renderSvgReactNodeToBase64Src,
+} from "@/lib/render";
+import { Asset } from "@/store";
+import {
   GizmoHelper,
   GizmoViewport,
   Grid,
   OrbitControls,
+  PerspectiveCamera,
   PivotControls,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedMarker } from "./GeneratedMarker";
-import { Asset } from "@/store";
-import { renderSvgReactNodeToBase64 } from "@/lib/render";
 
 interface ItemArrangeEditorProps {
   id: string;
@@ -19,8 +24,10 @@ interface ItemArrangeEditorProps {
   transform: THREE.Matrix4Tuple;
   onTransformChange: (transform: THREE.Matrix4Tuple) => void;
   shouldPlayAnimation: boolean;
-  assets: Asset[];
+  asset: Asset | null;
   marker: Asset | null;
+  cameraPosition: THREE.Vector3Tuple;
+  onCameraPositionChange: (position: THREE.Vector3Tuple) => void;
 }
 
 const EulerNull = new THREE.Euler(0, 0, 0);
@@ -54,8 +61,8 @@ const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
       <mesh ref={ref}>
         <planeGeometry
           args={[
-            dimensions.width / Math.max(dimensions.width, dimensions.height),
-            dimensions.height / Math.max(dimensions.width, dimensions.height),
+            dimensions.width / Math.min(dimensions.width, dimensions.height),
+            dimensions.height / Math.min(dimensions.width, dimensions.height),
           ]}
         />
         <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
@@ -127,13 +134,13 @@ const GltfAsset = forwardRef<
 const PlaceholderAsset = forwardRef<THREE.Mesh>((_, ref) => {
   return (
     <mesh ref={ref}>
-      <boxGeometry args={[0.25, 0.25, 0.25]} />
+      <boxGeometry args={[0.125, 0.125, 0.125]} />
       <meshBasicMaterial color="#55fc27" />
     </mesh>
   );
 });
 
-function getAssetComponent(asset: Asset | undefined) {
+function getAssetComponent(asset: Asset | null) {
   if (!asset?.file) {
     return PlaceholderAsset;
   }
@@ -149,8 +156,8 @@ function getAssetComponent(asset: Asset | undefined) {
   return PlaceholderAsset;
 }
 
-function TransformableAssets({
-  assets,
+function TransformableAsset({
+  asset,
   lookAtCamera,
   transform,
   onTransformChange,
@@ -163,7 +170,6 @@ function TransformableAssets({
   const [isDragging, setIsDragging] = useState(false);
 
   useEffect(() => {
-    console.log("transform", transform);
     if (!isDragging && matrixRef.current) {
       matrixRef.current.fromArray(transform);
     }
@@ -190,9 +196,7 @@ function TransformableAssets({
     }
   });
 
-  const previewAsset = assets?.[0] ?? undefined;
-
-  const AssetComponent = getAssetComponent(previewAsset);
+  const AssetComponent = getAssetComponent(asset);
 
   return (
     <PivotControls
@@ -208,9 +212,11 @@ function TransformableAssets({
       onDrag={(l: THREE.Matrix4) => {
         onTransformChange([...l.elements]);
       }}
+      disableScaling
+      axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
     >
       <AssetComponent
-        asset={previewAsset}
+        asset={asset!}
         shouldPlayAnimation={shouldPlayAnimation}
         ref={meshRef}
       />
@@ -218,66 +224,89 @@ function TransformableAssets({
   );
 }
 
-const MARKER_TEXTURE_SIZE = 128;
+const MARKER_TEXTURE_SIZE = 512;
 
-function MarkerObject({ id }: { id: string }) {
-  const renderedMarkerTexture = useMemo(() => {
-    const canvas = document.createElement("canvas");
-    canvas.width = MARKER_TEXTURE_SIZE;
-    canvas.height = MARKER_TEXTURE_SIZE;
-    const ctx = canvas.getContext("2d");
+function MarkerObject({ id, src }: { id: string; src?: string | null }) {
+  const { data: generatedMarkerTexture } = useSuspenseQuery({
+    queryKey: ["generated-marker-texture", { id, src }],
+    queryFn: () =>
+      createSquareThreeTextureFromSrc({
+        src: renderSvgReactNodeToBase64Src(
+          <GeneratedMarker id={id} size={MARKER_TEXTURE_SIZE} />
+        ),
+        size: MARKER_TEXTURE_SIZE,
+      }),
+  });
 
-    const img = document.createElement("img");
-    img.setAttribute(
-      "src",
-      renderSvgReactNodeToBase64(<GeneratedMarker id={id} />)
-    );
-    img.width = MARKER_TEXTURE_SIZE;
-    img.height = MARKER_TEXTURE_SIZE;
-
-    const texture = new THREE.Texture(canvas);
-
-    img.onload = function () {
-      if (!ctx) return;
-      ctx.drawImage(img, 0, 0);
-      texture.needsUpdate = true;
-    };
-
-    return texture;
-  }, [id]);
+  const { data: customMarkerTexture } = useSuspenseQuery({
+    queryKey: ["custom-marker-texture", { src }],
+    queryFn: () =>
+      src
+        ? createSquareThreeTextureFromSrc({ src, size: MARKER_TEXTURE_SIZE })
+        : null,
+  });
 
   return (
     <mesh renderOrder={-1}>
       <planeGeometry args={[1, 1]} />
       <meshBasicMaterial
-        map={renderedMarkerTexture}
+        map={customMarkerTexture ?? generatedMarkerTexture}
         side={THREE.DoubleSide}
         depthWrite={false}
+        transparent
       />
     </mesh>
   );
 }
 
 export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
+  const cameraRef = useRef<THREE.PerspectiveCamera>(null);
+
+  const isDragging = useRef(false);
+
+  useEffect(() => {
+    if (cameraRef.current && props.cameraPosition && !isDragging.current) {
+      cameraRef.current.position.set(...props.cameraPosition);
+    }
+  }, [props.cameraPosition]);
+
+  const handleCameraStart = () => {
+    isDragging.current = true;
+  };
+
+  const handleCameraEnd = () => {
+    isDragging.current = false;
+    if (cameraRef.current && props.onCameraPositionChange) {
+      const pos = cameraRef.current.position;
+      props.onCameraPositionChange([pos.x, pos.y, pos.z]);
+    }
+  };
+
   return (
-    <div className="w-full h-full bg-gray-100 rounded-lg overflow-hidden">
-      <Canvas camera={{ position: [2, 2, 2] }}>
+    <div className="w-full h-full overflow-clip bg-white">
+      <Canvas>
         <ambientLight intensity={10} />
         <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
-        <axesHelper args={[1]} />
-        <OrbitControls makeDefault />
 
-        {props.marker ? (
-          <ImageAsset asset={props.marker} />
-        ) : (
-          <MarkerObject id={props.id} />
-        )}
-        <TransformableAssets {...props} />
+        <PerspectiveCamera
+          ref={cameraRef}
+          position={props.cameraPosition || [2, 2, 2]}
+          makeDefault
+        />
+        <OrbitControls
+          makeDefault
+          onStart={handleCameraStart}
+          onEnd={handleCameraEnd}
+        />
+
+        <MarkerObject id={props.id} src={props.marker?.src} />
+
+        <TransformableAsset {...props} />
 
         <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
           <GizmoViewport
-            axisColors={["red", "green", "blue"]}
-            labelColor="white"
+            axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
+            labelColor="black"
           />
         </GizmoHelper>
         <Grid args={[10, 10]} side={THREE.DoubleSide} />

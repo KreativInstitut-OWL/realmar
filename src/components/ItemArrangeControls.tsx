@@ -1,6 +1,6 @@
 import { degreesToRadians, radiansToDegrees } from "@/lib/math";
-import { useStore } from "@/store";
-import { RotateCcw } from "lucide-react";
+import { useCurrentItemAssetData, useStore } from "@/store";
+import { ChevronLeft, RotateCcw } from "lucide-react";
 import * as THREE from "three";
 import { Button } from "./ui/button";
 import { FormControl, FormDescription, FormItem, FormLabel } from "./ui/form";
@@ -14,16 +14,11 @@ export function ItemArrangeControls() {
   const item = useStore((state) =>
     state.items.find((i) => i.id === currentItemId)
   );
-  const setItemTransform = useStore((state) => state.setItemTransform);
-  const setItemLookAtCamera = useStore((state) => state.setItemLookAtCamera);
-  const setItemShouldScaleUniformly = useStore(
-    (state) => state.setItemShouldScaleUniformly
-  );
-  const setItemShouldPlayAnimation = useStore(
-    (state) => state.setItemShouldPlayAnimation
-  );
+  const setItem = useStore((state) => state.setItem);
 
-  if (!item) return null;
+  const { data } = useCurrentItemAssetData();
+
+  if (!item || !data) return null;
 
   const matrix = new THREE.Matrix4().fromArray(item.transform);
   const position = new THREE.Vector3();
@@ -32,48 +27,38 @@ export function ItemArrangeControls() {
   matrix.decompose(position, quaternion, scale);
   const rotation = new THREE.Euler().setFromQuaternion(quaternion);
 
-  // log transform as 4x4 matrix (as three rows)
-  console.log(
-    "Transform matrix: \n",
-    matrix.toArray().slice(0, 4).join(", "),
-    "\n",
-    matrix.toArray().slice(4, 8).join(", "),
-    "\n",
-    matrix.toArray().slice(8, 12).join(", "),
-    "\n",
-    matrix.toArray().slice(12, 16).join(", ")
-  );
-
-  console.table({
-    position: {
-      x: position.x,
-      y: position.y,
-      z: position.z,
-    },
-    scale: {
-      x: scale.x,
-      y: scale.y,
-      z: scale.z,
-    },
-    quaternion: {
-      x: quaternion.x,
-      y: quaternion.y,
-      z: quaternion.z,
-      w: quaternion.w,
-    },
-    rotation: {
-      x: rotation.x,
-      y: rotation.y,
-      z: rotation.z,
-    },
-  });
-
   return (
     <div className="grid grid-cols-1 gap-8 bg-white p-4">
+      <div className="grid grid-cols-6 items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          disabled={!data.prevAsset}
+          onClick={() => {
+            setItem(item.id, { editorSelectedAssetId: data.prevAsset?.id });
+          }}
+        >
+          <ChevronLeft />
+        </Button>
+        <div className="col-span-4 text-center truncate">
+          {data.selectedAsset?.file?.name ?? "No asset"} (
+          {data.selectedAssetIndex + 1}/{data.assetCount})
+        </div>
+        <Button
+          className="ml-auto"
+          variant="ghost"
+          size="icon"
+          disabled={!data.nextAsset}
+          onClick={() => {
+            setItem(item.id, { editorSelectedAssetId: data.nextAsset?.id });
+          }}
+        >
+          <ChevronLeft className="transform rotate-180" />
+        </Button>
+      </div>
       <Button
         onClick={() => {
-          // rest trasnfomr to identity
-          setItemTransform(item.id, new THREE.Matrix4().toArray());
+          setItem(item.id, { transform: new THREE.Matrix4().toArray() });
         }}
       >
         Reset Transform
@@ -92,32 +77,29 @@ export function ItemArrangeControls() {
               onClick={() => {
                 switch (vectorType) {
                   case "rotation":
-                    setItemTransform(
-                      item.id,
-                      new THREE.Matrix4()
+                    setItem(item.id, {
+                      transform: new THREE.Matrix4()
                         .compose(position, new THREE.Quaternion(), scale)
-                        .toArray()
-                    );
+                        .toArray(),
+                    });
                     break;
                   case "position":
-                    setItemTransform(
-                      item.id,
-                      new THREE.Matrix4()
+                    setItem(item.id, {
+                      transform: new THREE.Matrix4()
                         .compose(new THREE.Vector3(), quaternion, scale)
-                        .toArray()
-                    );
+                        .toArray(),
+                    });
                     break;
                   case "scale":
-                    setItemTransform(
-                      item.id,
-                      new THREE.Matrix4()
+                    setItem(item.id, {
+                      transform: new THREE.Matrix4()
                         .compose(
                           position,
                           quaternion,
                           new THREE.Vector3(1, 1, 1)
                         )
-                        .toArray()
-                    );
+                        .toArray(),
+                    });
                     break;
                 }
               }}
@@ -129,7 +111,7 @@ export function ItemArrangeControls() {
                 <FormLabel>Look at camera</FormLabel>
                 <Switch
                   onCheckedChange={(checked) => {
-                    setItemLookAtCamera(item.id, checked);
+                    setItem(item.id, { lookAtCamera: checked });
                   }}
                   checked={item.lookAtCamera}
                 />
@@ -140,9 +122,9 @@ export function ItemArrangeControls() {
                 <FormLabel>Uniform</FormLabel>
                 <Switch
                   onCheckedChange={(checked) => {
-                    setItemShouldScaleUniformly(item.id, checked);
+                    setItem(item.id, { editorShouldScaleUniformly: checked });
                   }}
-                  checked={item.shouldScaleUniformly}
+                  checked={item.editorShouldScaleUniformly}
                 />
               </FormItem>
             )}
@@ -155,8 +137,6 @@ export function ItemArrangeControls() {
                   : vectorType === "rotation"
                   ? radiansToDegrees(rotation[axis])
                   : scale[axis];
-
-              // console.log(value);
 
               return (
                 <FormItem
@@ -212,14 +192,20 @@ export function ItemArrangeControls() {
                             : quaternion,
                           vectorType === "scale"
                             ? new THREE.Vector3(
-                                axis === "x" ? safeScale(newValue) : scale.x,
-                                axis === "y" ? safeScale(newValue) : scale.y,
-                                axis === "z" ? safeScale(newValue) : scale.z
+                                axis === "x" || item.editorShouldScaleUniformly
+                                  ? safeScale(newValue)
+                                  : scale.x,
+                                axis === "y" || item.editorShouldScaleUniformly
+                                  ? safeScale(newValue)
+                                  : scale.y,
+                                axis === "z" || item.editorShouldScaleUniformly
+                                  ? safeScale(newValue)
+                                  : scale.z
                               )
                             : scale
                         );
 
-                        setItemTransform(item.id, newTransform.toArray());
+                        setItem(item.id, { transform: newTransform.toArray() });
                       }}
                     />
                   </FormControl>
@@ -238,7 +224,7 @@ export function ItemArrangeControls() {
         <Switch
           className="ml-auto"
           onCheckedChange={(checked) => {
-            setItemShouldPlayAnimation(item.id, checked);
+            setItem(item.id, { shouldPlayAnimation: checked });
           }}
           checked={item.shouldPlayAnimation}
         />

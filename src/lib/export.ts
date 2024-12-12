@@ -6,7 +6,7 @@ import React from "react";
 import { ArExperience } from "./ArExperience";
 import {
   reactRenderToString,
-  renderSvgReactNodeToBase64,
+  renderSvgReactNodeToBase64Src,
   renderSvgReactNodeToFile,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
@@ -107,7 +107,7 @@ async function bundleFiles(
     const targets = items.map(
       (item) =>
         item.marker?.src ??
-        renderSvgReactNodeToBase64(
+        renderSvgReactNodeToBase64Src(
           React.createElement(GeneratedMarker, { id: item.id })
         )
     );
