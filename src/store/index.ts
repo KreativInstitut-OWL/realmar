@@ -131,7 +131,7 @@ type AppState = {
 
   setCurrentItemId: (id: string) => void;
 
-  addItem: () => void;
+  addItem: (setAsCurrentItem?: boolean) => Item;
   setItem: (itemId: string, item: Partial<Item>) => void;
   setItemEntity: (
     itemId: string,
@@ -160,10 +160,15 @@ export const useStore = create<AppState>()(
           });
         },
 
-        addItem: () => {
+        addItem: (setAsCurrentItem) => {
+          const newItem = createItem();
           set((state) => {
-            state.items.push(createItem());
+            state.items.push(newItem);
+            if (setAsCurrentItem) {
+              state.currentItemId = newItem.id;
+            }
           });
+          return newItem;
         },
 
         setItemTarget: async (itemId, file) => {

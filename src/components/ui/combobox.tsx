@@ -17,38 +17,19 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-const ComboboxContext = React.createContext<
-  | {
-      value: string | number | null;
-      options: {
-        label: React.ReactNode;
-        value: string | number | null;
-      }[];
-      open: boolean;
-    }
-  | undefined
->(undefined);
-
-function ComboboxProvider({
-  value,
-  options,
-  children,
-  open,
-}: {
+type ComboboxContextValue = {
   value: string | number | null;
   options: {
     label: React.ReactNode;
     value: string | number | null;
   }[];
-  children: React.ReactNode;
   open: boolean;
-}) {
-  return (
-    <ComboboxContext.Provider value={{ value, options, open }}>
-      {children}
-    </ComboboxContext.Provider>
-  );
-}
+  setOpen: (open: boolean) => void;
+};
+
+const ComboboxContext = React.createContext<ComboboxContextValue | undefined>(
+  undefined
+);
 
 function useCombobox() {
   const context = React.useContext(ComboboxContext);
@@ -110,6 +91,7 @@ export function Combobox<
   value,
   onSelect,
   children,
+  commandListChildren,
   empty = "No option found.",
   inputPlaceholder = "Search option…",
 }: {
@@ -119,7 +101,12 @@ export function Combobox<
     value: NoInfer<TOptions[number]["value"]>,
     close: () => void
   ) => void;
-  children?: React.ReactNode;
+  children?:
+    | React.ReactNode
+    | ((context: ComboboxContextValue) => React.ReactNode);
+  commandListChildren?:
+    | React.ReactNode
+    | ((context: ComboboxContextValue) => React.ReactNode);
   empty?: React.ReactNode;
   inputPlaceholder?: string;
 }) {
@@ -127,10 +114,15 @@ export function Combobox<
 
   const close = () => setOpen(false);
 
+  const contextValue = React.useMemo(
+    () => ({ value: value ?? null, options, open, setOpen }),
+    [value, options, open]
+  );
+
   return (
-    <ComboboxProvider value={value ?? null} options={options} open={open}>
+    <ComboboxContext.Provider value={contextValue}>
       <Popover open={open} onOpenChange={setOpen}>
-        {children}
+        {typeof children === "function" ? children(contextValue) : children}
         <PopoverContent className="p-0 w-max">
           <Command>
             <CommandInput placeholder={inputPlaceholder} />
@@ -155,10 +147,13 @@ export function Combobox<
                   </CommandItem>
                 ))}
               </CommandGroup>
+              {typeof commandListChildren === "function"
+                ? commandListChildren(contextValue)
+                : commandListChildren}
             </CommandList>
           </Command>
         </PopoverContent>
       </Popover>
-    </ComboboxProvider>
+    </ComboboxContext.Provider>
   );
 }
