@@ -26,7 +26,7 @@ export const ItemArrange = forwardRef<
   return (
     <div
       ref={ref}
-      className={cn("h-[calc(100lvh-101px)] relative", className)}
+      className={cn("h-[calc(100lvh-4rem)] relative", className)}
       {...props}
     >
       <ItemArrangeEditor

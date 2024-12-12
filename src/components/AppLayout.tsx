@@ -9,9 +9,19 @@ import {
 } from "@/components/ui/sidebar";
 import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
 import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
-import { Suspense } from "react";
+import { Suspense, useRef } from "react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "./ui/breadcrumb";
+import { useCurrentItem } from "@/store";
 
 function AppLayout() {
+  const item = useCurrentItem();
+  const itemHeaderRef = useRef<HTMLLIElement>(null);
+
   return (
     <ItemListRoot>
       <SidebarProvider
@@ -19,9 +29,17 @@ function AppLayout() {
       >
         <ItemNavigatorSidebar />
         <SidebarInset>
-          <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-white p-4 z-10">
+          <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-white px-4 h-16 z-10">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
+
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>Marker {item.index + 1}</BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem ref={itemHeaderRef} />
+              </BreadcrumbList>
+            </Breadcrumb>
 
             <Button type="submit" className="ml-auto" size="sm">
               Export
@@ -30,7 +48,7 @@ function AppLayout() {
           </header>
 
           <Suspense fallback="loading...">
-            <ItemListSelectedItemContent />
+            <ItemListSelectedItemContent itemHeaderRef={itemHeaderRef} />
           </Suspense>
         </SidebarInset>
       </SidebarProvider>

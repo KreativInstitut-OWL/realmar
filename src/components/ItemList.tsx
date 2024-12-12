@@ -95,7 +95,9 @@ const ItemListTabsTrigger = React.forwardRef<
   );
 });
 
-export const ItemListSelectedItemContent = () => {
+export const ItemListSelectedItemContent = (
+  props: React.ComponentProps<typeof ItemTabs>
+) => {
   const currentItemId = useStore((state) => state.currentItemId);
 
   if (!currentItemId) {
@@ -108,5 +110,5 @@ export const ItemListSelectedItemContent = () => {
     );
   }
 
-  return <ItemTabs />;
+  return <ItemTabs {...props} />;
 };

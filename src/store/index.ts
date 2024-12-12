@@ -267,10 +267,11 @@ export const useStore = create<AppState>()(
 
 export function useItem(
   itemId: string
-): (Item & { entityNavigation: EntityNavigation }) | null {
-  const item = useStore((state) =>
-    state.items.find((item) => item.id === itemId)
+): (Item & { index: number; entityNavigation: EntityNavigation }) | null {
+  const index = useStore((state) =>
+    state.items.findIndex((item) => item.id === itemId)
   );
+  const item = useStore((state) => state.items[index]);
 
   const entityNavigation = useMemo(
     () =>
@@ -285,11 +286,11 @@ export function useItem(
 
   if (!item) return null;
 
-  return { ...item, entityNavigation: entityNavigation! };
+  return { ...item, index, entityNavigation: entityNavigation! };
 }
 
 export function useCurrentItem() {
-  return useItem(useStore((state) => state.currentItemId!));
+  return useItem(useStore((state) => state.currentItemId!))!;
 }
 
 export function useAsset(assetId: string | null | undefined) {

@@ -4,8 +4,13 @@ import { ItemEntities } from "./ItemEntities";
 import { ItemTarget } from "./ItemTarget";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useCurrentItem, useStore } from "@/store";
+import { createPortal } from "react-dom";
 
-export function ItemTabs() {
+export function ItemTabs({
+  itemHeaderRef,
+}: {
+  itemHeaderRef: React.RefObject<HTMLLIElement>;
+}) {
   const item = useCurrentItem();
   const setItem = useStore((state) => state.setItem);
 
@@ -21,20 +26,23 @@ export function ItemTabs() {
         })
       }
     >
-      <TabsList className="">
-        <TabsTrigger value="target">
-          <Scan className="size-5 mr-3" />
-          Target
-        </TabsTrigger>
-        <TabsTrigger value="entities">
-          <Images className="size-5 mr-3" />
-          Entities
-        </TabsTrigger>
-        <TabsTrigger value="arrange">
-          <Move3D className="size-5 mr-3" />
-          Arrange
-        </TabsTrigger>
-      </TabsList>
+      {createPortal(
+        <TabsList className="">
+          <TabsTrigger value="target">
+            <Scan className="size-5 mr-3" />
+            Target
+          </TabsTrigger>
+          <TabsTrigger value="entities">
+            <Images className="size-5 mr-3" />
+            Entities
+          </TabsTrigger>
+          <TabsTrigger value="arrange">
+            <Move3D className="size-5 mr-3" />
+            Arrange
+          </TabsTrigger>
+        </TabsList>,
+        itemHeaderRef.current!
+      )}
       <TabsContent value="target" className="mt-6">
         <ItemTarget />
       </TabsContent>
