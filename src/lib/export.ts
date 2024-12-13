@@ -1,4 +1,4 @@
-import { GeneratedMarker } from "@/components/GeneratedMarker";
+import { GeneratedTarget } from "@/components/GeneratedTarget";
 import { Asset, Item } from "@/store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
@@ -108,7 +108,7 @@ async function bundleFiles(
       (item) =>
         item.marker?.src ??
         renderSvgReactNodeToBase64Src(
-          React.createElement(GeneratedMarker, { id: item.id })
+          React.createElement(GeneratedTarget, { id: item.id })
         )
     );
     const { exportedBuffer } = await compileImageTargets(targets, onProgress);
@@ -118,7 +118,7 @@ async function bundleFiles(
       const file =
         item.marker?.file ??
         renderSvgReactNodeToFile(
-          React.createElement(GeneratedMarker, { id: item.id })
+          React.createElement(GeneratedTarget, { id: item.id })
         );
       zip.file(getFileName("marker", file, index), file);
     });

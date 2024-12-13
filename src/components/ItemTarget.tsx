@@ -1,16 +1,18 @@
-import { GeneratedMarker } from "@/components/GeneratedMarker";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dropzone,
   DropzoneDragAcceptContent,
   DropzoneProvider,
 } from "@/components/ui/dropzone";
-import { ImagePlusIcon, XIcon } from "lucide-react";
 import { useAsset, useCurrentItem, useStore } from "@/store";
+import { ImagePlusIcon, XIcon } from "lucide-react";
+import { Target } from "./Target";
+import { FormDescription, FormItem, FormLabel } from "./ui/form";
+import { Input } from "./ui/input";
 
 export function ItemTarget() {
   const item = useCurrentItem();
+  const setItem = useStore((state) => state.setItem);
   const setItemTarget = useStore((state) => state.setItemTarget);
   const removeItemTarget = useStore((state) => state.removeItemTarget);
 
@@ -29,21 +31,7 @@ export function ItemTarget() {
         }}
       >
         <Dropzone className="group p-2 relative aspect-square col-span-1">
-          {targetAsset?.src ? (
-            <>
-              <img
-                src={targetAsset.src}
-                alt=""
-                className="object-contain w-full h-full"
-              />
-              <Badge className="absolute bottom-3 right-3 z-10">Custom</Badge>
-            </>
-          ) : (
-            <>
-              <GeneratedMarker id={item.id} />
-              <Badge className="absolute bottom-3 right-3 z-10">Auto</Badge>
-            </>
-          )}
+          <Target assetId={item.targetAssetId} itemId={item.id} />
           <div className="absolute rounded-full p-2 bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
             <ImagePlusIcon className="size-5" />
           </div>
@@ -64,6 +52,19 @@ export function ItemTarget() {
           Remove custom target
         </Button>
       ) : null}
+      <FormItem>
+        <FormLabel>Name</FormLabel>
+        <FormDescription>Optional name for the marker.</FormDescription>
+        <Input
+          onChange={(event) => {
+            setItem(item.id, {
+              editorName: event.target.value || null,
+            });
+          }}
+          value={item.editorName || ""}
+          placeholder={`Marker ${item.index + 1}`}
+        />
+      </FormItem>
     </div>
   );
 }

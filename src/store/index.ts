@@ -73,6 +73,7 @@ export type Item = {
   entities: Entity[];
 
   // editor state (these have no effect for the export)
+  editorName: string | null;
   editorLinkTransforms: boolean;
   editorScaleUniformly: boolean;
   editorCurrentEntityId: string | null;
@@ -86,6 +87,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     targetAssetId: null,
     entities: [],
 
+    editorName: null,
     editorLinkTransforms: true,
     editorScaleUniformly: true,
     editorCurrentEntityId: null,
@@ -132,12 +134,16 @@ type AppState = {
   setCurrentItemId: (id: string) => void;
 
   addItem: (setAsCurrentItem?: boolean) => Item;
+
   setItem: (itemId: string, item: Partial<Item>) => void;
+  moveItem: (oldIndex: number, newIndex: number) => void;
+
   setItemEntity: (
     itemId: string,
     entityId: string,
     entity: Partial<Entity>
   ) => void;
+  moveItemEntity: (itemId: string, oldIndex: number, newIndex: number) => void;
 
   setItemTarget: (itemId: string, file: File) => Promise<void>;
   removeItemTarget: (itemId: string) => Promise<void>;
@@ -169,6 +175,13 @@ export const useStore = create<AppState>()(
             }
           });
           return newItem;
+        },
+
+        moveItem: (oldIndex, newIndex) => {
+          set((state) => {
+            const [removedItem] = state.items.splice(oldIndex, 1);
+            state.items.splice(newIndex, 0, removedItem);
+          });
         },
 
         setItemTarget: async (itemId, file) => {
@@ -205,6 +218,15 @@ export const useStore = create<AppState>()(
               if (!entity) return;
               Object.assign(entity, entityUpdate);
             }
+          });
+        },
+
+        moveItemEntity: (itemId, oldIndex, newIndex) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            const [removedEntity] = item.entities.splice(oldIndex, 1);
+            item.entities.splice(newIndex, 0, removedEntity);
           });
         },
 
@@ -270,9 +292,12 @@ export const useStore = create<AppState>()(
   )
 );
 
-export function useItem(
-  itemId: string
-): (Item & { index: number; entityNavigation: EntityNavigation }) | null {
+export function useItem(itemId: string):
+  | (Item & {
+      index: number;
+      entityNavigation: EntityNavigation;
+    })
+  | null {
   const index = useStore((state) =>
     state.items.findIndex((item) => item.id === itemId)
   );
@@ -291,7 +316,11 @@ export function useItem(
 
   if (!item) return null;
 
-  return { ...item, index, entityNavigation: entityNavigation! };
+  return {
+    ...item,
+    index,
+    entityNavigation: entityNavigation!,
+  };
 }
 
 export function useCurrentItem() {

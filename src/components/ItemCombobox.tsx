@@ -1,7 +1,8 @@
 import { useStore } from "@/store";
+import { Plus } from "lucide-react";
+import { Target } from "./Target";
 import { Combobox, ComboboxTriggerButton } from "./ui/combobox";
 import { CommandGroup, CommandItem, CommandSeparator } from "./ui/command";
-import { Plus } from "lucide-react";
 
 export function ItemCombobox() {
   const items = useStore((state) => state.items);
@@ -12,7 +13,16 @@ export function ItemCombobox() {
   return (
     <Combobox
       options={items.map((item, index) => ({
-        label: `Marker ${index + 1}`,
+        label: (
+          <div className="inline-flex items-center gap-2">
+            <Target
+              itemId={item.id}
+              assetId={item.targetAssetId}
+              className="size-4"
+            />
+            {item.editorName ?? `Marker ${index + 1}`}
+          </div>
+        ),
         value: item.id,
       }))}
       value={currentItemId ?? undefined}

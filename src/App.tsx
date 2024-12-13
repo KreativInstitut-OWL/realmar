@@ -1,13 +1,7 @@
-import { saveAs } from "file-saver";
-import JSZip from "jszip";
-
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import AppLayout from "./components/AppLayout";
-import generateIndexHtml from "./lib/generateIndexHtml";
-import compileImageTargets from "./lib/uploadAndCompile";
 import { queryClient } from "./store/query-client";
-import { Asset } from "./store";
 
 function App() {
   const [exportProgress, setExportProgress] = useState<number>(0);

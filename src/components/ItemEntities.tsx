@@ -7,9 +7,11 @@ import {
 import { useCurrentItem, useStore } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
 import { ItemEntity } from "./ItemEntity";
+import { Sortable } from "./ui/sortable";
 
 export function ItemEntities() {
   const addItemEntities = useStore((state) => state.addItemEntities);
+  const moveItemEntity = useStore((state) => state.moveItemEntity);
 
   const item = useCurrentItem();
 
@@ -19,9 +21,22 @@ export function ItemEntities() {
     <>
       {item?.entities && item?.entities.length > 0 ? (
         <div className=" divide-gray-100 divide-y">
-          {item?.entities.map((entity) => (
-            <ItemEntity key={entity.id} itemId={item.id} entityId={entity.id} />
-          ))}
+          <Sortable
+            items={item?.entities.map((entity) => ({
+              id: entity.id,
+              node: (
+                <ItemEntity
+                  key={entity.id}
+                  itemId={item.id}
+                  entityId={entity.id}
+                />
+              ),
+            }))}
+            onItemMove={(oldIndex, newIndex) => {
+              moveItemEntity(item.id, oldIndex, newIndex);
+            }}
+            withDragHandle
+          />
         </div>
       ) : (
         <div>

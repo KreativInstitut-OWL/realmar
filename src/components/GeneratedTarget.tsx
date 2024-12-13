@@ -21,7 +21,7 @@ function getSeed(id: string): number {
   return hash;
 }
 
-const MARKER_SIZE = 16;
+const TARGET_SIZE = 16;
 
 function generateFloat32(rng: RandomGenerator) {
   const g1 = unsafeUniformIntDistribution(0, (1 << 24) - 1, rng);
@@ -46,7 +46,7 @@ function round(value: number, precision = 1) {
   return Math.round(value * factor) / factor;
 }
 
-export function GeneratedMarker({
+export function GeneratedTarget({
   id,
   className,
   size,
@@ -55,7 +55,6 @@ export function GeneratedMarker({
   className?: string;
   size?: number;
 }) {
-  // use xoroshiro128plus to generate n pairs (x,y) of random numbers between 0 and MARKER_SIZE
   const rng = useMemo(() => xoroshiro128plus(getSeed(id)), [id]);
 
   const diagram = useMemo(() => {
@@ -63,14 +62,14 @@ export function GeneratedMarker({
 
     for (let i = 0; i < VORONOI_POINT_COUNT; i += 1) {
       points.push({
-        x: generateFloat32(rng) * MARKER_SIZE,
-        y: generateFloat32(rng) * MARKER_SIZE,
+        x: generateFloat32(rng) * TARGET_SIZE,
+        y: generateFloat32(rng) * TARGET_SIZE,
       });
     }
 
     const voronoi = new Voronoi();
 
-    const bbox = { xl: 0, xr: MARKER_SIZE, yt: 0, yb: MARKER_SIZE };
+    const bbox = { xl: 0, xr: TARGET_SIZE, yt: 0, yb: TARGET_SIZE };
 
     return voronoi.compute(points, bbox) as {
       // this type is incomplete
@@ -89,22 +88,22 @@ export function GeneratedMarker({
       const x1 = generateFloat32Between(
         rng,
         -LINE_PADDING,
-        MARKER_SIZE + LINE_PADDING
+        TARGET_SIZE + LINE_PADDING
       );
       const y1 = generateFloat32Between(
         rng,
         -LINE_PADDING,
-        MARKER_SIZE + LINE_PADDING
+        TARGET_SIZE + LINE_PADDING
       );
       const x2 = generateFloat32Between(
         rng,
         -LINE_PADDING,
-        MARKER_SIZE + LINE_PADDING
+        TARGET_SIZE + LINE_PADDING
       );
       const y2 = generateFloat32Between(
         rng,
         -LINE_PADDING,
-        MARKER_SIZE + LINE_PADDING
+        TARGET_SIZE + LINE_PADDING
       );
       const q = generateFloat32(rng);
       const o = generateFloat32(rng);
@@ -119,8 +118,8 @@ export function GeneratedMarker({
     const confetti = [];
 
     for (let i = 0; i < 64; i += 1) {
-      const x = generateFloat32(rng) * MARKER_SIZE;
-      const y = generateFloat32(rng) * MARKER_SIZE;
+      const x = generateFloat32(rng) * TARGET_SIZE;
+      const y = generateFloat32(rng) * TARGET_SIZE;
       const q = generateFloat32(rng);
       const o = generateFloat32(rng);
       const r = generateFloat32Between(rng, 0, 360);
@@ -133,14 +132,14 @@ export function GeneratedMarker({
 
   return (
     <svg
-      viewBox={`0 0 ${MARKER_SIZE} ${MARKER_SIZE}`}
+      viewBox={`0 0 ${TARGET_SIZE} ${TARGET_SIZE}`}
       width={size}
       height={size}
       fill="white"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect width={MARKER_SIZE} height={MARKER_SIZE} fill="white" />
+      <rect width={TARGET_SIZE} height={TARGET_SIZE} fill="white" />
       {/* {diagram.edges.map((edge, i) => {
         const start = edge.va;
         const end = edge.vb;

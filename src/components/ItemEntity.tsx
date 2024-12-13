@@ -1,8 +1,9 @@
 import { byteFormatter } from "@/lib/utils";
 import { useAsset, useItem, useStore } from "@/store";
-import { FileIcon, Trash2Icon } from "lucide-react";
+import { FileIcon, GripHorizontal, Trash2Icon } from "lucide-react";
 import { useMemo } from "react";
 import { Button } from "./ui/button";
+import { DragHandle } from "./ui/sortable";
 
 export function ItemEntity({
   itemId,
@@ -24,6 +25,11 @@ export function ItemEntity({
 
   return (
     <div className="flex gap-4 items-center">
+      <DragHandle>
+        <Button variant="ghost" size="icon-sm" aria-label="Drag entity">
+          <GripHorizontal />
+        </Button>
+      </DragHandle>
       <div className="size-20 grid place-items-center *:drop-shadow-md">
         {entityAsset.file.type.startsWith("image/") && (
           <img

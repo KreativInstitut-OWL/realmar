@@ -16,7 +16,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { GeneratedMarker } from "./GeneratedMarker";
+import { GeneratedTarget } from "./GeneratedTarget";
 
 interface ItemArrangeEditorProps {
   id: string;
@@ -232,7 +232,7 @@ function MarkerObject({ id, src }: { id: string; src?: string | null }) {
     queryFn: () =>
       createSquareThreeTextureFromSrc({
         src: renderSvgReactNodeToBase64Src(
-          <GeneratedMarker id={id} size={MARKER_TEXTURE_SIZE} />
+          <GeneratedTarget id={id} size={MARKER_TEXTURE_SIZE} />
         ),
         size: MARKER_TEXTURE_SIZE,
       }),

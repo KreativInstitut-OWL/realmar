@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 import { useItem, useStore } from "@/store";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as React from "react";
-import { GeneratedMarker } from "./GeneratedMarker";
 import { ItemTabs } from "./ItemTabs";
-import { Skeleton } from "./ui/skeleton";
+import { Target } from "./Target";
+import { Sortable } from "./ui/sortable";
 
 export const ItemListRoot = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Root>,
@@ -36,21 +36,25 @@ export const ItemListList = React.forwardRef<
   Omit<React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>, "children">
 >(({ className, ...props }, ref) => {
   const items = useStore((state) => state.items);
+  const moveItem = useStore((state) => state.moveItem);
 
   return (
     <TabsPrimitive.List ref={ref} className={cn("", className)} {...props}>
-      {items.map((field, itemIndex) => (
-        <React.Suspense
-          key={field.id}
-          fallback={<Skeleton className="w-full aspect-video" />}
-        >
-          <ItemListTabsTrigger
-            key={field.id}
-            itemId={field.id}
-            itemIndex={itemIndex}
-          />
-        </React.Suspense>
-      ))}
+      <Sortable
+        items={items.map((item, itemIndex) => ({
+          id: item.id,
+          node: (
+            <ItemListTabsTrigger
+              key={item.id}
+              itemId={item.id}
+              itemIndex={itemIndex}
+            />
+          ),
+        }))}
+        onItemMove={(oldIndex, newIndex) => {
+          moveItem(oldIndex, newIndex);
+        }}
+      />
     </TabsPrimitive.List>
   );
 });
@@ -72,25 +76,26 @@ const ItemListTabsTrigger = React.forwardRef<
       ref={ref}
       value={itemId}
       className={cn(
-        "w-full aspect-video flex flex-col items-start gap-2 whitespace-nowrap border-b p-4 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-selected:bg-gray-200",
+        "w-full aspect-[16/5] flex items-start gap-4 whitespace-nowrap border-b p-4 pl-10 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-selected:bg-gray-200 relative",
         className
       )}
       {...props}
     >
-      <div className="flex w-full items-center gap-2">
-        <span>{itemIndex + 1}</span>
-        {/* <div className="text-lg font-semibold">
-          {item.assets.length === 0 && "Empty"}
-          {item.assets.length === 1 &&
-          item.assets.at(0)?.file.type.startsWith("image/") &&
-          "Image"}
-          {item.assets.length === 1 &&
-          !item.assets.at(0)?.file.type.startsWith("image/") &&
-          "Other"}
-          {item.assets.length > 1 && "Gallery"}
-          </div> */}
+      <Target
+        itemId={item.id}
+        assetId={item.targetAssetId}
+        className="size-16"
+      />
+      <div className="flex flex-col self-stretch w-full items-start justify-center gap-2">
+        <span>
+          {item.editorName ? item.editorName : `Marker ${itemIndex + 1}`}
+        </span>
+        <span className="text-xs text-gray-400">
+          {item.entityNavigation.count}{" "}
+          {item.entityNavigation.count === 1 ? "Entity" : "Entities"}
+        </span>
       </div>
-      <GeneratedMarker id={item.id} className="size-16" />
+      <div className="absolute top-4 left-4 text-xs">{itemIndex + 1}</div>
     </TabsPrimitive.TabsTrigger>
   );
 });
