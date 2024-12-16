@@ -8,7 +8,9 @@ import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-const appStateStore = idb.createStore("batchar-state", "state");
+export const appStateStore = idb.createStore("batchar-state", "state");
+
+export const APP_STATE_STORAGE_NAME = "batchar-state";
 
 const storage: StateStorage = {
   getItem: async (name: string): Promise<string | null> =>
@@ -127,10 +129,12 @@ function createEntityNavigation({
   };
 }
 
-type AppState = {
+export interface AppStateBase {
   items: Item[];
   currentItemId: string | null;
+}
 
+interface AppState extends AppStateBase {
   setCurrentItemId: (id: string) => void;
 
   addItem: (setAsCurrentItem?: boolean) => Item;
@@ -150,7 +154,7 @@ type AppState = {
 
   addItemEntities: (id: string, files: File[]) => Promise<void>;
   removeItemEntity: (itemId: string, entityId: string) => Promise<void>;
-};
+}
 
 export const useStore = create<AppState>()(
   persist(
@@ -286,7 +290,7 @@ export const useStore = create<AppState>()(
       };
     }),
     {
-      name: "app-state-store",
+      name: APP_STATE_STORAGE_NAME,
       storage: createJSONStorage(() => storage),
     }
   )

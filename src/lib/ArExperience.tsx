@@ -31,7 +31,7 @@ export const ArExperience = ({ items }: { items: Item[] }) => {
       </head>
       <body>
         <a-scene
-          mindar-image="imageTargetSrc: ./markers.mind;"
+          mindar-image="imageTargetSrc: ./targets.mind;"
           vr-mode-ui="enabled: false"
           device-orientation-permission-ui="enabled: false"
         >

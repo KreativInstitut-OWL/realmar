@@ -21,6 +21,30 @@ export function renderSvgReactNodeToFile(
   return new File([svg], name, { type: "image/svg+xml" });
 }
 
+export function createFileFromImageElement(img: HTMLImageElement) {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d")!;
+
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  ctx.drawImage(img, 0, 0, img.width, img.height);
+
+  return new Promise<File>((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(new File([blob!], "image.png", { type: "image/png" }));
+    });
+  });
+}
+
+export function createFileFromCanvas(canvas: HTMLCanvasElement, name: string) {
+  return new Promise<File>((resolve) => {
+    canvas.toBlob((blob) => {
+      resolve(new File([blob!], `${name}.png`, { type: "image/png" }));
+    });
+  });
+}
+
 const FALLBACK_IMG_SIZE = 512;
 
 export function createSquareCanvasFromImageElement({
@@ -48,7 +72,7 @@ export function createSquareCanvasFromImageElement({
   ctx.clearRect(0, 0, size, size);
 
   // make canvas background to checkerboard pattern
-  // drawCheckerboardPattern(ctx, size, size);
+  drawCheckerboardPattern(ctx, size, size);
 
   const scale = Math.min(size / img.width, size / img.height);
 
@@ -64,6 +88,12 @@ export function createSquareCanvasFromImageElement({
   ctx.drawImage(img, x, y, scaledWidth, scaledHeight);
 
   return canvas;
+}
+
+export function createImgElementFromCanvas(canvas: HTMLCanvasElement) {
+  const img = document.createElement("img");
+  img.src = canvas.toDataURL();
+  return img;
 }
 
 function drawCheckerboardPattern(

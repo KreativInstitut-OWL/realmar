@@ -1,4 +1,4 @@
-import { ArrowRightFromLine } from "lucide-react";
+import { ArrowRightFromLine, FolderOpen, Save } from "lucide-react";
 import { Button } from "./ui/button";
 
 import { Separator } from "@/components/ui/separator";
@@ -17,6 +17,9 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
+import { load, save } from "@/store/save";
+import { bundleFiles } from "@/lib/export";
+import { useStore } from "@/store";
 
 function AppLayout() {
   const itemHeaderRef = useRef<HTMLLIElement>(null);
@@ -42,9 +45,46 @@ function AppLayout() {
               </BreadcrumbList>
             </Breadcrumb>
 
-            <Button type="submit" className="ml-auto">
+            <Button
+              className="ml-auto"
+              onClick={() => {
+                bundleFiles(useStore.getState().items, (progress) =>
+                  console.log(progress)
+                );
+              }}
+            >
               Export
               <ArrowRightFromLine />
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() => {
+                save();
+              }}
+            >
+              Save
+              <Save />
+            </Button>
+
+            <Button
+              variant="secondary"
+              onClick={() => {
+                // ask for file
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".batchar";
+                input.onchange = () => {
+                  const files = input.files;
+                  if (files && files.length > 0) {
+                    load(files[0]);
+                  }
+                };
+                input.click();
+              }}
+            >
+              Load
+              <FolderOpen />
             </Button>
           </header>
 

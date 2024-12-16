@@ -1,73 +1,24 @@
 import { GeneratedTarget } from "@/components/GeneratedTarget";
-import { Asset, Item } from "@/store";
+import { Asset, createAsset, Item } from "@/store";
+import * as FileStore from "@/store/file-store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
+import { nanoid } from "nanoid";
 import React from "react";
-import { ArExperience } from "./ArExperience";
 import {
+  createFileFromCanvas,
+  createSquareCanvasFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
-  renderSvgReactNodeToFile,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
+import { ArExperience } from "./ArExperience";
 
-async function calculateImageValues(markers: Asset[], images: Asset[]) {
-  if (markers.length !== images.length) return;
-  const imageSizes = [];
-  for (let i = 0; i < markers.length; i++) {
-    const markerRatio = await getAspectRatio(markers[i]);
-    const imageRatio = await getAspectRatio(images[i]);
-    if (typeof markerRatio !== "number" || typeof imageRatio !== "number")
-      return;
-
-    if (markerRatio < 1) {
-      // Tracker = Hochkant
-      imageRatio == 1 // Image = Quadrat
-        ? imageSizes.push({
-            height: 1 + markerRatio,
-            width: 1 + markerRatio,
-          })
-        : imageRatio > 1
-        ? imageSizes.push({
-            height: 1 / markerRatio,
-            width: imageRatio / markerRatio,
-          }) // Image = Quer
-        : imageRatio <= markerRatio
-        ? imageSizes.push({ height: 1 / imageRatio, width: 1 }) // Image = Hochkant
-        : imageSizes.push({
-            height: 1 / markerRatio,
-            width: imageRatio * (1 / markerRatio),
-          });
-    }
-    if (markerRatio > 1) {
-      // Tracker = Breitformat Works
-      imageRatio == 1
-        ? imageSizes.push({ height: 1, width: 1 })
-        : imageRatio < 1
-        ? imageSizes.push({
-            height: 1 / imageRatio,
-            width: 1,
-          })
-        : imageRatio >= markerRatio
-        ? imageSizes.push({
-            height: 1 / markerRatio,
-            width: imageRatio * (1 / markerRatio),
-          })
-        : imageSizes.push({
-            height: 1 - (markerRatio - imageRatio),
-            width: 1,
-          });
-    }
-    if (markerRatio === 1) {
-      //Tracker = Quadrat Works
-      imageRatio == 1
-        ? imageSizes.push({ height: 1, width: 1 })
-        : imageRatio < 1
-        ? imageSizes.push({ height: 1 + (1 - imageRatio), width: 1 })
-        : imageSizes.push({ height: 1, width: imageRatio });
-    }
-  }
-  return imageSizes;
+function slugify(str: string) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 export const getFileName = <T extends string>(
@@ -84,7 +35,7 @@ async function fetchAsBlob(url: string) {
   return await response.blob();
 }
 
-async function bundleFiles(
+export async function bundleFiles(
   items: Item[],
   onProgress: (progress: number) => void
 ) {
@@ -104,37 +55,73 @@ async function bundleFiles(
     const licenseText = await license.text();
     zip.file("LICENSE", licenseText);
 
-    const targets = items.map(
-      (item) =>
-        item.marker?.src ??
-        renderSvgReactNodeToBase64Src(
-          React.createElement(GeneratedTarget, { id: item.id })
-        )
-    );
-    const { exportedBuffer } = await compileImageTargets(targets, onProgress);
-    zip.file("markers.mind", exportedBuffer);
-
-    items.forEach((item, index) => {
-      const file =
-        item.marker?.file ??
-        renderSvgReactNodeToFile(
+    const targetAssetPromises = items.map(async (item) => {
+      if (item.targetAssetId) {
+        const targetAsset = await FileStore.get(item.targetAssetId);
+        if (!targetAsset) return;
+        const src = targetAsset.src;
+        const canvas = await createSquareCanvasFromSrc({
+          src: src,
+          size: 1024,
+        });
+        const file = await createFileFromCanvas(canvas, targetAsset.id);
+        return createAsset({ file, id: targetAsset.id });
+      } else {
+        const src = renderSvgReactNodeToBase64Src(
           React.createElement(GeneratedTarget, { id: item.id })
         );
-      zip.file(getFileName("marker", file, index), file);
+        const canvas = await createSquareCanvasFromSrc({
+          src: src,
+          size: 1024,
+        });
+        const newId = nanoid(5);
+        const file = await createFileFromCanvas(canvas, newId);
+        return createAsset({ file, id: newId });
+      }
     });
 
-    items.forEach((item, index) => {
-      item.entity.forEach((asset, assetIndex) => {
-        if (!asset.file) return;
+    const targetAssets = (await Promise.all(targetAssetPromises)) as Asset[];
+    targetAssets.forEach((target): asserts target is Asset => {
+      if (!target) throw new Error("No target asset found");
+    });
+
+    const { exportedBuffer } = await compileImageTargets(
+      targetAssets.map((asset) => asset.src),
+      onProgress
+    );
+    zip.file("targets.mind", exportedBuffer);
+
+    targetAssets.forEach((targetAsset, index) => {
+      const item = items[index];
+      const itemName = item.editorName ?? `Marker ${index + 1}`;
+      const itemFolderName = slugify(itemName);
+      zip.file(`markers/${itemFolderName}/target.png`, targetAsset.file);
+    });
+
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
+      const itemName = item.editorName ?? `Marker ${index + 1}`;
+      const itemFolderName = slugify(itemName);
+
+      for (
+        let entityIndex = 0;
+        entityIndex < item.entities.length;
+        entityIndex++
+      ) {
+        const entity = item.entities[entityIndex];
+        if (!entity.assetId) return;
+        const asset = await FileStore.get(entity.assetId);
+        if (!asset) return;
         zip.file(
-          getFileName("asset", asset.file, index, assetIndex),
+          `/markers/${itemFolderName}/${getFileName(
+            "entity",
+            asset.file,
+            entityIndex
+          )}`,
           asset.file
         );
-      });
-    });
-
-    const imageSizeValues = await calculateImageValues(markers, images);
-    if (!imageSizeValues) return;
+      }
+    }
 
     zip.file(
       "index.html",
@@ -149,28 +136,3 @@ async function bundleFiles(
     console.error("Error bundling files: ", error);
   }
 }
-
-const getAspectRatio = (file: Asset) => {
-  return new Promise((resolve, reject) => {
-    if (file.file?.type.includes("image")) {
-      const img = new Image();
-      img.src = file.id;
-      img.onload = () => {
-        resolve(img.width / img.height);
-      };
-      img.onerror = (err) => {
-        reject(err);
-      };
-    }
-    if (file.file?.type.includes("video")) {
-      const vid = document.createElement("video");
-      vid.src = file.id;
-      vid.onloadedmetadata = () => {
-        resolve(vid.videoWidth / vid.videoHeight);
-      };
-      vid.onerror = (err) => {
-        reject(err);
-      };
-    }
-  });
-};
