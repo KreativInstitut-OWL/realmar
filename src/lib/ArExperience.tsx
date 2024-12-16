@@ -1,9 +1,14 @@
 import { Item } from "@/store";
 import React from "react";
-import { getFileName } from "./export";
+import { ExportAppState, getFileName } from "./export";
 import * as THREE from "three";
 
-export const ArExperience = ({ items }: { items: Item[] }) => {
+export const ArExperience = ({ state }: { state: ExportAppState }) => {
+  const { items } = state;
+  console.log(items);
+
+  return <div>hi, please implement me!</div>;
+
   return (
     <html lang="en">
       <head>

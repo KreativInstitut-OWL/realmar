@@ -6,8 +6,10 @@ import { CommandGroup, CommandItem, CommandSeparator } from "./ui/command";
 
 export function ItemCombobox() {
   const items = useStore((state) => state.items);
-  const currentItemId = useStore((state) => state.currentItemId);
-  const setCurrentItemId = useStore((state) => state.setCurrentItemId);
+  const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
+  const setEditorCurrentItemId = useStore(
+    (state) => state.setEditorCurrentItemId
+  );
   const addItem = useStore((state) => state.addItem);
 
   return (
@@ -20,14 +22,14 @@ export function ItemCombobox() {
               assetId={item.targetAssetId}
               className="size-4"
             />
-            {item.editorName ?? `Marker ${index + 1}`}
+            {item.name ?? `Marker ${index + 1}`}
           </div>
         ),
         value: item.id,
       }))}
-      value={currentItemId ?? undefined}
+      value={editorCurrentItemId ?? undefined}
       onSelect={(itemId, close) => {
-        setCurrentItemId(itemId);
+        setEditorCurrentItemId(itemId);
         close();
       }}
       empty="No marker found."

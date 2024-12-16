@@ -73,9 +73,9 @@ export type Item = {
   id: string;
   targetAssetId: string | null;
   entities: Entity[];
+  name: string | null;
 
   // editor state (these have no effect for the export)
-  editorName: string | null;
   editorLinkTransforms: boolean;
   editorScaleUniformly: boolean;
   editorCurrentEntityId: string | null;
@@ -88,8 +88,8 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     id: nanoid(5),
     targetAssetId: null,
     entities: [],
+    name: null,
 
-    editorName: null,
     editorLinkTransforms: true,
     editorScaleUniformly: true,
     editorCurrentEntityId: null,
@@ -129,13 +129,14 @@ function createEntityNavigation({
   };
 }
 
-export interface AppStateBase {
+export interface BaseAppState {
   items: Item[];
-  currentItemId: string | null;
+  projectName: string;
+  editorCurrentItemId: string | null;
 }
 
-interface AppState extends AppStateBase {
-  setCurrentItemId: (id: string) => void;
+interface AppState extends BaseAppState {
+  setEditorCurrentItemId: (id: string) => void;
 
   addItem: (setAsCurrentItem?: boolean) => Item;
 
@@ -162,11 +163,13 @@ export const useStore = create<AppState>()(
       const initialItem = createItem();
       return {
         items: [initialItem],
-        currentItemId: initialItem.id,
+        projectName: "Batchar Project",
 
-        setCurrentItemId: (id: string) => {
+        editorCurrentItemId: initialItem.id,
+
+        setEditorCurrentItemId: (id: string) => {
           set((state) => {
-            state.currentItemId = id;
+            state.editorCurrentItemId = id;
           });
         },
 
@@ -175,7 +178,7 @@ export const useStore = create<AppState>()(
           set((state) => {
             state.items.push(newItem);
             if (setAsCurrentItem) {
-              state.currentItemId = newItem.id;
+              state.editorCurrentItemId = newItem.id;
             }
           });
           return newItem;
@@ -328,7 +331,7 @@ export function useItem(itemId: string):
 }
 
 export function useCurrentItem() {
-  return useItem(useStore((state) => state.currentItemId!))!;
+  return useItem(useStore((state) => state.editorCurrentItemId!))!;
 }
 
 export function useAsset(assetId: string | null | undefined) {

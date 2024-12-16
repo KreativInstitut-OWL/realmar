@@ -58,10 +58,10 @@ export function ItemTarget() {
         <Input
           onChange={(event) => {
             setItem(item.id, {
-              editorName: event.target.value || null,
+              name: event.target.value || null,
             });
           }}
-          value={item.editorName || ""}
+          value={item.name || ""}
           placeholder={`Marker ${item.index + 1}`}
         />
       </FormItem>

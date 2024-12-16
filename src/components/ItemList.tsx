@@ -13,13 +13,15 @@ export const ItemListRoot = React.forwardRef<
     "value" | "onValueChange"
   >
 >(({ className, ...props }, ref) => {
-  const currentItemId = useStore((state) => state.currentItemId);
-  const setCurrentItemId = useStore((state) => state.setCurrentItemId);
+  const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
+  const setEditorCurrentItemId = useStore(
+    (state) => state.setEditorCurrentItemId
+  );
 
   return (
     <TabsPrimitive.Root
-      value={currentItemId ?? undefined}
-      onValueChange={setCurrentItemId}
+      value={editorCurrentItemId ?? undefined}
+      onValueChange={setEditorCurrentItemId}
       orientation="vertical"
       className={cn("contents", className)}
       data-item-list-root=""
@@ -87,9 +89,7 @@ const ItemListTabsTrigger = React.forwardRef<
         className="size-16"
       />
       <div className="flex flex-col self-stretch w-full items-start justify-center gap-2">
-        <span>
-          {item.editorName ? item.editorName : `Marker ${itemIndex + 1}`}
-        </span>
+        <span>{item.name ? item.name : `Marker ${itemIndex + 1}`}</span>
         <span className="text-xs text-gray-400">
           {item.entityNavigation.count}{" "}
           {item.entityNavigation.count === 1 ? "Entity" : "Entities"}
@@ -103,9 +103,9 @@ const ItemListTabsTrigger = React.forwardRef<
 export const ItemListSelectedItemContent = (
   props: React.ComponentProps<typeof ItemTabs>
 ) => {
-  const currentItemId = useStore((state) => state.currentItemId);
+  const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
 
-  if (!currentItemId) {
+  if (!editorCurrentItemId) {
     return (
       <div>
         <div className="text-gray-400 text-sm">

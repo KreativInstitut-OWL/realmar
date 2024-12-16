@@ -51,7 +51,12 @@ export function ComboboxTriggerButton({
   const { value, options, open } = useCombobox();
   return (
     <ComboboxTrigger asChild>
-      <Button variant="ghost" role="combobox" aria-expanded={open}>
+      <Button
+        variant="ghost"
+        role="combobox"
+        aria-expanded={open}
+        className="max-w-xs truncate"
+      >
         {value
           ? options.find((option) => option.value === value)?.label
           : noValue}
@@ -123,7 +128,7 @@ export function Combobox<
     <ComboboxContext.Provider value={contextValue}>
       <Popover open={open} onOpenChange={setOpen}>
         {typeof children === "function" ? children(contextValue) : children}
-        <PopoverContent className="p-0 w-max">
+        <PopoverContent className="p-0 w-max max-w-80">
           <Command>
             <CommandInput placeholder={inputPlaceholder} />
             <CommandEmpty>{empty}</CommandEmpty>
@@ -135,7 +140,7 @@ export function Combobox<
                     onSelect={() => {
                       onSelect(option.value, close);
                     }}
-                    className="justify-between"
+                    className="justify-between truncate"
                   >
                     <div className="flex items-center">{option.label}</div>
                     <Check

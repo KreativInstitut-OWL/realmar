@@ -19,7 +19,7 @@ import {
 } from "./ui/breadcrumb";
 import { load, save } from "@/store/save";
 import { bundleFiles } from "@/lib/export";
-import { useStore } from "@/store";
+import ExportButton from "./ExportButton";
 
 function AppLayout() {
   const itemHeaderRef = useRef<HTMLLIElement>(null);
@@ -45,17 +45,7 @@ function AppLayout() {
               </BreadcrumbList>
             </Breadcrumb>
 
-            <Button
-              className="ml-auto"
-              onClick={() => {
-                bundleFiles(useStore.getState().items, (progress) =>
-                  console.log(progress)
-                );
-              }}
-            >
-              Export
-              <ArrowRightFromLine />
-            </Button>
+            <ExportButton />
 
             <Button
               variant="secondary"
