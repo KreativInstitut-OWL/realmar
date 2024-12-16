@@ -157,7 +157,7 @@ export function ItemArrangeControls() {
                   </FormLabel>
                   <FormControl>
                     <InputNumber
-                      step={0.1}
+                      step={vectorType === "rotation" ? 1 : 0.1}
                       formatOptions={
                         vectorType === "rotation"
                           ? {

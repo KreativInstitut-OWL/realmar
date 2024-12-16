@@ -1,5 +1,5 @@
 import { NumberInput as NumberInputPrimitive } from "@ark-ui/react/number-input";
-import { forwardRef, useRef, useState } from "react";
+import { forwardRef, useCallback, useRef, useState, FocusEvent } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ type InputNumberProps = {
 >;
 
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
-  ({ value, onChange, formatOptions, className, ...rest }, ref) => {
+  ({ value, onChange, formatOptions, className, onBlur, ...rest }, ref) => {
     const locale = "en-US"; // i18n.language;
     const [stringValue, setStringValue] = useState<string>(
       numberToString(value, locale)
@@ -34,6 +34,39 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
 
     const isEmptyBlurRef = useRef(false);
 
+    const handleValueChange = useCallback(
+      ({ value: newStringValue }: NumberInputPrimitive.ValueChangeDetails) => {
+        // ignore the first onValueChange call after the input is empty (see below)
+        if (isEmptyBlurRef.current) {
+          isEmptyBlurRef.current = false;
+          return;
+        }
+        setStringValue(newStringValue);
+        const number = stringToNumber(newStringValue, locale);
+        if (number !== null && number !== value) {
+          onChange(number);
+        }
+      },
+      [locale, onChange, value]
+    );
+
+    const handleBlur = useCallback(
+      (event: FocusEvent<HTMLDivElement>) => {
+        // NumberInput will call onValueChange with the min value if the input is empty,
+        // right after this onBlur event (because of clampValueOnBlur).
+        // We want to ignore that call to allow the user to clear the input.
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if ((event.target as any).value === "") {
+          isEmptyBlurRef.current = true;
+        }
+
+        setIsFocused(false);
+        onBlur?.(event);
+      },
+      [onBlur]
+    );
+
     return (
       <NumberInputPrimitive.Root
         allowMouseWheel={false}
@@ -45,38 +78,16 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
         locale={locale}
         formatOptions={formatOptions}
         pattern=".*"
-        onValueChange={({ value }) => {
-          // ignore the first onValueChange call after the input is empty (see below)
-          if (isEmptyBlurRef.current) {
-            isEmptyBlurRef.current = false;
-            return;
-          }
-          setStringValue(value);
-          const number = stringToNumber(value, locale);
-          if (number !== null) {
-            onChange(number);
-          }
-        }}
+        onValueChange={handleValueChange}
         onFocus={(event) => {
           setIsFocused(true);
           rest.onFocus?.(event);
         }}
-        onBlur={(event) => {
-          // NumberInput will call onValueChange with the min value if the input is empty,
-          // right after this onBlur event (because of clampValueOnBlur).
-          // We want to ignore that call to allow the user to clear the input.
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if ((event.target as any).value === "") {
-            isEmptyBlurRef.current = true;
-          }
-
-          setIsFocused(false);
-          rest.onBlur?.(event);
-        }}
+        onBlur={handleBlur}
         value={stringValue}
       >
         <NumberInputPrimitive.Input className={cn(inputVariants(), "w-full")} />
+        <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-100 hover:bg-gray-200" />
       </NumberInputPrimitive.Root>
     );
   }

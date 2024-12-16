@@ -25,7 +25,7 @@ import * as React from "react";
 
 const SortableItemContext = React.createContext<Pick<
   ReturnType<typeof useSortable>,
-  "listeners" | "setActivatorNodeRef"
+  "listeners" | "attributes" | "setActivatorNodeRef"
 > | null>(null);
 
 function SortableItem({
@@ -60,11 +60,13 @@ function SortableItem({
       style={style}
       className={cn("data-[is-dragging]:opacity-0", className)}
       data-is-dragging={isDragging ? "" : undefined}
-      {...attributes}
+      {...(withDragHandle ? {} : attributes)}
       {...(withDragHandle ? {} : listeners)}
     >
       <SortableItemContext.Provider
-        value={withDragHandle ? { listeners, setActivatorNodeRef } : null}
+        value={
+          withDragHandle ? { listeners, attributes, setActivatorNodeRef } : null
+        }
       >
         {children}
       </SortableItemContext.Provider>
@@ -80,6 +82,7 @@ export function DragHandle(props: React.ComponentProps<typeof Slot>) {
       {...props}
       ref={context?.setActivatorNodeRef}
       {...context?.listeners}
+      {...context?.attributes}
     />
   );
 }
