@@ -293,6 +293,7 @@ export const useStore = create<AppState>()(
       };
     }),
     {
+      version: 1,
       name: APP_STATE_STORAGE_NAME,
       storage: createJSONStorage(() => storage),
     }

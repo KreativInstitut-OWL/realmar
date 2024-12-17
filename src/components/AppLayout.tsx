@@ -18,7 +18,7 @@ import {
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
 import { load, save } from "@/store/save";
-import { bundleFiles } from "@/lib/export";
+import { createExport } from "@/lib/export";
 import ExportButton from "./ExportButton";
 
 function AppLayout() {

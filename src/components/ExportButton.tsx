@@ -1,63 +1,67 @@
-import { ArrowRightFromLine, CheckCircle, Loader2 } from "lucide-react";
+import { createExport, defaultProgress, ProgressUpdate } from "@/lib/export";
+import { useMutation } from "@tanstack/react-query";
+import { ArrowRightFromLine, Loader2 } from "lucide-react"; // Replace with actual icon imports
+import { useCallback, useState } from "react";
 import { Button } from "./ui/button";
-
-import { bundleFiles, defaultProgress, ProgressUpdate } from "@/lib/export";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Progress } from "./ui/progress";
+import { toast } from "sonner";
 
 function ExportButton() {
-  const [isExporting, setIsExporting] = useState(false);
-  const [isComplete, setIsComplete] = useState(false);
   const [progress, setProgress] = useState<ProgressUpdate>(defaultProgress);
 
-  const isMountedRef = useRef(true);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+  const mutation = useMutation({
+    mutationKey: ["export"],
+    mutationFn: createExport,
+    onSuccess() {
+      toast.success("Export successful");
+    },
+    onError(error) {
+      toast.error("Export failed");
+      console.error(error);
+    },
+  });
 
   const handleExport = useCallback(() => {
-    setIsExporting(true);
-    setIsComplete(false);
-    setProgress(defaultProgress);
-    bundleFiles((progress) => setProgress(progress)).finally(() => {
-      if (!isMountedRef.current) return;
-      setIsComplete(true);
-
-      setTimeout(() => {
-        if (!isMountedRef.current) return;
-        setIsExporting(false);
-        setProgress(defaultProgress);
-        setIsComplete(false);
-      }, 2000);
-    });
-  }, []);
-
-  console.log("ExportButton", progress);
+    mutation.mutate((progress) => setProgress(progress));
+  }, [mutation]);
 
   return (
-    <Dialog open={isExporting}>
-      <Button className="ml-auto" onClick={handleExport}>
+    <Dialog open={mutation.isPending}>
+      <Button
+        className="ml-auto"
+        onClick={handleExport}
+        disabled={mutation.isPending}
+      >
         Export
         <ArrowRightFromLine />
       </Button>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {progress.stage === "compile" ? `Compiling…` : "Bundling…"}(
-            {((isComplete ? 100 : progress.progress) ?? 0).toFixed(2)}%)
+            {progress.stage === "compile" ? `Compiling…` : "Bundling…"} (
+            {new Intl.NumberFormat(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+              style: "percent",
+            }).format(
+              progress.stage === "compile"
+                ? progress.compileProgress / 100
+                : progress.bundleProgress / 100
+            )}
+            )
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4 items-center">
-          {isComplete ? (
-            <CheckCircle className="size-6" />
-          ) : (
-            <Loader2 className="size-6 animate-spin" />
-          )}
-          <Progress value={isComplete ? 100 : progress.progress} />
+          <Loader2 className="size-6 animate-spin" />
+
+          <Progress
+            value={
+              progress.stage === "compile"
+                ? progress.compileProgress
+                : progress.bundleProgress
+            }
+          />
           <span className="text-sm text-gray-400">
             {progress.currentBundleFile ?? ""}
           </span>

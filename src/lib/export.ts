@@ -67,7 +67,7 @@ export type ProgressUpdate = {
   stage: "compile" | "bundle";
   compileProgress: number;
   bundleProgress: number;
-  progress?: number;
+  progress: number;
   currentBundleFile?: string;
 };
 
@@ -78,7 +78,7 @@ export const defaultProgress: ProgressUpdate = {
   progress: 0,
 };
 
-export async function bundleFiles(
+export async function createExport(
   onProgress: (progress: ProgressUpdate) => void
 ) {
   let compileProgress = 0;
@@ -146,6 +146,8 @@ export async function bundleFiles(
     const { exportedBuffer } = await compileImageTargets(
       targetAssets.map((asset) => asset.src),
       (progress) => {
+        // ignore progress update that reset the progress to 0 when the compile is done
+        if (compileProgress > 0 && progress === 0) return;
         setCompileProgress(progress);
       }
     );
@@ -234,6 +236,9 @@ export async function bundleFiles(
     const content = await zip.generateAsync({ type: "blob" }, (meta) => {
       setBundleProgress(bundleProgress, meta.currentFile);
     });
+
+    setBundleProgress(100, null);
+
     saveAs(content, "ARbatch.zip");
   } catch (error) {
     console.error("Error bundling files: ", error);
