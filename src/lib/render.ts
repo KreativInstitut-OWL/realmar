@@ -1,3 +1,4 @@
+import { createAsset } from "@/store";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import * as THREE from "three";
@@ -13,31 +14,10 @@ export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
   return "data:image/svg+xml;base64," + btoa(reactRenderToString(node));
 }
 
-export function renderSvgReactNodeToFile(
-  node: React.ReactNode,
-  name: string = "image.svg"
+export function createPngFileFromCanvas(
+  canvas: HTMLCanvasElement,
+  name: string
 ) {
-  const svg = reactRenderToString(node);
-  return new File([svg], name, { type: "image/svg+xml" });
-}
-
-export function createFileFromImageElement(img: HTMLImageElement) {
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d")!;
-
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  ctx.drawImage(img, 0, 0, img.width, img.height);
-
-  return new Promise<File>((resolve) => {
-    canvas.toBlob((blob) => {
-      resolve(new File([blob!], "image.png", { type: "image/png" }));
-    });
-  });
-}
-
-export function createFileFromCanvas(canvas: HTMLCanvasElement, name: string) {
   return new Promise<File>((resolve) => {
     canvas.toBlob((blob) => {
       resolve(new File([blob!], `${name}.png`, { type: "image/png" }));
@@ -90,12 +70,6 @@ export function createSquareCanvasFromImageElement({
   return canvas;
 }
 
-export function createImgElementFromCanvas(canvas: HTMLCanvasElement) {
-  const img = document.createElement("img");
-  img.src = canvas.toDataURL();
-  return img;
-}
-
 function drawCheckerboardPattern(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -115,21 +89,17 @@ function drawCheckerboardPattern(
   }
 }
 
-export function createSquareCanvasFromSrc({
+export async function createSquareCanvasFromSrc({
   src,
   size,
 }: {
   src: string;
   size?: number;
 }) {
-  return new Promise<HTMLCanvasElement>((resolve) => {
-    const img = document.createElement("img");
-    img.setAttribute("src", src);
-
-    img.onload = function () {
-      resolve(createSquareCanvasFromImageElement({ img, size }));
-    };
-  });
+  const img = document.createElement("img");
+  img.src = src;
+  await img.decode();
+  return createSquareCanvasFromImageElement({ img, size });
 }
 
 export async function createSquareThreeTextureFromSrc({
@@ -143,4 +113,16 @@ export async function createSquareThreeTextureFromSrc({
   const texture = new THREE.Texture(canvas);
   texture.needsUpdate = true;
   return texture;
+}
+
+export async function createSquareAssetFromSrc({
+  src,
+  id,
+}: {
+  src: string;
+  id: string;
+}) {
+  const canvas = await createSquareCanvasFromSrc({ src });
+  const file = await createPngFileFromCanvas(canvas, id);
+  return createAsset({ file, id });
 }

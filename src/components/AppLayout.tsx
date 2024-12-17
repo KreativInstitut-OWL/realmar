@@ -1,4 +1,4 @@
-import { ArrowRightFromLine, FolderOpen, Save } from "lucide-react";
+import { FolderOpen, Save } from "lucide-react";
 import { Button } from "./ui/button";
 
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +7,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { load, save } from "@/store/save";
 import { Suspense, useRef } from "react";
+import ExportButton from "./ExportButton";
 import { ItemCombobox } from "./ItemCombobox";
 import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
 import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
@@ -17,9 +19,6 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
-import { load, save } from "@/store/save";
-import { createExport } from "@/lib/export";
-import ExportButton from "./ExportButton";
 
 function AppLayout() {
   const itemHeaderRef = useRef<HTMLLIElement>(null);

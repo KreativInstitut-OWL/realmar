@@ -1,32 +1,17 @@
 import { GeneratedTarget } from "@/components/GeneratedTarget";
-import {
-  Asset,
-  BaseAppState,
-  createAsset,
-  Entity,
-  Item,
-  useStore,
-} from "@/store";
+import { BaseAppState, Entity, Item, useStore } from "@/store";
 import * as FileStore from "@/store/file-store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
-import { nanoid } from "nanoid";
 import React from "react";
+import { ArExperience } from "./ArExperience";
 import {
-  createFileFromCanvas,
-  createSquareCanvasFromSrc,
+  createSquareAssetFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
-import { ArExperience } from "./ArExperience";
-
-function slugify(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "");
-}
+import { getItemFolderName, padStart } from "./item";
 
 export const getFileName = <T extends string>(
   type: T,
@@ -34,7 +19,7 @@ export const getFileName = <T extends string>(
   index: number
 ) => {
   const fileExtension = file.name.split(".").pop() as string;
-  return `${type}-${index}.${fileExtension}` as const;
+  return `${type}-${padStart(index, 4)}.${fileExtension}` as const;
 };
 
 export type ExportAsset = {
@@ -113,35 +98,19 @@ export async function createExport(
 
     const zip = new JSZip();
 
-    const targetAssetPromises = items.map(async (item) => {
-      if (item.targetAssetId) {
+    const targetAssets = await Promise.all(
+      items.map(async (item) => {
         const targetAsset = await FileStore.get(item.targetAssetId);
-        if (!targetAsset) return;
-        const src = targetAsset.src;
-        const canvas = await createSquareCanvasFromSrc({
-          src: src,
-          size: 1024,
-        });
-        const file = await createFileFromCanvas(canvas, targetAsset.id);
-        return createAsset({ file, id: targetAsset.id });
-      } else {
+        if (targetAsset) {
+          return createSquareAssetFromSrc(targetAsset);
+        }
+
         const src = renderSvgReactNodeToBase64Src(
           React.createElement(GeneratedTarget, { id: item.id })
         );
-        const canvas = await createSquareCanvasFromSrc({
-          src: src,
-          size: 1024,
-        });
-        const newId = nanoid(5);
-        const file = await createFileFromCanvas(canvas, newId);
-        return createAsset({ file, id: newId });
-      }
-    });
-
-    const targetAssets = (await Promise.all(targetAssetPromises)) as Asset[];
-    targetAssets.forEach((target): asserts target is Asset => {
-      if (!target) throw new Error("No target asset found");
-    });
+        return createSquareAssetFromSrc({ src, id: `${item.id}.generated` });
+      })
+    );
 
     const { exportedBuffer } = await compileImageTargets(
       targetAssets.map((asset) => asset.src),
@@ -159,8 +128,7 @@ export async function createExport(
 
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
-      const itemName = item.name ?? `Marker ${index + 1}`;
-      const itemFolderName = slugify(itemName);
+      const itemFolderName = getItemFolderName(item, index);
 
       const targetAsset = targetAssets[index];
       const targetAssetPath = `markers/${itemFolderName}/target.png`;
