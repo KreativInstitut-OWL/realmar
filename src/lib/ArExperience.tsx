@@ -15,7 +15,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
       <head>
         <meta charSet="UTF-8" />
         <title>AR Experience</title>
-        <script src="./aframe.min.js" />
+        <script src="./aframe-master.min.js" />
         <script src="./mindar-image-aframe.prod.js" />
         <script
           dangerouslySetInnerHTML={{
