@@ -7,7 +7,8 @@ export function reactRenderToString(node: React.ReactNode) {
   const container = document.createElement("div");
   const root = createRoot(container);
   flushSync(() => root.render(node));
-  return container.innerHTML;
+  const htmlWithLineBreaks = container.innerHTML.replace(/>/g, ">\n");
+  return htmlWithLineBreaks;
 }
 
 export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
@@ -16,7 +17,7 @@ export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
 
 export function createPngFileFromCanvas(
   canvas: HTMLCanvasElement,
-  name: string
+  name: string,
 ) {
   return new Promise<File>((resolve) => {
     canvas.toBlob((blob) => {
@@ -73,7 +74,7 @@ export function createSquareCanvasFromImageElement({
 function drawCheckerboardPattern(
   ctx: CanvasRenderingContext2D,
   width: number,
-  height: number
+  height: number,
 ) {
   const checkerboardSize = 16;
   const checkerboardColor1 = "#f7f7f7";
