@@ -1,13 +1,14 @@
 import { Item } from "@/store";
 import React from "react";
 import { ExportAppState, getFileName } from "./export";
+import ArExperienceImport from "./ArExperienceImport";
 import * as THREE from "three";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items } = state;
   console.log(items);
 
-  return <div>hi, please implement me!</div>;
+  // return <div>hi, please implement me!</div>;
 
   return (
     <html lang="en">
@@ -41,42 +42,14 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
           device-orientation-permission-ui="enabled: false"
         >
           <a-assets>
-            {items
-              .map((item, index) => {
-                return item.entity.map((asset, assetIndex) => {
-                  if (!asset.file) return null;
-                  const src = getFileName(
-                    "asset",
-                    asset.file,
-                    index,
-                    assetIndex
-                  );
-                  if (asset.file.type.includes("image")) {
-                    return (
-                      <img
-                        key={asset.id}
-                        id={asset.id}
-                        data-testid={asset.id}
-                        src={`./${src}`}
-                      />
-                    );
-                  }
-                  if (asset.file.type.includes("video")) {
-                    return (
-                      <video
-                        key={asset.id}
-                        id={asset.id}
-                        data-testid={asset.id}
-                        src={`./${src}`}
-                        loop
-                        autoPlay
-                        muted
-                      />
-                    );
-                  }
-                });
-              })
-              .flat()}
+            {items.map((item) => {
+              return item.entities
+                .map((entity) => {
+                  if (!entity.asset) return null;
+                  return <ArExperienceImport {...entity.asset} />;
+                })
+                .flat();
+            })}
           </a-assets>
           <a-camera
             position="0 0 0"
@@ -124,6 +97,13 @@ declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
+      "a-asset-item": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          id: string;
+          src: string;
+        },
+        HTMLElement
+      >;
       "a-scene": React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLElement> & {
           "mindar-image": string;
