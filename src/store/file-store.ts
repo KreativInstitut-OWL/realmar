@@ -21,29 +21,34 @@ export async function get(
   const blob = await idb.get(id, fileStore);
   if (!blob) return null;
   const meta = await idb.get(`${id}.meta`, fileStore);
-  const file = new File([blob], meta.name, { type: blob.type });
+  const file = new File([blob], meta?.name, { type: blob.type });
   return createAsset({ id, file });
 }
 
+async function getAllIds(): Promise<string[]> {
+  return (await idb.keys(fileStore)).filter((key): key is string => {
+    return typeof key === "string" && !key.endsWith(".meta");
+  });
+}
+
 export async function getAll(): Promise<Asset[]> {
-  const keys = await idb.keys(fileStore);
-  return (
-    await Promise.all(
-      keys
-        .filter((key): key is string => {
-          return typeof key === "string" && !key.endsWith(".meta");
-        })
-        .map((key) => get(key))
-    )
-  ).filter((asset): asset is Asset => asset !== null);
+  const ids = await getAllIds();
+  return (await Promise.all(ids.map((key) => get(key)))).filter(
+    (asset): asset is Asset => asset !== null
+  );
 }
 
 export async function del(id: string) {
+  const asset = await get(id);
+  if (!asset) return;
+  URL.revokeObjectURL(asset.src);
+
   await idb.del(`${id}.meta`, fileStore);
   await idb.del(id, fileStore);
   await queryClient.setQueryData(["asset", id], null);
 }
 
 export async function clear() {
-  await idb.clear(fileStore);
+  const ids = await getAllIds();
+  await Promise.all(ids.map((id) => del(id)));
 }
