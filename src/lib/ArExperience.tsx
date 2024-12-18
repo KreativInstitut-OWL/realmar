@@ -58,34 +58,49 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             raycaster="far: 10000; objects: .clickable"
             id="camera"
           />
-          {items.map((item, index) => {
-            const matrix = new THREE.Matrix4().fromArray(item.transform);
-            const position = new THREE.Vector3();
-            const quaternion = new THREE.Quaternion();
-            const scale = new THREE.Vector3();
-            matrix.decompose(position, quaternion, scale);
-            const rotation = new THREE.Euler().setFromQuaternion(quaternion);
 
-            return (
-              <a-entity
-                mindar-image-target={`targetIndex: ${index}`}
-                id={`entity${index}`}
-                key={`entity${index}`}
-              >
-                <a-plane
-                  position={`${position.x} ${position.y} ${position.z}`}
-                  rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
-                  scale={`${scale.x} ${scale.y} ${scale.z}`}
-                  width={"1"}
-                  height={"1"}
-                  id={`plane${index}`}
-                  color="#ffffff"
-                  src={`#${item.entity[0].id}`}
-                  look-at={item.lookAtCamera ? "camera" : undefined}
-                  data-testid={`plane${index}`}
-                />
-              </a-entity>
-            );
+          {items.map((item, targetIndex) => {
+            return item.entities.map((entity, index) => {
+              const matrix = new THREE.Matrix4().fromArray(entity.transform);
+              const position = new THREE.Vector3();
+              const quaternion = new THREE.Quaternion();
+              const scale = new THREE.Vector3();
+              matrix.decompose(position, quaternion, scale);
+              const rotation = new THREE.Euler().setFromQuaternion(quaternion);
+              // TODO: Nur erste entity als a-entity, die anderen in ein Objekt. Tausch der entites als JS-Galerie
+              // TODO: Animation handling. (Was, wenn mehrere vorliegen? Autoplay?)
+              return (
+                <a-entity
+                  mindar-image-target={`targetIndex: ${targetIndex}`}
+                  id={`entity${index}`}
+                  key={`entity${index}`}
+                >
+                  {entity.asset.fileType.includes("model") && (
+                    <a-entity
+                      position={`${position.x} ${position.y} ${position.z}`}
+                      rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
+                      scale={`${scale.x} ${scale.y} ${scale.z}`}
+                      gltf-model={`#${entity.asset.id}`}
+                    ></a-entity>
+                  )}
+
+                  {!entity.asset.fileType.includes("model") && (
+                    <a-plane
+                      position={`${position.x} ${position.y} ${position.z}`}
+                      rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
+                      scale={`${scale.x} ${scale.y} ${scale.z}`}
+                      width={"1"}
+                      height={"1"}
+                      id={`plane${index}`}
+                      color="#ffffff"
+                      src={`#${entity.asset.id}`}
+                      look-at={entity.lookAtCamera ? "camera" : undefined}
+                      data-testid={`plane${index}`}
+                    />
+                  )}
+                </a-entity>
+              );
+            });
           })}
         </a-scene>
       </body>
