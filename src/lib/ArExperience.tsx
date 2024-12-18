@@ -1,4 +1,4 @@
-import { Item } from "@/store";
+import { Entity, Item } from "@/store";
 import React from "react";
 import { ExportAppState, getFileName } from "./export";
 import ArExperienceImport from "./ArExperienceImport";
@@ -60,53 +60,59 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
           />
 
           {items.map((item, targetIndex) => {
-            return item.entities.map((entity, index) => {
-              const matrix = new THREE.Matrix4().fromArray(entity.transform);
-              const position = new THREE.Vector3();
-              const quaternion = new THREE.Quaternion();
-              const scale = new THREE.Vector3();
-              matrix.decompose(position, quaternion, scale);
-              const rotation = new THREE.Euler().setFromQuaternion(quaternion);
-              // TODO: Nur erste entity als a-entity, die anderen in ein Objekt. Tausch der entites als JS-Galerie
-              // TODO: Animation handling. (Was, wenn mehrere vorliegen? Autoplay?)
-              return (
-                <a-entity
-                  mindar-image-target={`targetIndex: ${targetIndex}`}
-                  id={`entity${index}`}
-                  key={`entity${index}`}
-                >
-                  {entity.asset.fileType.includes("model") && (
-                    <a-entity
-                      position={`${position.x} ${position.y} ${position.z}`}
-                      rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
-                      scale={`${scale.x} ${scale.y} ${scale.z}`}
-                      gltf-model={`#${entity.asset.id}`}
-                    ></a-entity>
-                  )}
+            const entity = item.entities[0];
+            const { position, scale, rotation } = getEntityTransforms(entity);
+            // TODO: Nur erste entity als a-entity, die anderen in ein Objekt. Tausch der entites als JS-Galerie
+            // TODO: Animation handling. (Was, wenn mehrere vorliegen? Autoplay?)
+            return (
+              <a-entity
+                mindar-image-target={`targetIndex: ${targetIndex}`}
+                id={`entity0`}
+              >
+                {entity.asset.fileType.includes("model") && (
+                  <a-entity
+                    position={`${position.x} ${position.y} ${position.z}`}
+                    rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
+                    scale={`${scale.x} ${scale.y} ${scale.z}`}
+                    gltf-model={`#${entity.asset.id}`}
+                  ></a-entity>
+                )}
 
-                  {!entity.asset.fileType.includes("model") && (
-                    <a-plane
-                      position={`${position.x} ${position.y} ${position.z}`}
-                      rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
-                      scale={`${scale.x} ${scale.y} ${scale.z}`}
-                      width={"1"}
-                      height={"1"}
-                      id={`plane${index}`}
-                      color="#ffffff"
-                      src={`#${entity.asset.id}`}
-                      look-at={entity.lookAtCamera ? "camera" : undefined}
-                      data-testid={`plane${index}`}
-                    />
-                  )}
-                </a-entity>
-              );
-            });
+                {!entity.asset.fileType.includes("model") && (
+                  <a-plane
+                    position={`${position.x} ${position.y} ${position.z}`}
+                    rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
+                    scale={`${scale.x} ${scale.y} ${scale.z}`}
+                    width={"1"}
+                    height={"1"}
+                    id={`plane${targetIndex}`}
+                    color="#ffffff"
+                    src={`#${entity.asset.id}`}
+                    look-at={entity.lookAtCamera ? "camera" : undefined}
+                    data-testid={`plane${targetIndex}`}
+                  />
+                )}
+              </a-entity>
+            );
           })}
         </a-scene>
+        <script>
+          {/*TODO: Schreibe das JS, das die Entities per Galerie verarbeitet*/}
+        </script>
       </body>
     </html>
   );
 };
+
+function getEntityTransforms(entity: Entity) {
+  const matrix = new THREE.Matrix4().fromArray(entity.transform);
+  const position = new THREE.Vector3();
+  const quaternion = new THREE.Quaternion();
+  const scale = new THREE.Vector3();
+  matrix.decompose(position, quaternion, scale);
+  const rotation = new THREE.Euler().setFromQuaternion(quaternion);
+  return { position, scale, rotation };
+}
 
 declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
