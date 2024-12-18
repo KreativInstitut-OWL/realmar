@@ -143,8 +143,11 @@ declare module "react" {
       >;
       "a-entity": React.DetailedHTMLProps<
         React.HTMLAttributes<HTMLElement> & {
-          "mindar-image-target": string;
-          id: string;
+          "mindar-image-target"?: string;
+          id?: string;
+          position?: string;
+          rotation?: string;
+          scale?: string;
         },
         HTMLElement
       >;
