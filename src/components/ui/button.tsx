@@ -16,7 +16,7 @@ const buttonVariants = cva(
         outline:
           "bg-white border-2 border-black text-black hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-50",
         ghost:
-          "bg-transparent text-black ring-transparent hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          "bg-transparent text-black ring-transparent ring-offset-transparent hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-gray-50",
       },
       size: {
         default: "h-10 px-4 py-2",

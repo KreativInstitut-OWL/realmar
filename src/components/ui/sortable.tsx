@@ -55,22 +55,22 @@ function SortableItem({
   };
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn("data-[is-dragging]:opacity-0", className)}
-      data-is-dragging={isDragging ? "" : undefined}
-      {...(withDragHandle ? {} : attributes)}
-      {...(withDragHandle ? {} : listeners)}
+    <SortableItemContext.Provider
+      value={
+        withDragHandle ? { listeners, attributes, setActivatorNodeRef } : null
+      }
     >
-      <SortableItemContext.Provider
-        value={
-          withDragHandle ? { listeners, attributes, setActivatorNodeRef } : null
-        }
+      <Slot
+        ref={setNodeRef}
+        style={style}
+        className={cn("data-[is-dragging]:opacity-0", className)}
+        data-is-dragging={isDragging ? "" : undefined}
+        {...(withDragHandle ? {} : attributes)}
+        {...(withDragHandle ? {} : listeners)}
       >
         {children}
-      </SortableItemContext.Provider>
-    </div>
+      </Slot>
+    </SortableItemContext.Provider>
   );
 }
 
@@ -83,6 +83,7 @@ export function DragHandle(props: React.ComponentProps<typeof Slot>) {
       ref={context?.setActivatorNodeRef}
       {...context?.listeners}
       {...context?.attributes}
+      className="cursor-grab"
     />
   );
 }
@@ -91,11 +92,14 @@ export function Sortable({
   items,
   onItemMove,
   withDragHandle,
+  onDragStart,
+  onDragEnd,
+  ...props
 }: {
-  items: { id: string; node: React.ReactNode }[];
+  items: { id: string; node: React.ReactNode; dragOverlay?: React.ReactNode }[];
   onItemMove: (oldIndex: number, newIndex: number) => void;
   withDragHandle?: boolean;
-}) {
+} & React.ComponentProps<typeof DndContext>) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -105,15 +109,22 @@ export function Sortable({
 
   const [activeId, setActiveId] = React.useState<UniqueIdentifier | null>(null);
 
-  const handleDragStart = React.useCallback((event: DragStartEvent) => {
-    const { active } = event;
-    if (active?.id) {
-      setActiveId(active.id);
-    }
-  }, []);
+  const handleDragStart = React.useCallback(
+    (event: DragStartEvent) => {
+      onDragStart?.(event);
+
+      const { active } = event;
+      if (active?.id) {
+        setActiveId(active.id);
+      }
+    },
+    [onDragStart]
+  );
 
   const handleDragEnd = React.useCallback(
     (event: DragEndEvent) => {
+      onDragEnd?.(event);
+
       const { active, over } = event;
 
       if (over?.id && active.id !== over.id) {
@@ -124,7 +135,12 @@ export function Sortable({
 
       setActiveId(null);
     },
-    [items, onItemMove]
+    [items, onDragEnd, onItemMove]
+  );
+
+  const activeItem = React.useMemo(
+    () => items.find((item) => item.id === activeId),
+    [items, activeId]
   );
 
   return (
@@ -133,6 +149,7 @@ export function Sortable({
       collisionDetection={closestCenter}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      {...props}
     >
       <SortableContext items={items} strategy={verticalListSortingStrategy}>
         {items.map(({ id, node }) => (
@@ -142,9 +159,7 @@ export function Sortable({
         ))}
       </SortableContext>
       <DragOverlay modifiers={[restrictToFirstScrollableAncestor]}>
-        {activeId ? (
-          <div>{items.find((item) => item.id === activeId)?.node}</div>
-        ) : null}
+        {activeItem?.dragOverlay ?? activeItem?.node ?? null}
       </DragOverlay>
     </DndContext>
   );

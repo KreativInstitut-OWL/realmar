@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { Target } from "./Target";
 import { Combobox, ComboboxTriggerButton } from "./ui/combobox";
 import { CommandGroup, CommandItem, CommandSeparator } from "./ui/command";
+import { getItemName } from "@/lib/item";
 
 export function ItemCombobox() {
   const items = useStore((state) => state.items);
@@ -22,7 +23,7 @@ export function ItemCombobox() {
               assetId={item.targetAssetId}
               className="size-4"
             />
-            {item.name ?? `Marker ${index + 1}`}
+            {getItemName(item, index)}
           </div>
         ),
         value: item.id,

@@ -9,6 +9,7 @@ import { ImagePlusIcon, XIcon } from "lucide-react";
 import { Target } from "./Target";
 import { FormDescription, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
+import { getItemDefaultName } from "@/lib/item";
 
 export function ItemTarget() {
   const item = useCurrentItem();
@@ -62,7 +63,7 @@ export function ItemTarget() {
             });
           }}
           value={item.name || ""}
-          placeholder={`Marker ${item.index + 1}`}
+          placeholder={getItemDefaultName(item.index)}
         />
       </FormItem>
     </div>
