@@ -17,6 +17,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <title>AR Experience</title>
         <script src="./aframe-master.min.js" />
         <script src="./mindar-image-aframe.prod.js" />
+        <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: /* js */ `
@@ -75,6 +76,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
                     rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
                     scale={`${scale.x} ${scale.y} ${scale.z}`}
                     gltf-model={`#${entity.asset.id}`}
+                    animation-mixer
                   ></a-entity>
                 )}
 
