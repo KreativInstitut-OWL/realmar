@@ -197,6 +197,13 @@ export async function createExport(
       await fetchAsBlob("/js/mindar-image-aframe.prod.js"),
     );
 
+    zip.file(
+      "interactivity.js",
+      await fetchAsBlob("/js-includes/interactivity.js"),
+    );
+
+    zip.file("style.css", await fetchAsBlob("/js-includes/style.css"));
+
     const license = await fetch("/LICENSE");
     const licenseText = await license.text();
     zip.file("LICENSE", licenseText);

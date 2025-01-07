@@ -1,4 +1,5 @@
 import { Entity, Item } from "@/store";
+
 import React from "react";
 import { ExportAppState, getFileName } from "./export";
 import ArExperienceImport from "./ArExperienceImport";
@@ -18,6 +19,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <script src="./aframe-master.min.js" />
         <script src="./mindar-image-aframe.prod.js" />
         <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
+        <script>{`const state = ${JSON.stringify(items)}`}</script>
+        <link href="./style.css" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
             __html: /* js */ `
@@ -68,7 +71,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             return (
               <a-entity
                 mindar-image-target={`targetIndex: ${targetIndex}`}
-                id={`entity0`}
+                id={item.id}
               >
                 {entity.asset.fileType.includes("model") && (
                   <a-entity
@@ -98,9 +101,14 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             );
           })}
         </a-scene>
-        <script>
-          {/*TODO: Schreibe das JS, das die Entities per Galerie verarbeitet*/}
-        </script>
+        <div className="button-container invisible" id="gallery-buttons">
+          <button id="prev">Zurück</button>
+          <button id="next">Weiter</button>
+        </div>
+        <div className="button-container invisible" id="play-button">
+          <button id="play">Video Abspielen</button>
+        </div>
+        <script src="./interactivity.js" />
       </body>
     </html>
   );
