@@ -10,7 +10,7 @@ import {
 import { load, save } from "@/store/save";
 import { Suspense, useRef } from "react";
 import ExportButton from "./ExportButton";
-import { ItemCombobox } from "./ItemCombobox";
+import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
 import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
 import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
 import {
@@ -37,7 +37,7 @@ function AppLayout() {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <ItemCombobox />
+                  <ItemComboboxEditorCurrentItem />
                 </BreadcrumbItem>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem ref={itemHeaderRef} />

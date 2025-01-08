@@ -81,6 +81,7 @@ export type Item = {
   targetAssetId: string | null;
   entities: Entity[];
   name: string | null;
+  itemDependencyId: string | null;
 
   // editor state (these have no effect for the export)
   editorLinkTransforms: boolean;
@@ -96,6 +97,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     targetAssetId: null,
     entities: [],
     name: null,
+    itemDependencyId: null,
 
     editorLinkTransforms: true,
     editorScaleUniformly: true,
@@ -136,14 +138,19 @@ function createEntityNavigation({
   };
 }
 
+type EditorTab = "items" | "settings";
+
 export interface BaseAppState {
   items: Item[];
   projectName: string;
   editorCurrentItemId: string | null;
+  editorCurrentTab: EditorTab;
 }
 
 interface AppState extends BaseAppState {
-  setEditorCurrentItemId: (id: string) => void;
+  setEditorCurrentTab: (tab: EditorTab) => void;
+
+  setEditorCurrentItemId: (id: string | null) => void;
 
   addItem: (setAsCurrentItem?: boolean) => Item;
 
@@ -186,9 +193,17 @@ export const useStore = create<AppState>()(
         items: [initialItem],
         projectName: "Batchar Project",
 
+        editorCurrentTab: "items",
+
+        setEditorCurrentTab: (tab: EditorTab) => {
+          set((state) => {
+            state.editorCurrentTab = tab;
+          });
+        },
+
         editorCurrentItemId: initialItem.id,
 
-        setEditorCurrentItemId: (id: string) => {
+        setEditorCurrentItemId: (id) => {
           set((state) => {
             state.editorCurrentItemId = id;
           });
@@ -220,6 +235,13 @@ export const useStore = create<AppState>()(
           set((state) => {
             const index = state.items.findIndex((item) => item.id === itemId);
             if (index === -1) return;
+
+            // set dependent items dependency to null
+            state.items.forEach((item) => {
+              if (item.itemDependencyId === itemId) {
+                item.itemDependencyId = null;
+              }
+            });
 
             state.items.splice(index, 1);
             if (state.editorCurrentItemId === itemId) {

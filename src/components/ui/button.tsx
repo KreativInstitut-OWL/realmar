@@ -3,6 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { inputVariants } from "./input";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium cursor-pointer ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -17,6 +18,7 @@ const buttonVariants = cva(
           "bg-white border-2 border-black text-black hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-50",
         ghost:
           "bg-transparent text-black ring-transparent ring-offset-transparent hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-gray-50",
+        input: inputVariants(),
       },
       size: {
         default: "h-10 px-4 py-2",
