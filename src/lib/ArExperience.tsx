@@ -124,12 +124,14 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             );
           })}
         </a-scene>
-        <div className="button-container invisible" id="gallery-buttons">
-          <button id="prev">Zurück</button>
-          <button id="next">Weiter</button>
-        </div>
-        <div className="button-container invisible" id="play-button">
-          <button id="play">Video Abspielen</button>
+        <div className="button-wrapper">
+          <div className="button-container invisible" id="gallery-buttons">
+            <button id="prev">Zurück</button>
+            <button id="next">Weiter</button>
+          </div>
+          <div className="button-container invisible" id="play-button">
+            <button id="play">Video Abspielen</button>
+          </div>
         </div>
         <script src="./interactivity.js" />
       </body>
