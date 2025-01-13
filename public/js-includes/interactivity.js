@@ -119,6 +119,9 @@ function moveCurrentGallery(direction) {
     setCurrentPlaneMediaById(newEntity.asset.id);
     fadeInElement(playButton);
   }
+  if (!newEntity.asset.fileType.includes("video")) {
+    fadeOutElement(playButton);
+  }
 }
 
 function swapGalleryMedia(currentElement, newEntity) {
