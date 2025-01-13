@@ -7,7 +7,27 @@ import * as THREE from "three";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items } = state;
-  console.log(items);
+
+  const batchState = items.map((marker) => {
+    const transformedEntities = marker.entities.map((entity) => {
+      // Get position, scale, and rotation from transform
+      const { position, scale, rotation } = getEntityTransforms(entity);
+
+      // Return updated entity with new properties
+      return {
+        ...entity,
+        position,
+        scale,
+        rotation,
+      };
+    });
+
+    // Return updated marker with transformed entities
+    return {
+      ...marker,
+      entities: transformedEntities,
+    };
+  });
 
   // return <div>hi, please implement me!</div>;
 
@@ -19,7 +39,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <script src="./aframe-master.min.js" />
         <script src="./mindar-image-aframe.prod.js" />
         <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
-        <script>{`const state = ${JSON.stringify(items)}`}</script>
+        <script>{`const state = ${JSON.stringify(batchState)}`}</script>
         <link href="./style.css" rel="stylesheet" />
         <script
           dangerouslySetInnerHTML={{
@@ -79,6 +99,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
                     rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
                     scale={`${scale.x} ${scale.y} ${scale.z}`}
                     gltf-model={`#${entity.asset.id}`}
+                    id={`${item.id}-element`}
+                    data-entity-id={entity.id}
                     animation-mixer
                   ></a-entity>
                 )}
@@ -90,11 +112,12 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
                     scale={`${scale.x} ${scale.y} ${scale.z}`}
                     width={"1"}
                     height={"1"}
-                    id={`plane${targetIndex}`}
+                    id={`${item.id}-element`}
                     color="#ffffff"
                     src={`#${entity.asset.id}`}
                     look-at={entity.lookAtCamera ? "camera" : undefined}
                     data-testid={`plane${targetIndex}`}
+                    data-entity-id={entity.id}
                   />
                 )}
               </a-entity>
