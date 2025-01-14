@@ -129,8 +129,16 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             <button id="prev">Zurück</button>
             <button id="next">Weiter</button>
           </div>
-          <div className="button-container invisible" id="play-button">
-            <button id="play">Video Abspielen</button>
+          <div className="button-container invisible" id="video-controls">
+            <button id="play" className="invisible">
+              Video Abspielen
+            </button>
+            <button id="play-from-start" className="invisible">
+              Video vom Anfang abspielen
+            </button>
+            <button id="pause" className="invisible">
+              Video pausieren
+            </button>
           </div>
         </div>
         <script src="./interactivity.js" />

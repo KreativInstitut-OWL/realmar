@@ -75,6 +75,10 @@ a-scene {
   border-left: 0.25rem solid white;
 }
 
-#play {
+#video-controls {
+  gap: 0.5rem;
+}
+
+#video-controls button {
   border-radius: 100rem;
 }

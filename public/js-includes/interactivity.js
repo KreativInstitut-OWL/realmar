@@ -1,7 +1,10 @@
 const galleryButtons = document.getElementById("gallery-buttons");
 const prevButton = document.querySelector("#prev");
 const nextButton = document.querySelector("#next");
-const playButton = document.getElementById("play-button");
+const videoControls = document.getElementById("video-controls");
+const playButton = document.getElementById("play");
+const pauseButton = document.getElementById("pause");
+const playFromStartButton = document.getElementById("play-from-start");
 
 let currentTarget = null;
 let galleryTargetKeys = [];
@@ -16,8 +19,14 @@ nextButton.addEventListener("click", () => {
 playButton.addEventListener("click", () => {
   handlePlay();
 });
+pauseButton.addEventListener("click", () => {
+  handlePause();
+});
+playFromStartButton.addEventListener("click", () => {
+  handlePlayFromStart();
+});
 
-console.log(state);
+// console.log(state);
 
 state.map((marker) => {
   const target = document.getElementById(marker.id);
@@ -31,11 +40,12 @@ state.map((marker) => {
     target.addEventListener("targetFound", () => {
       currentTarget = target;
       fadeInElement(galleryButtons);
+      moveCurrentGallery(0); //
     });
     target.addEventListener("targetLost", () => {
+      handlePause();
+      fadeOutElement(videoControls);
       fadeOutElement(galleryButtons);
-      fadeOutElement(playButton);
-      pauseMedia();
     });
   }
 
@@ -47,12 +57,12 @@ state.map((marker) => {
     target.addEventListener("targetFound", () => {
       currentTarget = target;
       setCurrentPlaneMediaById(marker.entities[0].asset.id);
-      fadeInElement(playButton);
+      fadeInElement(videoControls);
     });
 
     target.addEventListener("targetLost", () => {
-      fadeOutElement(playButton);
-      pauseMedia();
+      handlePause();
+      fadeOutElement(videoControls);
     });
   }
 });
@@ -70,6 +80,21 @@ function fadeOutElement(element) {
 function handlePlay() {
   currentPlaneMedia.play();
   fadeOutElement(playButton);
+  fadeInElement(pauseButton);
+  fadeInElement(playFromStartButton);
+}
+
+function handlePause() {
+  pauseMedia();
+  fadeOutElement(pauseButton);
+  fadeOutElement(playFromStartButton);
+  fadeInElement(playButton);
+}
+
+function handlePlayFromStart() {
+  pauseMedia();
+  currentPlaneMedia.currentTime = 0;
+  currentPlaneMedia.play();
 }
 
 function pauseMedia() {
@@ -103,24 +128,18 @@ function moveCurrentGallery(direction) {
     currentMediaIndexInGallery + direction < 0
       ? mediaCount - 1
       : (currentMediaIndexInGallery + direction) % mediaCount;
-  console.log(
-    currentMediaIndexInGallery,
-    direction,
-    mediaCount,
-    newMediaIndexInGallery,
-  );
 
   const newEntity = currentGallery[newMediaIndexInGallery];
 
-  pauseMedia();
+  handlePause();
   swapGalleryMedia(currentElement, newEntity);
 
   if (newEntity.asset.fileType.includes("video")) {
     setCurrentPlaneMediaById(newEntity.asset.id);
-    fadeInElement(playButton);
+    fadeInElement(videoControls);
   }
   if (!newEntity.asset.fileType.includes("video")) {
-    fadeOutElement(playButton);
+    fadeOutElement(videoControls);
   }
 }
 
