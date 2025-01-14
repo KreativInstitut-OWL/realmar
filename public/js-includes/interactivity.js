@@ -103,7 +103,6 @@ function pauseMedia() {
 }
 
 function setCurrentPlaneMediaById(id) {
-  console.log(id);
   currentPlaneMedia = document.getElementById(id);
 }
 
@@ -111,13 +110,10 @@ function setCurrentPlaneMediaById(id) {
 function moveCurrentGallery(direction) {
   if (currentTarget == null || !galleryTargetKeys.includes(currentTarget.id))
     return;
-  const currentTargetIndex = state.findIndex((e) => e.id == currentTarget.id);
-  const currentGallery = state[currentTargetIndex].entities;
 
   //   Jedes mal neu berechnen, um nicht tracken zu müssen, welche Galerie gerade angezeigt wird
-  const currentElement = document.getElementById(`${currentTarget.id}-element`);
-  const currentAssetId = getCurrentAssetId(currentElement);
-  console.log("currentAssetID " + currentAssetId);
+  const currentGallery = getCurrentGallery();
+  const { currentElement, currentAssetId } = getCurrentlyDisplayedElement();
 
   const currentMediaIndexInGallery = currentGallery.findIndex(
     (im) => im.asset.id == currentAssetId,
@@ -171,13 +167,19 @@ function swapGalleryMedia(currentElement, newEntity) {
   currentElement = newElement;
 }
 
-const getCurrentAssetId = (currentElement) => {
+const getCurrentlyDisplayedElement = () => {
+  const currentElement = document.getElementById(`${currentTarget.id}-element`);
   const currentAssetId = currentElement.dataset.entityId;
-  return currentAssetId;
+  return { currentElement, currentAssetId };
+};
+
+const getCurrentGallery = () => {
+  const currentTargetIndex = state.findIndex((e) => e.id == currentTarget.id);
+  const currentGallery = state[currentTargetIndex].entities;
+  return currentGallery;
 };
 
 function setNewGalleryMedia(element, entity) {
-  console.log(element, entity);
   element.setAttribute("position", {
     x: entity.position.x,
     y: entity.position.y,
@@ -209,7 +211,6 @@ function setNewGalleryMedia(element, entity) {
     entity.asset.fileType.includes("model") &&
     element.tagName === "A-ENTITY"
   ) {
-    console.log("changing mode", entity.asset.id);
     element.setAttribute("gltf-model", `#${entity.asset.id}`);
     element.setAttribute("animation-mixer", entity.playAnimation);
   }
