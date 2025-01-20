@@ -25,17 +25,24 @@ export type Asset = {
   id: string;
   file: File;
   src: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 export function createAsset({
   id,
   file,
   src,
+  createdAt,
+  updatedAt,
 }: Partial<Asset> & { file: File }): Asset {
+  const now = new Date();
   return {
     id: id ?? nanoid(5),
     file,
     src: src ?? URL.createObjectURL(file),
+    createdAt: createdAt ?? now,
+    updatedAt: updatedAt ?? now,
   };
 }
 
@@ -74,6 +81,7 @@ export type Item = {
   targetAssetId: string | null;
   entities: Entity[];
   name: string | null;
+  itemDependencyId: string | null;
 
   // editor state (these have no effect for the export)
   editorLinkTransforms: boolean;
@@ -89,6 +97,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     targetAssetId: null,
     entities: [],
     name: null,
+    itemDependencyId: null,
 
     editorLinkTransforms: true,
     editorScaleUniformly: true,
@@ -129,19 +138,26 @@ function createEntityNavigation({
   };
 }
 
+type EditorTab = "items" | "settings";
+
 export interface BaseAppState {
   items: Item[];
   projectName: string;
   editorCurrentItemId: string | null;
+  editorCurrentTab: EditorTab;
 }
 
 interface AppState extends BaseAppState {
-  setEditorCurrentItemId: (id: string) => void;
+  setEditorCurrentTab: (tab: EditorTab) => void;
+
+  setEditorCurrentItemId: (id: string | null) => void;
 
   addItem: (setAsCurrentItem?: boolean) => Item;
 
   setItem: (itemId: string, item: Partial<Item>) => void;
   moveItem: (oldIndex: number, newIndex: number) => void;
+
+  removeItem: (itemId: string) => Promise<void>;
 
   setItemEntity: (
     itemId: string,
@@ -150,11 +166,23 @@ interface AppState extends BaseAppState {
   ) => void;
   moveItemEntity: (itemId: string, oldIndex: number, newIndex: number) => void;
 
+  moveItemEntities: (
+    itemId: string,
+    entityIds: string[],
+    newIndex: number
+  ) => void;
+
+  sendItemEntitiesToItem: (
+    itemId: string,
+    entityIds: string[],
+    newItemId: string
+  ) => void;
+
   setItemTarget: (itemId: string, file: File) => Promise<void>;
   removeItemTarget: (itemId: string) => Promise<void>;
 
   addItemEntities: (id: string, files: File[]) => Promise<void>;
-  removeItemEntity: (itemId: string, entityId: string) => Promise<void>;
+  removeItemEntities: (itemId: string, entityIds: string[]) => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -165,9 +193,17 @@ export const useStore = create<AppState>()(
         items: [initialItem],
         projectName: "Batchar Project",
 
+        editorCurrentTab: "items",
+
+        setEditorCurrentTab: (tab: EditorTab) => {
+          set((state) => {
+            state.editorCurrentTab = tab;
+          });
+        },
+
         editorCurrentItemId: initialItem.id,
 
-        setEditorCurrentItemId: (id: string) => {
+        setEditorCurrentItemId: (id) => {
           set((state) => {
             state.editorCurrentItemId = id;
           });
@@ -182,6 +218,36 @@ export const useStore = create<AppState>()(
             }
           });
           return newItem;
+        },
+
+        removeItem: async (itemId) => {
+          const item = get().items.find((item) => item.id === itemId);
+          if (!item) return;
+
+          if (item.targetAssetId) {
+            await FileStore.del(item.targetAssetId);
+          }
+
+          for (const entity of item.entities) {
+            await FileStore.del(entity.assetId);
+          }
+
+          set((state) => {
+            const index = state.items.findIndex((item) => item.id === itemId);
+            if (index === -1) return;
+
+            // set dependent items dependency to null
+            state.items.forEach((item) => {
+              if (item.itemDependencyId === itemId) {
+                item.itemDependencyId = null;
+              }
+            });
+
+            state.items.splice(index, 1);
+            if (state.editorCurrentItemId === itemId) {
+              state.editorCurrentItemId = state.items[index]?.id ?? null;
+            }
+          });
         },
 
         moveItem: (oldIndex, newIndex) => {
@@ -237,6 +303,41 @@ export const useStore = create<AppState>()(
           });
         },
 
+        moveItemEntities: (itemId, entityIds, newIndex) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            const entities = item.entities.filter((entity) =>
+              entityIds.includes(entity.id)
+            );
+            const otherEntities = item.entities.filter(
+              (entity) => !entityIds.includes(entity.id)
+            );
+            item.entities = [
+              ...otherEntities.slice(0, newIndex),
+              ...entities,
+              ...otherEntities.slice(newIndex),
+            ];
+          });
+        },
+
+        sendItemEntitiesToItem: (itemId, entityIds, newItemId) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            const newItem = state.items.find((item) => item.id === newItemId);
+
+            if (!item || !newItem) return;
+            const entities = item.entities.filter((entity) =>
+              entityIds.includes(entity.id)
+            );
+            const otherEntities = item.entities.filter(
+              (entity) => !entityIds.includes(entity.id)
+            );
+            item.entities = otherEntities;
+            newItem.entities.push(...entities);
+          });
+        },
+
         removeItemTarget: async (itemId) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
@@ -271,23 +372,23 @@ export const useStore = create<AppState>()(
           });
         },
 
-        removeItemEntity: async (itemId, entityId) => {
-          const entity = get()
-            .items.find((item) => item.id === itemId)
-            ?.entities.find((entity) => entity.id === entityId);
+        removeItemEntities: async (itemId, entityIds) => {
+          const entities =
+            get()
+              .items.find((item) => item.id === itemId)
+              ?.entities.filter((entity) => entityIds.includes(entity.id)) ??
+            [];
 
-          if (entity) {
-            await FileStore.del(entity.assetId);
-          }
+          await Promise.all(
+            entities.map((entity) => FileStore.del(entity.assetId))
+          );
 
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
-            const entityIndex = item.entities.findIndex(
-              (entity) => entity.id === entityId
+            item.entities = item.entities.filter(
+              (entity) => !entityIds.includes(entity.id)
             );
-            if (entityIndex === -1) return;
-            item.entities.splice(entityIndex, 1);
           });
         },
       };

@@ -12,3 +12,10 @@ export const byteFormatter = Intl.NumberFormat("en", {
   unitDisplay: "narrow",
   maximumFractionDigits: 1,
 });
+
+export const dateFormatter = Intl.DateTimeFormat("en", {
+  dateStyle: "short",
+  timeStyle: "short",
+  hourCycle: "h23",
+  formatMatcher: "best fit",
+});

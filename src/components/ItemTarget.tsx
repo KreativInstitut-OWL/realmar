@@ -7,12 +7,9 @@ import {
 import { useAsset, useCurrentItem, useStore } from "@/store";
 import { ImagePlusIcon, XIcon } from "lucide-react";
 import { Target } from "./Target";
-import { FormDescription, FormItem, FormLabel } from "./ui/form";
-import { Input } from "./ui/input";
 
 export function ItemTarget() {
   const item = useCurrentItem();
-  const setItem = useStore((state) => state.setItem);
   const setItemTarget = useStore((state) => state.setItemTarget);
   const removeItemTarget = useStore((state) => state.removeItemTarget);
 
@@ -21,7 +18,7 @@ export function ItemTarget() {
   if (!item) return null;
 
   return (
-    <div className="grid grid-cols-3">
+    <div className="max-w-[512px]">
       <DropzoneProvider
         multiple={false}
         accept={{ "image/*": [] }}
@@ -52,19 +49,6 @@ export function ItemTarget() {
           Remove custom target
         </Button>
       ) : null}
-      <FormItem>
-        <FormLabel>Name</FormLabel>
-        <FormDescription>Optional name for the marker.</FormDescription>
-        <Input
-          onChange={(event) => {
-            setItem(item.id, {
-              name: event.target.value || null,
-            });
-          }}
-          value={item.name || ""}
-          placeholder={`Marker ${item.index + 1}`}
-        />
-      </FormItem>
     </div>
   );
 }

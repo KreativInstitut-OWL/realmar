@@ -1,6 +1,6 @@
 "use client";
 
-import { Images, PlusIcon } from "lucide-react";
+import { Cog, Images, PlusIcon } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -24,6 +24,8 @@ export function ItemNavigatorSidebar({
 }: React.ComponentProps<typeof Sidebar>) {
   const { setOpen } = useSidebar();
   const addItem = useStore((state) => state.addItem);
+  const editorCurrentTab = useStore((state) => state.editorCurrentTab);
+  const setEditorCurrentTab = useStore((state) => state.setEditorCurrentTab);
 
   return (
     <Sidebar
@@ -67,12 +69,30 @@ export function ItemNavigatorSidebar({
                     }}
                     onClick={() => {
                       setOpen(true);
+                      setEditorCurrentTab("items");
                     }}
-                    isActive
+                    isActive={editorCurrentTab === "items"}
                     className="px-2.5 md:px-2"
                   >
                     <Images />
                     <span>AR Items</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={{
+                      children: "Settings",
+                      hidden: false,
+                    }}
+                    onClick={() => {
+                      setOpen(true);
+                      setEditorCurrentTab("settings");
+                    }}
+                    isActive={editorCurrentTab === "settings"}
+                    className="px-2.5 md:px-2"
+                  >
+                    <Cog />
+                    <span>Settings</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
@@ -84,6 +104,7 @@ export function ItemNavigatorSidebar({
 
       {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
+
       <Sidebar collapsible="none" className="hidden flex-1 md:flex">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between">

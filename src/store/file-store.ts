@@ -7,7 +7,12 @@ export const fileStore = idb.createStore("batchar-files", "files");
 export async function add({ file, id }: Asset) {
   const blob = new Blob([await file.arrayBuffer()], { type: file.type });
   idb.set(id, blob, fileStore);
-  idb.set(`${id}.meta`, { name: file.name }, fileStore);
+  const now = new Date();
+  idb.set(
+    `${id}.meta`,
+    { name: file.name, createdAt: now, updatedAt: now },
+    fileStore
+  );
 }
 
 export async function addMany(assets: Asset[]) {
@@ -22,7 +27,35 @@ export async function get(
   if (!blob) return null;
   const meta = await idb.get(`${id}.meta`, fileStore);
   const file = new File([blob], meta?.name, { type: blob.type });
-  return createAsset({ id, file });
+  return createAsset({
+    id,
+    file,
+    createdAt: meta?.createdAt,
+    updatedAt: meta?.updatedAt,
+  });
+}
+
+export async function rename(id: string, name: string) {
+  const asset = await get(id);
+  if (!asset) return;
+  const blob = new Blob([await asset.file.arrayBuffer()], {
+    type: asset.file.type,
+  });
+  idb.set(id, blob, fileStore);
+
+  const now = new Date();
+
+  idb.set(
+    `${id}.meta`,
+    { name, createdAt: asset.createdAt, updatedAt: now },
+    fileStore
+  );
+
+  queryClient.setQueryData(["asset", id], {
+    ...asset,
+    file: new File([blob], name, { type: asset.file.type }),
+    updatedAt: now,
+  });
 }
 
 async function getAllIds(): Promise<string[]> {

@@ -1,10 +1,10 @@
+import { useCurrentItem, useStore } from "@/store";
 import { Images, Move3D, Scan } from "lucide-react";
+import { createPortal } from "react-dom";
 import { ItemArrange } from "./ItemArrange";
 import { ItemEntities } from "./ItemEntities";
-import { ItemTarget } from "./ItemTarget";
+import { ItemMarker } from "./ItemMarker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useCurrentItem, useStore } from "@/store";
-import { createPortal } from "react-dom";
 
 export function ItemTabs({
   itemHeaderRef,
@@ -29,7 +29,7 @@ export function ItemTabs({
             <TabsList className="">
               <TabsTrigger value="target">
                 <Scan className="size-5 mr-3" />
-                Target
+                Marker
               </TabsTrigger>
               <TabsTrigger value="entities">
                 <Images className="size-5 mr-3" />
@@ -44,7 +44,7 @@ export function ItemTabs({
           )
         : null}
       <TabsContent value="target" className="mt-6">
-        <ItemTarget />
+        <ItemMarker />
       </TabsContent>
       <TabsContent value="entities">
         <ItemEntities />

@@ -5,6 +5,8 @@ import * as React from "react";
 import { ItemTabs } from "./ItemTabs";
 import { Target } from "./Target";
 import { Sortable } from "./ui/sortable";
+import { ItemContextMenu } from "./ItemContextMenu";
+import { getItemName } from "@/lib/item";
 
 export const ItemListRoot = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.Root>,
@@ -81,21 +83,24 @@ const ItemListTabsTrigger = React.forwardRef<
         "w-full aspect-[16/5] flex items-start gap-4 whitespace-nowrap border-b p-4 pl-10 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-selected:bg-gray-200 relative",
         className
       )}
+      asChild
       {...props}
     >
-      <Target
-        itemId={item.id}
-        assetId={item.targetAssetId}
-        className="size-16"
-      />
-      <div className="flex flex-col self-stretch w-full items-start justify-center gap-2">
-        <span>{item.name ? item.name : `Marker ${itemIndex + 1}`}</span>
-        <span className="text-xs text-gray-400">
-          {item.entityNavigation.count}{" "}
-          {item.entityNavigation.count === 1 ? "Entity" : "Entities"}
-        </span>
-      </div>
-      <div className="absolute top-4 left-4 text-xs">{itemIndex + 1}</div>
+      <ItemContextMenu item={item}>
+        <Target
+          itemId={item.id}
+          assetId={item.targetAssetId}
+          className="size-16"
+        />
+        <div className="flex flex-col self-stretch w-full items-start justify-center gap-2">
+          <span>{getItemName(item, item.index)}</span>
+          <span className="text-xs text-gray-400">
+            {item.entityNavigation.count}{" "}
+            {item.entityNavigation.count === 1 ? "Entity" : "Entities"}
+          </span>
+        </div>
+        <div className="absolute top-4 left-4 text-xs">{itemIndex + 1}</div>
+      </ItemContextMenu>
     </TabsPrimitive.TabsTrigger>
   );
 });

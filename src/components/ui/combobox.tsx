@@ -45,9 +45,11 @@ export const ComboboxTrigger = PopoverTrigger;
 
 export function ComboboxTriggerButton({
   noValue = "Select option...",
+  className,
+  ...props
 }: {
   noValue?: React.ReactNode;
-}) {
+} & ButtonProps) {
   const { value, options, open } = useCombobox();
   return (
     <ComboboxTrigger asChild>
@@ -55,7 +57,8 @@ export function ComboboxTriggerButton({
         variant="ghost"
         role="combobox"
         aria-expanded={open}
-        className="max-w-xs truncate"
+        className={cn("max-w-xs truncate", className)}
+        {...props}
       >
         {value
           ? options.find((option) => option.value === value)?.label
@@ -90,6 +93,7 @@ export function Combobox<
   TOptions extends {
     label: React.ReactNode;
     value: string | number | null;
+    disabled?: boolean;
   }[]
 >({
   options,
@@ -128,7 +132,7 @@ export function Combobox<
     <ComboboxContext.Provider value={contextValue}>
       <Popover open={open} onOpenChange={setOpen}>
         {typeof children === "function" ? children(contextValue) : children}
-        <PopoverContent className="p-0 w-max max-w-80">
+        <PopoverContent className="p-0 w-max min-w-[--radix-popover-trigger-width]">
           <Command>
             <CommandInput placeholder={inputPlaceholder} />
             <CommandEmpty>{empty}</CommandEmpty>
@@ -141,6 +145,7 @@ export function Combobox<
                       onSelect(option.value, close);
                     }}
                     className="justify-between truncate"
+                    disabled={option.disabled}
                   >
                     <div className="flex items-center">{option.label}</div>
                     <Check
