@@ -1,85 +1,62 @@
-import { FolderOpen, Save } from "lucide-react";
-import { Button } from "./ui/button";
-
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { load, save } from "@/store/save";
-import { Suspense, useRef } from "react";
+import { useState } from "react";
 import ExportButton from "./ExportButton";
 import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
-import { ItemListRoot, ItemListSelectedItemContent } from "./ItemList";
-import { ItemNavigatorSidebar } from "./ItemNavigatorSidebar";
+import { ItemListRoot } from "./ItemList";
+import { AppSidebar } from "./AppSidebar";
+import { LoadButton } from "./LoadButton";
+import { MainView } from "./MainView";
+import { SaveButton } from "./SaveButton";
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "./ui/breadcrumb";
+import { useStore } from "@/store";
 
 function AppLayout() {
-  const itemHeaderRef = useRef<HTMLLIElement>(null);
+  const [itemHeader, setItemHeader] = useState<HTMLLIElement | null>(null);
+  const editorCurrentView = useStore((state) => state.editorCurrentView);
 
   return (
     <ItemListRoot>
       <SidebarProvider
         style={{ "--sidebar-width": "350px" } as React.CSSProperties}
       >
-        <ItemNavigatorSidebar />
+        <AppSidebar />
         <SidebarInset>
           <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-white px-4 h-16 z-10">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
 
             <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <ItemComboboxEditorCurrentItem />
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem ref={itemHeaderRef} />
-              </BreadcrumbList>
+              {editorCurrentView === "settings" ? (
+                <BreadcrumbList>
+                  <BreadcrumbItem>Settings</BreadcrumbItem>
+                </BreadcrumbList>
+              ) : (
+                <BreadcrumbList>
+                  <BreadcrumbItem>
+                    <ItemComboboxEditorCurrentItem />
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem ref={(element) => setItemHeader(element)} />
+                </BreadcrumbList>
+              )}
             </Breadcrumb>
 
             <ExportButton />
-
-            <Button
-              variant="secondary"
-              onClick={() => {
-                save();
-              }}
-            >
-              Save
-              <Save />
-            </Button>
-
-            <Button
-              variant="secondary"
-              onClick={() => {
-                // ask for file
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = ".batchar";
-                input.onchange = () => {
-                  const files = input.files;
-                  if (files && files.length > 0) {
-                    load(files[0]);
-                  }
-                };
-                input.click();
-              }}
-            >
-              Load
-              <FolderOpen />
-            </Button>
+            <SaveButton />
+            <LoadButton />
           </header>
 
-          <Suspense fallback="loading...">
-            <ItemListSelectedItemContent itemHeaderRef={itemHeaderRef} />
-          </Suspense>
+          <MainView itemHeader={itemHeader} />
         </SidebarInset>
       </SidebarProvider>
     </ItemListRoot>

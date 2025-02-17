@@ -6,11 +6,7 @@ import { ItemEntities } from "./ItemEntities";
 import { ItemMarker } from "./ItemMarker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 
-export function ItemTabs({
-  itemHeaderRef,
-}: {
-  itemHeaderRef: React.RefObject<HTMLLIElement>;
-}) {
+export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
   const item = useCurrentItem();
   const setItem = useStore((state) => state.setItem);
 
@@ -24,7 +20,7 @@ export function ItemTabs({
         })
       }
     >
-      {itemHeaderRef.current
+      {itemHeader
         ? createPortal(
             <TabsList className="">
               <TabsTrigger value="target">
@@ -40,7 +36,7 @@ export function ItemTabs({
                 Arrange
               </TabsTrigger>
             </TabsList>,
-            itemHeaderRef.current
+            itemHeader
           )
         : null}
       <TabsContent value="target" className="mt-6">

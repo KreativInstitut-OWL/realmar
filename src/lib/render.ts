@@ -124,5 +124,5 @@ export async function createSquareAssetFromSrc({
 }) {
   const canvas = await createSquareCanvasFromSrc({ src });
   const file = await createPngFileFromCanvas(canvas, id);
-  return createAsset({ file, id });
+  return await createAsset({ file, id });
 }

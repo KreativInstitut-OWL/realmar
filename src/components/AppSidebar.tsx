@@ -19,13 +19,11 @@ import { useStore } from "@/store";
 import { ItemListList } from "./ItemList";
 import { Button } from "./ui/button";
 
-export function ItemNavigatorSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { setOpen } = useSidebar();
   const addItem = useStore((state) => state.addItem);
-  const editorCurrentTab = useStore((state) => state.editorCurrentTab);
-  const setEditorCurrentTab = useStore((state) => state.setEditorCurrentTab);
+  const editorCurrentView = useStore((state) => state.editorCurrentView);
+  const setEditorCurrentView = useStore((state) => state.setEditorCurrentView);
 
   return (
     <Sidebar
@@ -69,9 +67,9 @@ export function ItemNavigatorSidebar({
                     }}
                     onClick={() => {
                       setOpen(true);
-                      setEditorCurrentTab("items");
+                      setEditorCurrentView("items");
                     }}
-                    isActive={editorCurrentTab === "items"}
+                    isActive={editorCurrentView === "items"}
                     className="px-2.5 md:px-2"
                   >
                     <Images />
@@ -86,9 +84,9 @@ export function ItemNavigatorSidebar({
                     }}
                     onClick={() => {
                       setOpen(true);
-                      setEditorCurrentTab("settings");
+                      setEditorCurrentView("settings");
                     }}
-                    isActive={editorCurrentTab === "settings"}
+                    isActive={editorCurrentView === "settings"}
                     className="px-2.5 md:px-2"
                   >
                     <Cog />

@@ -27,15 +27,39 @@ export type Asset = {
   src: string;
   createdAt: Date;
   updatedAt: Date;
+  width: number | null;
+  height: number | null;
 };
 
-export function createAsset({
+export async function createAsset({
   id,
   file,
   src,
   createdAt,
   updatedAt,
-}: Partial<Asset> & { file: File }): Asset {
+}: Partial<Asset> & { file: File }): Promise<Asset> {
+  // if asset type is image or video, we can get the width and height
+  // from the file itself
+
+  const isImage = file.type.startsWith("image/");
+  const isVideo = file.type.startsWith("video/");
+
+  let width = null;
+  let height = null;
+
+  if (isImage || isVideo) {
+    const image = new Image();
+    image.src = URL.createObjectURL(file);
+
+    await new Promise<void>((resolve) => {
+      image.onload = () => {
+        width = image.width / Math.min(image.width, image.height);
+        height = image.height / Math.min(image.width, image.height);
+        resolve();
+      };
+    });
+  }
+
   const now = new Date();
   return {
     id: id ?? nanoid(5),
@@ -43,6 +67,8 @@ export function createAsset({
     src: src ?? URL.createObjectURL(file),
     createdAt: createdAt ?? now,
     updatedAt: updatedAt ?? now,
+    width,
+    height,
   };
 }
 
@@ -138,17 +164,19 @@ function createEntityNavigation({
   };
 }
 
-type EditorTab = "items" | "settings";
+export type EditorView = "items" | "settings";
 
 export interface BaseAppState {
   items: Item[];
-  projectName: string;
+  projectName: string | null;
   editorCurrentItemId: string | null;
-  editorCurrentTab: EditorTab;
+  editorCurrentView: EditorView;
 }
 
 interface AppState extends BaseAppState {
-  setEditorCurrentTab: (tab: EditorTab) => void;
+  setProjectName: (name: string) => void;
+
+  setEditorCurrentView: (tab: EditorView) => void;
 
   setEditorCurrentItemId: (id: string | null) => void;
 
@@ -191,13 +219,19 @@ export const useStore = create<AppState>()(
       const initialItem = createItem();
       return {
         items: [initialItem],
-        projectName: "Batchar Project",
+        projectName: null,
 
-        editorCurrentTab: "items",
-
-        setEditorCurrentTab: (tab: EditorTab) => {
+        setProjectName: (name) => {
           set((state) => {
-            state.editorCurrentTab = tab;
+            state.projectName = name;
+          });
+        },
+
+        editorCurrentView: "items",
+
+        setEditorCurrentView: (tab: EditorView) => {
+          set((state) => {
+            state.editorCurrentView = tab;
           });
         },
 
@@ -258,7 +292,7 @@ export const useStore = create<AppState>()(
         },
 
         setItemTarget: async (itemId, file) => {
-          const targetAsset = createAsset({ file });
+          const targetAsset = await createAsset({ file });
           await FileStore.add(targetAsset);
 
           set((state) => {
@@ -358,7 +392,7 @@ export const useStore = create<AppState>()(
           const newEntities: Entity[] = [];
 
           for (const file of files) {
-            const asset = createAsset({ file });
+            const asset = await createAsset({ file });
             await FileStore.add(asset);
             const entity = createEntity({ assetId: asset.id });
 

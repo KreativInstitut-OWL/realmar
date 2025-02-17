@@ -5,13 +5,13 @@ import saveAs from "file-saver";
 import JSZip from "jszip";
 import React from "react";
 import { ArExperience } from "./ArExperience";
+import { getItemFolderName, padStart } from "./item";
 import {
   createSquareAssetFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
-import { getItemFolderName, padStart } from "./item";
 
 export const getFileName = <T extends string>(
   type: T,
@@ -26,6 +26,8 @@ export type ExportAsset = {
   id: string;
   fileType: string;
   path: string;
+  width: number | null;
+  height: number | null;
 };
 
 export type ExportEntity = Entity & {
@@ -142,6 +144,8 @@ export async function createExport(
           id: targetAsset.id,
           fileType: targetAsset.file.type,
           path: targetAssetPath,
+          width: targetAsset.width,
+          height: targetAsset.height,
         },
         entities: [],
       };
@@ -169,6 +173,8 @@ export async function createExport(
             id: asset.id,
             fileType: asset.file.type,
             path: entityAssetPath,
+            width: asset.width,
+            height: asset.height,
           },
         });
       }
