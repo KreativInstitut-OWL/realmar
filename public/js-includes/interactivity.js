@@ -200,8 +200,8 @@ function setNewGalleryMedia(element, entity) {
   ) {
     element.setAttribute("src", `#${entity.asset.id}`);
     element.setAttribute("color", "#ffffff");
-    // element.setAttribute("width", "1");
-    // element.setAttribute("height", "1");
+    element.setAttribute("width", entity.asset.width);
+    element.setAttribute("height", entity.asset.height);
   }
   if (
     entity.asset.fileType.includes("model") &&

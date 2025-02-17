@@ -1,7 +1,7 @@
 import { Entity, Item } from "@/store";
 
 import React from "react";
-import { ExportAppState, getFileName } from "./export";
+import { ExportAppState, ExportEntity, getFileName } from "./export";
 import ArExperienceImport from "./ArExperienceImport";
 import * as THREE from "three";
 
@@ -85,7 +85,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
 
           {items.map((item, targetIndex) => {
             const entity = item.entities[0];
-            const { position, scale, rotation } = getEntityTransforms(entity);
+            const { position, scale, rotation, width, height } =
+              getEntityTransforms(entity);
             // TODO: Nur erste entity als a-entity, die anderen in ein Objekt. Tausch der entites als JS-Galerie
             // TODO: Animation handling. (Was, wenn mehrere vorliegen? Autoplay?)
             return (
@@ -110,8 +111,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
                     position={`${position.x} ${position.y} ${position.z}`}
                     rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
                     scale={`${scale.x} ${scale.y} ${scale.z}`}
-                    width={"1"}
-                    height={"1"}
+                    width={width!.toString()}
+                    height={height!.toString()}
                     id={`${item.id}-element`}
                     color="#ffffff"
                     src={`#${entity.asset.id}`}
@@ -147,14 +148,16 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
   );
 };
 
-function getEntityTransforms(entity: Entity) {
+function getEntityTransforms(entity: ExportEntity) {
   const matrix = new THREE.Matrix4().fromArray(entity.transform);
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
   matrix.decompose(position, quaternion, scale);
   const rotation = new THREE.Euler().setFromQuaternion(quaternion);
-  return { position, scale, rotation };
+  const width = entity.asset.width;
+  const height = entity.asset.height;
+  return { position, scale, rotation, width, height };
 }
 
 declare module "react" {
