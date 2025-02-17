@@ -2,7 +2,7 @@ import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
 } from "@/lib/render";
-import { Asset } from "@/store";
+import { Asset, Entity } from "@/store";
 import {
   GizmoHelper,
   GizmoViewport,
@@ -25,6 +25,8 @@ interface ItemArrangeEditorProps {
   onTransformChange: (transform: THREE.Matrix4Tuple) => void;
   playAnimation: boolean;
   asset: Asset | null;
+  entities: Entity[];
+  selectedEntityId: string | null;
   marker: Asset | null;
   cameraPosition: THREE.Vector3Tuple;
   onCameraPositionChange: (position: THREE.Vector3Tuple) => void;

@@ -27,7 +27,7 @@ export async function get(
   if (!blob) return null;
   const meta = await idb.get(`${id}.meta`, fileStore);
   const file = new File([blob], meta?.name, { type: blob.type });
-  return createAsset({
+  return await createAsset({
     id,
     file,
     createdAt: meta?.createdAt,

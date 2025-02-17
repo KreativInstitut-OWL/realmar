@@ -9,12 +9,17 @@ import {
 import * as FileStore from "./file-store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
+import slugify from "slugify";
 
 export function getAssetFileName(asset: Asset) {
   return `${asset.id}.${asset.file.name.split(".").pop() ?? "bin"}`;
 }
 
 export async function save() {
+  const projectName =
+    useStore.getState().projectName ?? "Untitled Batchar Project";
+  const projectNameSlug = slugify(projectName, { lower: true });
+
   const assets = await FileStore.getAll();
 
   const appStateString = await get<string>(
@@ -26,7 +31,7 @@ export async function save() {
 
   const zip = new JSZip();
 
-  zip.file("BATCHAR", "batchar@2");
+  zip.file("BATCHAR", `batchar@2\n\n${projectNameSlug}`);
 
   zip.file("state.json", appStateString);
 
@@ -51,7 +56,7 @@ export async function save() {
       console.log(meta);
     }
   );
-  saveAs(content, "project.batchar");
+  saveAs(content, `${projectNameSlug}.batchar`);
 }
 
 export function load(file: File) {
@@ -62,7 +67,7 @@ export function load(file: File) {
 
     const batchar = await zip.file("BATCHAR")?.async("text");
 
-    if (batchar !== "batchar@2") {
+    if (!batchar?.startsWith("batchar@2")) {
       throw new Error("Invalid file format");
     }
 
@@ -94,7 +99,7 @@ export function load(file: File) {
           throw new Error("Invalid file format");
         }
 
-        return createAsset({
+        return await createAsset({
           id: assetMetadata.id,
           file: new File([file], assetMetadata.name, {
             type: assetMetadata.mimeType,
