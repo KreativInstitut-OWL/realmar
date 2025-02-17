@@ -198,7 +198,6 @@ function setNewGalleryMedia(element, entity) {
     !entity.asset.fileType.includes("model") &&
     element.tagName === "A-PLANE"
   ) {
-    console.log("plane!");
     element.setAttribute("src", `#${entity.asset.id}`);
     element.setAttribute("color", "#ffffff");
     // element.setAttribute("width", "1");
@@ -211,7 +210,6 @@ function setNewGalleryMedia(element, entity) {
     element.setAttribute("gltf-model", `#${entity.asset.id}`);
     element.setAttribute("animation-mixer", entity.playAnimation);
   }
-  console.log(element);
 }
 function resetElementAttributes(element) {
   element.removeAttribute("gltf-model");
