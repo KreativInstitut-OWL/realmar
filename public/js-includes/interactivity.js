@@ -144,24 +144,18 @@ function swapGalleryMedia(currentElement, newEntity) {
   const elementId = currentElement.getAttribute("id");
 
   // Wenn wir von 2D auf 3D wechseln
-  if (
-    currentElement.tagName === "A-PLANE" &&
-    newEntity.asset.fileType.includes("model")
-  ) {
+  // Wenn wir von 3D auf 2D wechseln
+
+  if (!newEntity.asset.fileType.includes("model")) {
+    newElement = document.createElement("A-PLANE");
+    newElement.setAttribute("src", newEntity.asset.id);
+    currentElement.parentNode.replaceChild(newElement, currentElement);
+  } else {
     newElement = document.createElement("A-ENTITY");
     currentElement.parentNode.replaceChild(newElement, currentElement);
   }
 
-  // Wenn wir von 3D auf 2D wechseln
-
-  if (
-    currentElement.tagName === "A-ENTITY" &&
-    !newEntity.asset.fileType.includes("model")
-  ) {
-    newElement = document.createElement("A-PLANE");
-    currentElement.parentNode.replaceChild(newElement, currentElement);
-  }
-
+  resetElementAttributes(newElement);
   newElement.setAttribute("id", elementId);
   setNewGalleryMedia(newElement, newEntity);
   currentElement = newElement;
@@ -185,14 +179,16 @@ function setNewGalleryMedia(element, entity) {
     y: entity.position.y,
     z: entity.position.z,
   });
-  element.setAttribute(
-    "rotation",
-    `${entity.rotation._x} ${entity.rotation._y} ${entity.rotation._z}`,
-  );
-  element.setAttribute(
-    "scale",
-    `${entity.scale.x} ${entity.scale.y} ${entity.scale.z}`,
-  );
+  element.setAttribute("rotation", {
+    x: entity.rotation._x,
+    y: entity.rotation._y,
+    z: entity.rotation._z,
+  });
+  element.setAttribute("scale", {
+    x: entity.scale.x,
+    y: entity.scale.y,
+    z: entity.scale.z,
+  });
   // element.setAttribute(
   //   "look-at",
   //   `${entity.lookAtCamera? "camera" : ""}`
@@ -202,10 +198,11 @@ function setNewGalleryMedia(element, entity) {
     !entity.asset.fileType.includes("model") &&
     element.tagName === "A-PLANE"
   ) {
+    console.log("plane!");
     element.setAttribute("src", `#${entity.asset.id}`);
     element.setAttribute("color", "#ffffff");
-    element.setAttribute("width", "1");
-    element.setAttribute("height", "1");
+    // element.setAttribute("width", "1");
+    // element.setAttribute("height", "1");
   }
   if (
     entity.asset.fileType.includes("model") &&
@@ -214,4 +211,14 @@ function setNewGalleryMedia(element, entity) {
     element.setAttribute("gltf-model", `#${entity.asset.id}`);
     element.setAttribute("animation-mixer", entity.playAnimation);
   }
+  console.log(element);
+}
+function resetElementAttributes(element) {
+  element.removeAttribute("gltf-model");
+  element.removeAttribute("animation-mixer");
+  element.removeAttribute("src");
+  element.removeAttribute("color");
+  element.removeAttribute("width");
+  element.removeAttribute("height");
+  element.removeAttribute("scale");
 }
