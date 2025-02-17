@@ -10,6 +10,7 @@ import {
   OrbitControls,
   PerspectiveCamera,
   PivotControls,
+  useVideoTexture,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -34,39 +35,37 @@ interface ItemArrangeEditorProps {
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
-type TextureImageDimensions = {
-  width: number;
-  height: number;
-  aspectRatio: number;
-};
-
 const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
   ({ asset }, ref) => {
-    const [dimensions, setDimensions] = useState<TextureImageDimensions>();
-
     const texture = useMemo(() => {
       if (!asset.src) return null;
-      return new THREE.TextureLoader().load(asset.src, (texture) => {
-        setDimensions({
-          width: texture.image.width,
-          height: texture.image.height,
-          aspectRatio: texture.image.width / texture.image.height,
-        });
-      });
+      return new THREE.TextureLoader().load(asset.src);
     }, [asset.src]);
 
-    if (!texture || !dimensions) {
+    if (!texture) {
       return null;
     }
 
     return (
       <mesh ref={ref}>
-        <planeGeometry
-          args={[
-            dimensions.width / Math.min(dimensions.width, dimensions.height),
-            dimensions.height / Math.min(dimensions.width, dimensions.height),
-          ]}
-        />
+        <planeGeometry args={[asset.width!, asset.height!]} />
+        <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      </mesh>
+    );
+  }
+);
+
+const VideoAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
+  ({ asset }, ref) => {
+    const texture = useVideoTexture(asset.src);
+
+    if (!texture) {
+      return null;
+    }
+
+    return (
+      <mesh ref={ref}>
+        <planeGeometry args={[asset.width!, asset.height!]} />
         <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
       </mesh>
     );
@@ -149,6 +148,10 @@ function getAssetComponent(asset: Asset | null) {
 
   if (asset.file.type.startsWith("image/")) {
     return ImageAsset;
+  }
+
+  if (asset.file.type.startsWith("video/")) {
+    return VideoAsset;
   }
 
   if (asset.file.type.startsWith("model/gltf")) {
