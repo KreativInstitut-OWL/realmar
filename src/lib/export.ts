@@ -16,7 +16,7 @@ import compileImageTargets from "./uploadAndCompile";
 export const getFileName = <T extends string>(
   type: T,
   file: File,
-  index: number
+  index: number,
 ) => {
   const fileExtension = file.name.split(".").pop() as string;
   return `${type}-${padStart(index, 4)}.${fileExtension}` as const;
@@ -66,7 +66,7 @@ export const defaultProgress: ProgressUpdate = {
 };
 
 export async function createExport(
-  onProgress: (progress: ProgressUpdate) => void
+  onProgress: (progress: ProgressUpdate) => void,
 ) {
   let compileProgress = 0;
   let bundleProgress = 0;
@@ -108,10 +108,10 @@ export async function createExport(
         }
 
         const src = renderSvgReactNodeToBase64Src(
-          React.createElement(GeneratedTarget, { id: item.id })
+          React.createElement(GeneratedTarget, { id: item.id }),
         );
         return createSquareAssetFromSrc({ src, id: `${item.id}.generated` });
-      })
+      }),
     );
 
     const { exportedBuffer } = await compileImageTargets(
@@ -120,7 +120,7 @@ export async function createExport(
         // ignore progress update that reset the progress to 0 when the compile is done
         if (compileProgress > 0 && progress === 0) return;
         setCompileProgress(progress);
-      }
+      },
     );
     zip.file("targets.mind", exportedBuffer);
 
@@ -162,7 +162,7 @@ export async function createExport(
         const entityAssetPath = `/markers/${itemFolderName}/${getFileName(
           "entity",
           asset.file,
-          entityIndex
+          entityIndex,
         )}`;
 
         zip.file(entityAssetPath, asset.file);
@@ -190,18 +190,25 @@ export async function createExport(
     zip.file(
       "index.html",
       `<!DOCTYPE html>${reactRenderToString(
-        React.createElement(ArExperience, { state: exportState })
-      )}`
+        React.createElement(ArExperience, { state: exportState }),
+      )}`,
     );
 
     zip.file(
       "aframe-master.min.js",
-      await fetchAsBlob("/js/aframe-master.min.js")
+      await fetchAsBlob("/js/aframe-master.min.js"),
     );
     zip.file(
       "mindar-image-aframe.prod.js",
-      await fetchAsBlob("/js/mindar-image-aframe.prod.js")
+      await fetchAsBlob("/js/mindar-image-aframe.prod.js"),
     );
+
+    zip.file(
+      "interactivity.js",
+      await fetchAsBlob("/js-includes/interactivity.js"),
+    );
+
+    zip.file("style.css", await fetchAsBlob("/js-includes/style.css"));
 
     const license = await fetch("/LICENSE");
     const licenseText = await license.text();
