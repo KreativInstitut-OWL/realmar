@@ -2,8 +2,11 @@ import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
 } from "@/lib/render";
-import { Asset, Entity } from "@/store";
+import { Asset, Entity, useAsset } from "@/store";
+import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
+  Edges,
+  EdgesProps,
   GizmoHelper,
   GizmoViewport,
   Grid,
@@ -14,68 +17,66 @@ import {
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import {
+  cloneElement,
+  forwardRef,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedTarget } from "./GeneratedTarget";
 
-interface ItemArrangeEditorProps {
-  id: string;
-  lookAtCamera: boolean;
-  transform: THREE.Matrix4Tuple;
-  onTransformChange: (transform: THREE.Matrix4Tuple) => void;
-  playAnimation: boolean;
-  asset: Asset | null;
-  entities: Entity[];
-  selectedEntityId: string | null;
-  marker: Asset | null;
-  cameraPosition: THREE.Vector3Tuple;
-  onCameraPositionChange: (position: THREE.Vector3Tuple) => void;
-}
-
 const EulerNull = new THREE.Euler(0, 0, 0);
 
-const ImageAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
-  ({ asset }, ref) => {
-    const texture = useMemo(() => {
-      if (!asset.src) return null;
-      return new THREE.TextureLoader().load(asset.src);
-    }, [asset.src]);
+const ImageAsset = forwardRef<
+  THREE.Mesh,
+  { asset: Asset; children: React.ReactNode }
+>(({ asset, children }, ref) => {
+  const texture = useMemo(() => {
+    if (!asset.src) return null;
+    return new THREE.TextureLoader().load(asset.src);
+  }, [asset.src]);
 
-    if (!texture) {
-      return null;
-    }
-
-    return (
-      <mesh ref={ref}>
-        <planeGeometry args={[asset.width!, asset.height!]} />
-        <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
-      </mesh>
-    );
+  if (!texture) {
+    return null;
   }
-);
 
-const VideoAsset = forwardRef<THREE.Mesh, { asset: Asset }>(
-  ({ asset }, ref) => {
-    const texture = useVideoTexture(asset.src);
+  return (
+    <mesh ref={ref} renderOrder={1000}>
+      <planeGeometry args={[asset.width!, asset.height!]} />
+      <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      {children}
+    </mesh>
+  );
+});
 
-    if (!texture) {
-      return null;
-    }
+const VideoAsset = forwardRef<
+  THREE.Mesh,
+  { asset: Asset; children: React.ReactNode }
+>(({ asset, children }, ref) => {
+  const texture = useVideoTexture(asset.src);
 
-    return (
-      <mesh ref={ref}>
-        <planeGeometry args={[asset.width!, asset.height!]} />
-        <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
-      </mesh>
-    );
+  if (!texture) {
+    return null;
   }
-);
+
+  return (
+    <mesh ref={ref}>
+      <planeGeometry args={[asset.width!, asset.height!]} />
+      <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      {children}
+    </mesh>
+  );
+});
 
 const GltfAsset = forwardRef<
   THREE.Mesh,
-  { asset: Asset; playAnimation: boolean }
->(({ asset, playAnimation }, ref) => {
+  { asset: Asset; playAnimation: boolean; children: React.ReactNode }
+>(({ asset, playAnimation, children }, ref) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
 
@@ -121,53 +122,99 @@ const GltfAsset = forwardRef<
     }
   });
 
+  const [boundingGeometry, setBoundingGeometry] =
+    useState<THREE.BufferGeometry>();
+
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useEffect(() => {
+    if (gltf && !boundingGeometry) {
+      const mesh = meshRef.current;
+      const scene = mesh?.children[0];
+
+      if (scene) {
+        const backupMatrix = scene.matrix.clone();
+        scene.matrix.identity();
+        scene.updateMatrixWorld(true);
+
+        const box = new THREE.Box3().setFromObject(scene);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+        geometry.translate(center.x, center.y, center.z);
+
+        scene.applyMatrix4(backupMatrix);
+
+        setBoundingGeometry(geometry);
+      }
+    }
+  }, [boundingGeometry, gltf]);
+
   if (!gltf) {
     return null;
   }
 
   return (
-    <mesh ref={ref}>
+    <mesh ref={composeRefs(ref, meshRef)}>
       <primitive object={gltf.scene} />
+      {boundingGeometry && isValidElement<EdgesProps>(children)
+        ? cloneElement(children, { geometry: boundingGeometry })
+        : null}
     </mesh>
   );
 });
 
-const PlaceholderAsset = forwardRef<THREE.Mesh>((_, ref) => {
-  return (
-    <mesh ref={ref}>
-      <boxGeometry args={[0.125, 0.125, 0.125]} />
-      <meshBasicMaterial color="#55fc27" />
-    </mesh>
-  );
-});
+const PlaceholderAsset = forwardRef<THREE.Mesh, { children: React.ReactNode }>(
+  ({ children }, ref) => {
+    return (
+      <mesh ref={ref}>
+        <boxGeometry args={[0.125, 0.125, 0.125]} />
+        <meshBasicMaterial color="#55fc27" />
+        {children}
+      </mesh>
+    );
+  }
+);
 
-function getAssetComponent(asset: Asset | null) {
-  if (!asset?.file) {
+function useAssetComponent(asset: Asset | null) {
+  const assetFileType = asset?.file?.type;
+
+  return useMemo(() => {
+    if (!assetFileType) {
+      return PlaceholderAsset;
+    }
+
+    if (assetFileType.startsWith("image/")) {
+      return ImageAsset;
+    }
+
+    if (assetFileType.startsWith("video/")) {
+      return VideoAsset;
+    }
+
+    if (assetFileType.startsWith("model/gltf")) {
+      return GltfAsset;
+    }
+
     return PlaceholderAsset;
-  }
-
-  if (asset.file.type.startsWith("image/")) {
-    return ImageAsset;
-  }
-
-  if (asset.file.type.startsWith("video/")) {
-    return VideoAsset;
-  }
-
-  if (asset.file.type.startsWith("model/gltf")) {
-    return GltfAsset;
-  }
-
-  return PlaceholderAsset;
+  }, [assetFileType]);
 }
 
 function TransformableAsset({
-  asset,
-  lookAtCamera,
-  transform,
+  entity,
   onTransformChange,
-  playAnimation,
-}: ItemArrangeEditorProps) {
+  isSelected,
+  onSelect,
+}: {
+  entity: Entity;
+  onTransformChange: (transform: THREE.Matrix4Tuple) => void;
+  isSelected: boolean;
+  onSelect: () => void;
+}) {
+  const { lookAtCamera, transform, playAnimation } = entity;
+
+  const { data: asset } = useAsset(entity.assetId);
+
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
   );
@@ -201,31 +248,44 @@ function TransformableAsset({
     }
   });
 
-  const AssetComponent = getAssetComponent(asset);
+  const AssetComponent = useAssetComponent(asset);
 
   return (
-    <PivotControls
-      matrix={matrixRef.current}
-      annotations
-      onDragStart={() => {
-        setIsDragging(true);
-      }}
-      disableRotations={lookAtCamera}
-      onDragEnd={() => {
-        setIsDragging(false);
-      }}
-      onDrag={(l: THREE.Matrix4) => {
-        onTransformChange([...l.elements]);
-      }}
-      disableScaling
-      axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
-    >
-      <AssetComponent
-        asset={asset!}
-        playAnimation={playAnimation}
-        ref={meshRef}
-      />
-    </PivotControls>
+    <group onClick={() => onSelect()}>
+      <PivotControls
+        scale={0.5}
+        matrix={matrixRef.current}
+        annotations
+        onDragStart={() => {
+          setIsDragging(true);
+        }}
+        disableRotations={!isSelected || lookAtCamera}
+        disableAxes={!isSelected}
+        disableSliders={!isSelected}
+        onDragEnd={() => {
+          setIsDragging(false);
+        }}
+        onDrag={(l: THREE.Matrix4) => {
+          onTransformChange([...l.elements]);
+        }}
+        disableScaling
+        axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
+      >
+        <AssetComponent
+          asset={asset!}
+          playAnimation={playAnimation}
+          ref={meshRef}
+        >
+          <Edges
+            visible={isSelected}
+            scale={1.1}
+            renderOrder={1000}
+            color="#999"
+            lineWidth={1.25}
+          />
+        </AssetComponent>
+      </PivotControls>
+    </group>
   );
 }
 
@@ -241,14 +301,31 @@ function MarkerObject({ id, src }: { id: string; src?: string | null }) {
         ),
         size: MARKER_TEXTURE_SIZE,
       }),
+    networkMode: "always",
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const { data: customMarkerTexture } = useSuspenseQuery({
-    queryKey: ["custom-marker-texture", { src }],
+    queryKey: [
+      "custom-marker-texture",
+      { src, checkerboardTransparency: true },
+    ],
     queryFn: () =>
       src
-        ? createSquareThreeTextureFromSrc({ src, size: MARKER_TEXTURE_SIZE })
+        ? createSquareThreeTextureFromSrc({
+            src,
+            size: MARKER_TEXTURE_SIZE,
+            checkerboardTransparency: true,
+          })
         : null,
+    networkMode: "always",
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return (
@@ -258,10 +335,24 @@ function MarkerObject({ id, src }: { id: string; src?: string | null }) {
         map={customMarkerTexture ?? generatedMarkerTexture}
         side={THREE.DoubleSide}
         depthWrite={false}
-        transparent
       />
     </mesh>
   );
+}
+
+interface ItemArrangeEditorProps {
+  id: string;
+  // lookAtCamera: boolean;
+  // transform: THREE.Matrix4Tuple;
+  onTransformChange: (transform: THREE.Matrix4Tuple) => void;
+  // playAnimation: boolean;
+  // asset: Asset | null;
+  entities: Entity[];
+  selectedEntityId: string | null;
+  onSelectEntity: (id: string) => void;
+  marker: Asset | null;
+  cameraPosition: THREE.Vector3Tuple;
+  onCameraPositionChange: (position: THREE.Vector3Tuple) => void;
 }
 
 export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
@@ -291,7 +382,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     <div className="w-full h-full overflow-clip bg-white">
       <Canvas>
         <ambientLight intensity={10} />
-        <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
+        {/* <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} /> */}
 
         <PerspectiveCamera
           ref={cameraRef}
@@ -306,7 +397,17 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
 
         <MarkerObject id={props.id} src={props.marker?.src} />
 
-        <TransformableAsset {...props} />
+        {props.entities.map((entity) => {
+          return (
+            <TransformableAsset
+              key={entity.id}
+              entity={entity}
+              isSelected={entity.id === props.selectedEntityId}
+              onSelect={() => props.onSelectEntity(entity.id)}
+              onTransformChange={props.onTransformChange}
+            />
+          );
+        })}
 
         <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
           <GizmoViewport
