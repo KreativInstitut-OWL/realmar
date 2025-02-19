@@ -29,6 +29,8 @@ export type Asset = {
   updatedAt: Date;
   width: number | null;
   height: number | null;
+  originalWidth: number | null;
+  originalHeight: number | null;
 };
 
 export async function createAsset({
@@ -46,15 +48,42 @@ export async function createAsset({
 
   let width = null;
   let height = null;
+  let originalWidth = null;
+  let originalHeight = null;
 
-  if (isImage || isVideo) {
+  if (isImage) {
     const image = new Image();
     image.src = URL.createObjectURL(file);
 
     await new Promise<void>((resolve) => {
       image.onload = () => {
+        if (!image.width || !image.height) {
+          resolve();
+          return;
+        }
         width = image.width / Math.min(image.width, image.height);
         height = image.height / Math.min(image.width, image.height);
+        originalWidth = image.width;
+        originalHeight = image.height;
+        resolve();
+      };
+    });
+  } else if (isVideo) {
+    const video = document.createElement("video");
+    video.src = URL.createObjectURL(file);
+
+    await new Promise<void>((resolve) => {
+      video.onloadedmetadata = () => {
+        if (!video.videoWidth || !video.videoHeight) {
+          resolve();
+          return;
+        }
+        width =
+          video.videoWidth / Math.min(video.videoWidth, video.videoHeight);
+        height =
+          video.videoHeight / Math.min(video.videoWidth, video.videoHeight);
+        originalWidth = video.videoWidth;
+        originalHeight = video.videoHeight;
         resolve();
       };
     });
@@ -69,6 +98,8 @@ export async function createAsset({
     updatedAt: updatedAt ?? now,
     width,
     height,
+    originalWidth,
+    originalHeight,
   };
 }
 
@@ -108,9 +139,11 @@ export type Item = {
   entities: Entity[];
   name: string | null;
   itemDependencyId: string | null;
+  displayMode: "gallery" | "scene";
 
   // editor state (these have no effect for the export)
   editorLinkTransforms: boolean;
+  editorPivotControlScale: number;
   editorScaleUniformly: boolean;
   editorCurrentEntityId: string | null;
   editorCurrentTab: "target" | "entities" | "arrange";
@@ -124,8 +157,10 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     entities: [],
     name: null,
     itemDependencyId: null,
+    displayMode: "scene",
 
     editorLinkTransforms: true,
+    editorPivotControlScale: 0.5,
     editorScaleUniformly: true,
     editorCurrentEntityId: null,
     editorCurrentTab: "target",
@@ -474,5 +509,10 @@ export function useAsset(assetId: string | null | undefined) {
   return useSuspenseQuery({
     queryKey: ["asset", assetId],
     queryFn: () => FileStore.get(assetId),
+    networkMode: "always",
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }

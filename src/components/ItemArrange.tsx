@@ -30,18 +30,21 @@ export const ItemArrange = forwardRef<
       {...props}
     >
       <ItemArrangeEditor
-        asset={currentEntityAsset}
         marker={targetAsset}
         id={item.id}
-        lookAtCamera={currentEntity.lookAtCamera}
-        playAnimation={currentEntity.playAnimation}
         cameraPosition={item.editorCameraPosition}
         onCameraPositionChange={(cameraPosition) => {
           setItem(item.id, { editorCameraPosition: cameraPosition });
         }}
-        transform={currentEntity.transform}
+        entities={item.entities}
+        selectedEntityId={currentEntity.id}
         onTransformChange={(transform) => {
           setItemEntity(item.id, currentEntity.id, { transform });
+        }}
+        onSelectEntity={(id) => {
+          setItem(item.id, {
+            editorCurrentEntityId: id,
+          });
         }}
       />
 

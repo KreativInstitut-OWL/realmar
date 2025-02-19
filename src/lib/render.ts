@@ -31,9 +31,11 @@ const FALLBACK_IMG_SIZE = 512;
 export function createSquareCanvasFromImageElement({
   img,
   size: _size,
+  checkerboardTransparency,
 }: {
   img: HTMLImageElement;
   size?: number;
+  checkerboardTransparency?: boolean;
 }): HTMLCanvasElement {
   // Create canvas
   const canvas = document.createElement("canvas");
@@ -52,8 +54,10 @@ export function createSquareCanvasFromImageElement({
   // clear canvas
   ctx.clearRect(0, 0, size, size);
 
-  // make canvas background to checkerboard pattern
-  drawCheckerboardPattern(ctx, size, size);
+  if (checkerboardTransparency) {
+    // make canvas background to checkerboard pattern
+    drawCheckerboardPattern(ctx, size, size);
+  }
 
   const scale = Math.min(size / img.width, size / img.height);
 
@@ -93,24 +97,36 @@ function drawCheckerboardPattern(
 export async function createSquareCanvasFromSrc({
   src,
   size,
+  checkerboardTransparency,
 }: {
   src: string;
   size?: number;
+  checkerboardTransparency?: boolean;
 }) {
   const img = document.createElement("img");
   img.src = src;
   await img.decode();
-  return createSquareCanvasFromImageElement({ img, size });
+  return createSquareCanvasFromImageElement({
+    img,
+    size,
+    checkerboardTransparency,
+  });
 }
 
 export async function createSquareThreeTextureFromSrc({
   src,
   size,
+  checkerboardTransparency,
 }: {
   src: string;
   size?: number;
+  checkerboardTransparency?: boolean;
 }) {
-  const canvas = await createSquareCanvasFromSrc({ src, size });
+  const canvas = await createSquareCanvasFromSrc({
+    src,
+    size,
+    checkerboardTransparency,
+  });
   const texture = new THREE.Texture(canvas);
   texture.needsUpdate = true;
   return texture;

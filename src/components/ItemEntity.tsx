@@ -73,7 +73,17 @@ export const ItemEntity = forwardRef<
           <div className="size-8 grid place-items-center">
             <AssetTypeIcon asset={entityAsset} />
           </div>
-          <div className="grow min-w-0 truncate">{entityAsset.file.name}</div>{" "}
+          <div className="grow min-w-0 truncate">
+            {entityAsset.file.name}
+            {entityAsset.originalHeight && entityAsset.originalWidth ? (
+              <>
+                {" "}
+                <Badge>
+                  {entityAsset.originalWidth}×{entityAsset.originalHeight}
+                </Badge>
+              </>
+            ) : null}
+          </div>
           <div className="w-24 truncate text-gray-600">
             {getAssetTypeName(entityAsset)}
           </div>
