@@ -11,12 +11,14 @@ import {
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
 } from "./render";
+import { prettifyHtml } from "./prettier";
 import compileImageTargets from "./uploadAndCompile";
+import { useQuery } from "@tanstack/react-query";
 
 export const getFileName = <T extends string>(
   type: T,
   file: File,
-  index: number,
+  index: number
 ) => {
   const fileExtension = file.name.split(".").pop() as string;
   return `${type}-${padStart(index, 4)}.${fileExtension}` as const;
@@ -47,6 +49,13 @@ export type ExportAppState = Omit<BaseAppState, "items"> & {
 
 async function fetchAsBlob(url: string) {
   const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch "${response.url}": HTTP ${response.status} - ${response.statusText}`
+    );
+  }
+
   return await response.blob();
 }
 
@@ -65,66 +74,69 @@ export const defaultProgress: ProgressUpdate = {
   progress: 0,
 };
 
-export async function createExport(
-  onProgress: (progress: ProgressUpdate) => void,
+// Add this new type at the top with the other type definitions
+export type ExportArtifactMap = Map<string, Blob>;
+
+// New function to generate all export artifacts
+export async function compileArtifacts(
+  state: BaseAppState,
+  onCompileProgress: (progress: number) => void,
+  isPreview = false
 ) {
-  let compileProgress = 0;
-  let bundleProgress = 0;
-
-  const setCompileProgress = (progress: number) => {
-    compileProgress = progress;
-    onProgress({
-      stage: "compile",
-      compileProgress,
-      bundleProgress,
-      progress: (compileProgress + bundleProgress) / 2,
-    });
-  };
-
-  const setBundleProgress = (progress: number, currentFile: string | null) => {
-    bundleProgress = progress;
-    onProgress({
-      stage: "bundle",
-      compileProgress,
-      bundleProgress,
-      progress: (compileProgress + bundleProgress) / 2,
-      currentBundleFile: currentFile || undefined,
-    });
-  };
-
-  setCompileProgress(0);
+  const artifacts: ExportArtifactMap = new Map();
 
   try {
-    const state = useStore.getState();
-    const { items } = state;
+    // Add static files
+    // artifacts.set(
+    //   "aframe-master.min.js",
+    //   await fetchAsBlob("/js/aframe-master.min.js")
+    // );
+    // artifacts.set(
+    //   "mindar-image-aframe.prod.js",
+    //   await fetchAsBlob("/js/mindar-image-aframe.prod.js")
+    // );
+    artifacts.set("batchar.js", await fetchAsBlob("/js-includes/batchar.js"));
+    artifacts.set("style.css", await fetchAsBlob("/js-includes/style.css"));
+    artifacts.set("LICENSE", await fetchAsBlob("/LICENSE"));
 
-    const zip = new JSZip();
+    const { items } = state;
 
     const targetAssets = await Promise.all(
       items.map(async (item) => {
         const targetAsset = await FileStore.get(item.targetAssetId);
         if (targetAsset) {
-          return createSquareAssetFromSrc(targetAsset);
+          return createSquareAssetFromSrc({
+            src: targetAsset.src,
+            id: targetAsset.id,
+            size: Math.max(
+              targetAsset.originalWidth ?? 0,
+              targetAsset.originalHeight ?? 0,
+              2048
+            ),
+          });
         }
 
         const src = renderSvgReactNodeToBase64Src(
-          React.createElement(GeneratedTarget, { id: item.id }),
+          React.createElement(GeneratedTarget, { id: item.id })
         );
-        return createSquareAssetFromSrc({ src, id: `${item.id}.generated` });
-      }),
+
+        return createSquareAssetFromSrc({
+          src,
+          id: `${item.id}.generated`,
+          size: 2048,
+        });
+      })
     );
 
     const { exportedBuffer } = await compileImageTargets(
       targetAssets.map((asset) => asset.src),
       (progress) => {
-        // ignore progress update that reset the progress to 0 when the compile is done
-        if (compileProgress > 0 && progress === 0) return;
-        setCompileProgress(progress);
-      },
+        // ignore progress update that resets the progress to 0 when the compile is done
+        if (progress === 0) return;
+        onCompileProgress(progress);
+      }
     );
-    zip.file("targets.mind", exportedBuffer);
-
-    setBundleProgress(0, null);
+    artifacts.set("targets.mind", new Blob([exportedBuffer]));
 
     const exportItems: ExportItem[] = [];
 
@@ -134,7 +146,7 @@ export async function createExport(
 
       const targetAsset = targetAssets[index];
       const targetAssetPath = `markers/${itemFolderName}/target.png`;
-      zip.file(targetAssetPath, targetAsset.file);
+      artifacts.set(targetAssetPath, targetAsset.file);
 
       const exportItem: ExportItem = {
         ...item,
@@ -156,16 +168,16 @@ export async function createExport(
         entityIndex++
       ) {
         const entity = item.entities[entityIndex];
-        if (!entity.assetId) return;
+        if (!entity.assetId) continue; // Fixed: return -> continue
         const asset = await FileStore.get(entity.assetId);
-        if (!asset) return;
-        const entityAssetPath = `/markers/${itemFolderName}/${getFileName(
+        if (!asset) continue; // Fixed: return -> continue
+        const entityAssetPath = `markers/${itemFolderName}/${getFileName(
           "entity",
           asset.file,
-          entityIndex,
+          entityIndex
         )}`;
 
-        zip.file(entityAssetPath, asset.file);
+        artifacts.set(entityAssetPath, asset.file);
 
         exportItem.entities.push({
           ...entity,
@@ -187,40 +199,156 @@ export async function createExport(
       items: exportItems,
     };
 
-    zip.file(
+    const urlMap = new Map<string, string>();
+    for (const [key, value] of artifacts.entries()) {
+      urlMap.set(key, URL.createObjectURL(value));
+    }
+
+    let html = `<!DOCTYPE html>${reactRenderToString(
+      React.createElement(ArExperience, {
+        state: exportState,
+      })
+    )}`;
+
+    if (isPreview) {
+      for (const [key, url] of urlMap.entries()) {
+        html = html.replaceAll(key, url);
+      }
+    }
+
+    artifacts.set(
       "index.html",
-      `<!DOCTYPE html>${reactRenderToString(
-        React.createElement(ArExperience, { state: exportState }),
-      )}`,
+      new Blob([await prettifyHtml(html)], { type: "text/html" })
     );
 
-    zip.file(
-      "aframe-master.min.js",
-      await fetchAsBlob("/js/aframe-master.min.js"),
-    );
-    zip.file(
-      "mindar-image-aframe.prod.js",
-      await fetchAsBlob("/js/mindar-image-aframe.prod.js"),
-    );
+    return { artifacts, srcDoc: html } as const;
+  } catch (error) {
+    console.error("Error generating export artifacts: ", error);
+    throw error;
+  }
+}
 
-    zip.file(
-      "interactivity.js",
-      await fetchAsBlob("/js-includes/interactivity.js"),
-    );
+export const useCompiledPreviewArtifacts = () => {
+  const [progress, setProgress] = React.useState(0);
 
-    zip.file("style.css", await fetchAsBlob("/js-includes/style.css"));
+  const appState = useStore();
 
-    const license = await fetch("/LICENSE");
-    const licenseText = await license.text();
-    zip.file("LICENSE", licenseText);
+  const result = useQuery({
+    queryKey: ["compiled-preview-artifacts", appState],
+    queryFn: async () => {
+      setProgress(0);
+      const artifacts = await compileArtifacts(
+        appState,
+        (progress) => {
+          setProgress(progress);
+        },
+        true
+      );
+      return artifacts;
+    },
+    networkMode: "always",
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
 
+  return {
+    ...result,
+    progress,
+  };
+};
+
+// export const useBlobAsString = (blob: Blob | undefined) => {
+//   const result = useQuery({
+//     queryKey: ["blob-as-string", crypto.randomUUID()],
+//     queryFn: async () => {
+//       if (!blob) return "";
+//       return await new Response(blob).text();
+//     },
+//     enabled: !!blob,
+//     networkMode: "always",
+//     staleTime: Infinity,
+//     refetchOnMount: false,
+//     refetchOnWindowFocus: false,
+//     refetchOnReconnect: false,
+//     gcTime: 0,
+//   });
+
+//   return result;
+// };
+
+// Function to zip and save artifacts
+export async function bundleArtifacts(
+  artifacts: ExportArtifactMap,
+  onBundleProgress: (progress: number, currentFile: string | null) => void
+) {
+  try {
+    const zip = new JSZip();
+
+    // Add all artifacts to the zip
+    for (const [path, blob] of artifacts.entries()) {
+      zip.file(path, blob);
+    }
+    // Generate and save the zip
     const content = await zip.generateAsync({ type: "blob" }, (meta) => {
-      setBundleProgress(bundleProgress, meta.currentFile);
+      onBundleProgress(meta.percent / 100, meta.currentFile);
     });
 
-    setBundleProgress(100, null);
+    onBundleProgress(1, null);
 
-    saveAs(content, "ARbatch.zip");
+    return content;
+  } catch (error) {
+    console.error("Error creating zip file: ", error);
+    throw error;
+  }
+}
+
+// Updated createExport function that uses the two new functions
+export async function createExport(
+  onProgress: (progress: ProgressUpdate) => void
+) {
+  let compileProgress = 0;
+  let bundleProgress = 0;
+
+  // Shared progress handler for both compile and bundle stages
+  const handleProgress = (
+    stage: "compile" | "bundle",
+    progress: number,
+    currentFile?: string | null
+  ) => {
+    if (stage === "compile") {
+      compileProgress = progress;
+    } else {
+      bundleProgress = progress;
+    }
+
+    onProgress({
+      stage,
+      compileProgress,
+      bundleProgress,
+      progress: (compileProgress + bundleProgress) / 2,
+      ...(currentFile != null && {
+        currentBundleFile: currentFile,
+      }),
+    });
+  };
+
+  try {
+    const appState = useStore.getState();
+
+    // Step 1: Generate artifacts
+    const { artifacts } = await compileArtifacts(appState, (progress) =>
+      handleProgress("compile", progress)
+    );
+
+    // Step 2: Zip artifacts
+    const bundle = await bundleArtifacts(artifacts, (progress, currentFile) =>
+      handleProgress("bundle", progress, currentFile)
+    );
+
+    // Step 3: Save the zip
+    saveAs(bundle, "batchar-export.zip");
   } catch (error) {
     console.error("Error bundling files: ", error);
   }

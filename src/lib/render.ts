@@ -6,9 +6,23 @@ import * as THREE from "three";
 export function reactRenderToString(node: React.ReactNode) {
   const container = document.createElement("div");
   const root = createRoot(container);
-  flushSync(() => root.render(node));
-  const htmlWithLineBreaks = container.innerHTML.replace(/>/g, ">\n");
-  return htmlWithLineBreaks;
+
+  // Temporarily suppress DOM nesting validation warnings
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    if (typeof args[0] === "string" && args[0].includes("validateDOMNesting")) {
+      return;
+    }
+    originalConsoleError.apply(console, args);
+  };
+
+  try {
+    flushSync(() => root.render(node));
+    return container.innerHTML;
+  } finally {
+    // Restore original console.error
+    console.error = originalConsoleError;
+  }
 }
 
 export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
@@ -17,7 +31,7 @@ export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
 
 export function createPngFileFromCanvas(
   canvas: HTMLCanvasElement,
-  name: string,
+  name: string
 ) {
   return new Promise<File>((resolve) => {
     canvas.toBlob((blob) => {
@@ -78,7 +92,7 @@ export function createSquareCanvasFromImageElement({
 function drawCheckerboardPattern(
   ctx: CanvasRenderingContext2D,
   width: number,
-  height: number,
+  height: number
 ) {
   const checkerboardSize = 16;
   const checkerboardColor1 = "#f7f7f7";
@@ -135,11 +149,13 @@ export async function createSquareThreeTextureFromSrc({
 export async function createSquareAssetFromSrc({
   src,
   id,
+  size,
 }: {
   src: string;
   id: string;
+  size?: number;
 }) {
-  const canvas = await createSquareCanvasFromSrc({ src });
+  const canvas = await createSquareCanvasFromSrc({ src, size });
   const file = await createPngFileFromCanvas(canvas, id);
   return await createAsset({ file, id });
 }

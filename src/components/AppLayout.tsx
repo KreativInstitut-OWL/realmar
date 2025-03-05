@@ -40,6 +40,12 @@ function AppLayout() {
                 <BreadcrumbList>
                   <BreadcrumbItem>Settings</BreadcrumbItem>
                 </BreadcrumbList>
+              ) : editorCurrentView === "preview" ? (
+                <BreadcrumbList>
+                  <BreadcrumbItem>Preview</BreadcrumbItem>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem ref={(element) => setItemHeader(element)} />
+                </BreadcrumbList>
               ) : (
                 <BreadcrumbList>
                   <BreadcrumbItem>

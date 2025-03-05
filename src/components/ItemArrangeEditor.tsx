@@ -2,7 +2,7 @@ import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
 } from "@/lib/render";
-import { Asset, Entity, useAsset } from "@/store";
+import { Asset, Entity, Item, useAsset } from "@/store";
 import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
   Edges,
@@ -353,6 +353,7 @@ interface ItemArrangeEditorProps {
   marker: Asset | null;
   cameraPosition: THREE.Vector3Tuple;
   onCameraPositionChange: (position: THREE.Vector3Tuple) => void;
+  displayMode: Item["displayMode"];
 }
 
 export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
@@ -398,6 +399,13 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         <MarkerObject id={props.id} src={props.marker?.src} />
 
         {props.entities.map((entity) => {
+          if (
+            props.displayMode === "gallery" &&
+            entity.id !== props.selectedEntityId
+          ) {
+            return null;
+          }
+
           return (
             <TransformableAsset
               key={entity.id}

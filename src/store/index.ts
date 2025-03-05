@@ -199,7 +199,7 @@ function createEntityNavigation({
   };
 }
 
-export type EditorView = "items" | "settings";
+export type EditorView = "items" | "settings" | "preview";
 
 export interface BaseAppState {
   items: Item[];

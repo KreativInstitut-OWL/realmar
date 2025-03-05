@@ -1,12 +1,19 @@
 import { getItemDefaultName } from "@/lib/item";
 import { useCurrentItem, useStore } from "@/store";
 import { ItemTarget } from "./ItemTarget";
-import { FormDescription, FormItem, FormLabel } from "./ui/form";
+import { FormControl, FormDescription, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
 import { ItemCombobox } from "./ItemCombobox";
 import { Badge } from "./ui/badge";
 import { CommandItem } from "./ui/command";
 import { ItemPreview } from "./ItemPreview";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 export function ItemMarker() {
   const item = useCurrentItem();
@@ -31,6 +38,35 @@ export function ItemMarker() {
             value={item.name || ""}
             placeholder={getItemDefaultName(item.index)}
           />
+        </FormItem>
+        <FormItem>
+          <FormLabel>Display Mode</FormLabel>
+          <FormDescription>
+            Choose if you want to display all items in a scene at once or as a
+            gallery.
+          </FormDescription>
+          <Select
+            onValueChange={(newDisplayMode: (typeof item)["displayMode"]) => {
+              setItem(item.id, {
+                displayMode: newDisplayMode,
+              });
+            }}
+            defaultValue={item.displayMode}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a display mode" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              <SelectItem value="scene">
+                Scene (All entities at once)
+              </SelectItem>
+              <SelectItem value="gallery">
+                Gallery (Every entity one-by-one)
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </FormItem>
         <FormItem>
           <FormLabel>Dependency</FormLabel>
@@ -60,7 +96,7 @@ export function ItemMarker() {
                   })
                   .map((i) => [i.id, "Dependent marker"]) as [
                   string,
-                  string
+                  string,
                 ][]),
               ])
             }

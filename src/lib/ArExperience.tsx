@@ -1,130 +1,24 @@
-import { Entity, Item } from "@/store";
-
-import React from "react";
-import { ExportAppState, ExportEntity, getFileName } from "./export";
-import ArExperienceImport from "./ArExperienceImport";
 import * as THREE from "three";
+import { toAttrs, toNumber, toVec3, toVec4 } from "./a-frame/attributes";
+import "./a-frame/types";
+import { AFrameEntityProps } from "./a-frame/types";
+import ArExperienceImport from "./ArExperienceImport";
+import { ExportAppState, ExportEntity } from "./export";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items } = state;
-
-  const batchState = items.map((marker) => {
-    const transformedEntities = marker.entities.map((entity) => {
-      // Get position, scale, and rotation from transform
-      const { position, scale, rotation } = getEntityTransforms(entity);
-
-      // Return updated entity with new properties
-      return {
-        ...entity,
-        position,
-        scale,
-        rotation,
-      };
-    });
-
-    // Return updated marker with transformed entities
-    return {
-      ...marker,
-      entities: transformedEntities,
-    };
-  });
-
-  // return <div>hi, please implement me!</div>;
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
         <title>AR Experience</title>
-        <script src="./aframe-master.min.js" />
-        <script src="./mindar-image-aframe.prod.js" />
-        <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.5.2/dist/aframe-extras.min.js"></script>
-        <script>{`const state = ${JSON.stringify(batchState)}`}</script>
-        <link href="./style.css" rel="stylesheet" />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: /* js */ `
-              AFRAME.registerComponent('look-at', {
-                schema: { type: 'selector' },
-              
-                init: function () {},
-              
-                tick: function () {
-                  this.el.object3D.lookAt(this.data.object3D.position)
-                }
-              });
-            `
-              .replace(/\n/g, "")
-              .replace(/\s+/g, " "),
-          }}
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link href="style.css" rel="stylesheet" />
+        <script src="batchar.js" type="module" />
       </head>
       <body>
-        <a-scene
-          mindar-image="imageTargetSrc: ./targets.mind;"
-          vr-mode-ui="enabled: false"
-          device-orientation-permission-ui="enabled: false"
-        >
-          <a-assets>
-            {items.map((item) => {
-              return item.entities
-                .map((entity) => {
-                  if (!entity.asset) return null;
-                  return <ArExperienceImport {...entity.asset} />;
-                })
-                .flat();
-            })}
-          </a-assets>
-          <a-camera
-            position="0 0 0"
-            look-controls="enabled: false"
-            cursor="fuse: false; rayOrigin: mouse;"
-            raycaster="far: 10000; objects: .clickable"
-            id="camera"
-          />
-
-          {items.map((item, targetIndex) => {
-            const entity = item.entities[0];
-            const { position, scale, rotation, width, height } =
-              getEntityTransforms(entity);
-            // TODO: Nur erste entity als a-entity, die anderen in ein Objekt. Tausch der entites als JS-Galerie
-            // TODO: Animation handling. (Was, wenn mehrere vorliegen? Autoplay?)
-            return (
-              <a-entity
-                mindar-image-target={`targetIndex: ${targetIndex}`}
-                id={item.id}
-              >
-                {entity.asset.fileType.includes("model") && (
-                  <a-entity
-                    position={`${position.x} ${position.y} ${position.z}`}
-                    rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
-                    scale={`${scale.x} ${scale.y} ${scale.z}`}
-                    gltf-model={`#${entity.asset.id}`}
-                    id={`${item.id}-element`}
-                    data-entity-id={entity.id}
-                    animation-mixer
-                  ></a-entity>
-                )}
-
-                {!entity.asset.fileType.includes("model") && (
-                  <a-plane
-                    position={`${position.x} ${position.y} ${position.z}`}
-                    rotation={`${rotation.x} ${rotation.y} ${rotation.z}`}
-                    scale={`${scale.x} ${scale.y} ${scale.z}`}
-                    width={width!.toString()}
-                    height={height!.toString()}
-                    id={`${item.id}-element`}
-                    color="#ffffff"
-                    src={`#${entity.asset.id}`}
-                    look-at={entity.lookAtCamera ? "camera" : undefined}
-                    data-testid={`plane${targetIndex}`}
-                    data-entity-id={entity.id}
-                  />
-                )}
-              </a-entity>
-            );
-          })}
-        </a-scene>
+        <ArExperienceScene items={items} />
         <div className="button-wrapper">
           <div className="button-container invisible" id="gallery-buttons">
             <button id="prev">Zurück</button>
@@ -142,81 +36,123 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
             </button>
           </div>
         </div>
-        <script src="./interactivity.js" />
       </body>
     </html>
   );
 };
 
-function getEntityTransforms(entity: ExportEntity) {
-  const matrix = new THREE.Matrix4().fromArray(entity.transform);
+function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
+  return (
+    <a-scene
+      mindar-image={toAttrs({ imageTargetSrc: "targets.mind" })}
+      vr-mode-ui={toAttrs({ enabled: false })}
+      device-orientation-permission-ui={toAttrs({ enabled: false })}
+    >
+      <a-assets>
+        {items.map((item) => {
+          return item.entities
+            .map((entity) => {
+              if (!entity.asset) return null;
+              return <ArExperienceImport key={entity.id} {...entity.asset} />;
+            })
+            .flat();
+        })}
+      </a-assets>
+      <a-camera
+        position="0 0 0"
+        look-controls={toAttrs({ enabled: false })}
+        cursor={toAttrs({ fuse: false, rayOrigin: "mouse" })}
+        raycaster={toAttrs({ far: 10000, objects: ".clickable" })}
+        id="camera"
+      />
+
+      {items.map((item, itemIndex) => (
+        <a-entity
+          key={item.id}
+          mindar-image-target={toAttrs({ targetIndex: itemIndex })}
+          id={item.id}
+          {...(item.displayMode === "gallery"
+            ? { "batchar-gallery": toAttrs({ startIndex: 0 }) }
+            : {})}
+        >
+          {item.entities.map((entity, entityIndex) => (
+            <ArExperienceEntity
+              entity={entity}
+              key={entity.id}
+              {...(item.displayMode === "gallery"
+                ? { "batchar-gallery-item": toAttrs({ index: entityIndex }) }
+                : {})}
+            />
+          ))}
+        </a-entity>
+      ))}
+    </a-scene>
+  );
+}
+
+function ArExperienceEntity(
+  props: { entity: ExportEntity } & AFrameEntityProps
+) {
+  if (props.entity.asset.fileType.includes("model")) {
+    return <ArExperienceEntityModel {...props} />;
+  } else {
+    return <ArExperienceEntityPlane {...props} />;
+  }
+}
+
+function ArExperienceEntityModel({
+  entity,
+  ...props
+}: {
+  entity: ExportEntity;
+} & AFrameEntityProps) {
+  const { position, scale, quaternion } = decomposeTransform(entity.transform);
+  return (
+    <a-entity
+      {...props}
+      position={toVec3(position)}
+      quaternion={toVec4(quaternion)}
+      scale={toVec3(scale)}
+      gltf-model={`#${entity.asset.id}`}
+      id={entity.id}
+      data-entity-id={entity.id}
+      look-at={entity.lookAtCamera ? "camera" : undefined}
+      animation-mixer
+    />
+  );
+}
+
+function ArExperienceEntityPlane({
+  entity,
+  ...props
+}: {
+  entity: ExportEntity;
+} & AFrameEntityProps) {
+  const { position, scale, quaternion } = decomposeTransform(entity.transform);
+  return (
+    <a-plane
+      {...props}
+      position={toVec3(position)}
+      quaternion={toVec4(quaternion)}
+      scale={toVec3(scale)}
+      width={toNumber(entity.asset.width!)}
+      height={toNumber(entity.asset.height!)}
+      id={entity.id}
+      color="#ffffff"
+      src={`#${entity.asset.id}`}
+      look-at={entity.lookAtCamera ? "camera" : undefined}
+      data-entity-id={entity.id}
+    />
+  );
+}
+
+function decomposeTransform(transform: THREE.Matrix4Tuple) {
+  const matrix = new THREE.Matrix4().fromArray(transform);
+
   const position = new THREE.Vector3();
   const quaternion = new THREE.Quaternion();
   const scale = new THREE.Vector3();
   matrix.decompose(position, quaternion, scale);
-  const rotation = new THREE.Euler().setFromQuaternion(quaternion);
-  const width = entity.asset.width;
-  const height = entity.asset.height;
-  return { position, scale, rotation, width, height };
-}
 
-declare module "react" {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace JSX {
-    interface IntrinsicElements {
-      "a-asset-item": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          id: string;
-          src: string;
-        },
-        HTMLElement
-      >;
-      "a-scene": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          "mindar-image": string;
-          "vr-mode-ui": string;
-          "device-orientation-permission-ui": string;
-        },
-        HTMLElement
-      >;
-      "a-assets": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement>,
-        HTMLElement
-      >;
-      "a-camera": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          position: string;
-          "look-controls": string;
-          cursor: string;
-          raycaster: string;
-          id: string;
-        },
-        HTMLElement
-      >;
-      "a-entity": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          "mindar-image-target"?: string;
-          id?: string;
-          position?: string;
-          rotation?: string;
-          scale?: string;
-        },
-        HTMLElement
-      >;
-      "a-plane": React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          position: string;
-          rotation: string;
-          scale: string;
-          width: string;
-          height: string;
-          id: string;
-          color: string;
-          src: string;
-          "look-at"?: string;
-        },
-        HTMLElement
-      >;
-    }
-  }
+  return { position, scale, quaternion };
 }

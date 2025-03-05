@@ -28,44 +28,44 @@ playFromStartButton.addEventListener("click", () => {
 
 // console.log(state);
 
-state.map((marker) => {
-  const target = document.getElementById(marker.id);
+// state.map((marker) => {
+//   const target = document.getElementById(marker.id);
 
-  // Wenn beim Marker eine Galerie hinterlegt ist
-  if (marker.entities.length > 1) {
-    // Füge die Marker-Id dem Galerie-Array hinzu
-    galleryTargetKeys.push(marker.id);
+//   // Wenn beim Marker eine Galerie hinterlegt ist
+//   if (marker.entities.length > 1) {
+//     // Füge die Marker-Id dem Galerie-Array hinzu
+//     galleryTargetKeys.push(marker.id);
 
-    // Fade Bedienelemente ein/aus wenn Marker erkannt wird
-    target.addEventListener("targetFound", () => {
-      currentTarget = target;
-      fadeInElement(galleryButtons);
-      moveCurrentGallery(0); //
-    });
-    target.addEventListener("targetLost", () => {
-      handlePause();
-      fadeOutElement(videoControls);
-      fadeOutElement(galleryButtons);
-    });
-  }
+//     // Fade Bedienelemente ein/aus wenn Marker erkannt wird
+//     target.addEventListener("targetFound", () => {
+//       currentTarget = target;
+//       fadeInElement(galleryButtons);
+//       moveCurrentGallery(0); //
+//     });
+//     target.addEventListener("targetLost", () => {
+//       handlePause();
+//       fadeOutElement(videoControls);
+//       fadeOutElement(galleryButtons);
+//     });
+//   }
 
-  // Wenn beim Marker ein Video hinterlegt ist
-  if (
-    marker.entities.length === 1 &&
-    marker.entities[0].asset.fileType.includes("video")
-  ) {
-    target.addEventListener("targetFound", () => {
-      currentTarget = target;
-      setCurrentPlaneMediaById(marker.entities[0].asset.id);
-      fadeInElement(videoControls);
-    });
+//   // Wenn beim Marker ein Video hinterlegt ist
+//   if (
+//     marker.entities.length === 1 &&
+//     marker.entities[0].asset.fileType.includes("video")
+//   ) {
+//     target.addEventListener("targetFound", () => {
+//       currentTarget = target;
+//       setCurrentPlaneMediaById(marker.entities[0].asset.id);
+//       fadeInElement(videoControls);
+//     });
 
-    target.addEventListener("targetLost", () => {
-      handlePause();
-      fadeOutElement(videoControls);
-    });
-  }
-});
+//     target.addEventListener("targetLost", () => {
+//       handlePause();
+//       fadeOutElement(videoControls);
+//     });
+//   }
+// });
 
 function fadeInElement(element) {
   element.classList.remove("invisible");
@@ -116,7 +116,7 @@ function moveCurrentGallery(direction) {
   const { currentElement, currentAssetId } = getCurrentlyDisplayedElement();
 
   const currentMediaIndexInGallery = currentGallery.findIndex(
-    (im) => im.asset.id == currentAssetId,
+    (im) => im.asset.id == currentAssetId
   );
 
   const mediaCount = currentGallery.length;
@@ -179,10 +179,11 @@ function setNewGalleryMedia(element, entity) {
     y: entity.position.y,
     z: entity.position.z,
   });
-  element.setAttribute("rotation", {
-    x: entity.rotation._x,
-    y: entity.rotation._y,
-    z: entity.rotation._z,
+  element.setAttribute("quaternion", {
+    x: entity.quaternion[0],
+    y: entity.quaternion[1],
+    z: entity.quaternion[2],
+    w: entity.quaternion[3],
   });
   element.setAttribute("scale", {
     x: entity.scale.x,

@@ -46,6 +46,7 @@ export const ItemArrange = forwardRef<
             editorCurrentEntityId: id,
           });
         }}
+        displayMode={item.displayMode}
       />
 
       <div className="absolute top-2 right-2 w-96">

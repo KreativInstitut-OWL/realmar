@@ -3,10 +3,12 @@
 import { Suspense } from "react";
 import { ItemListSelectedItemContent } from "./ItemList";
 import { EditorView, useStore } from "@/store";
+import { PreviewArExperience } from "./PreviewArExperience";
 
 const components = {
   items: ItemListSelectedItemContent,
   settings: ItemListSelectedItemContent,
+  preview: PreviewArExperience,
 } as const satisfies Record<EditorView, React.ComponentType<any>>;
 
 export function MainView({ itemHeader }: { itemHeader: HTMLLIElement | null }) {

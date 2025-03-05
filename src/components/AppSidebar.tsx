@@ -1,6 +1,6 @@
 "use client";
 
-import { Cog, Images, PlusIcon } from "lucide-react";
+import { Cog, Images, PlusIcon, ScanEye } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -91,6 +91,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   >
                     <Cog />
                     <span>Settings</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={{
+                      children: "Preview",
+                      hidden: false,
+                    }}
+                    onClick={() => {
+                      setOpen(true);
+                      setEditorCurrentView("preview");
+                    }}
+                    isActive={editorCurrentView === "preview"}
+                    className="px-2.5 md:px-2"
+                  >
+                    <ScanEye />
+                    <span>Preview</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
