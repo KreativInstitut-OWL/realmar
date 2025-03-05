@@ -1,5 +1,5 @@
 import { useCompiledPreviewArtifacts } from "@/lib/export";
-import { FlipHorizontal2, Loader2, RotateCw } from "lucide-react";
+import { Blocks, FlipHorizontal2, Loader2, RotateCw } from "lucide-react";
 import { Progress } from "./ui/progress";
 import { createPortal } from "react-dom";
 import { Button } from "./ui/button";
@@ -11,11 +11,12 @@ export function PreviewArExperience({
 }: {
   itemHeader: HTMLLIElement | null;
 }) {
-  const { progress, data, isLoading } = useCompiledPreviewArtifacts();
+  const { progress, data, isFetching, invalidate } =
+    useCompiledPreviewArtifacts();
   const ref = useRef<HTMLIFrameElement>(null);
   const [isFlipped, setIsFlipped] = useState(true);
 
-  if (isLoading || !data?.srcDoc) {
+  if (isFetching || !data?.srcDoc) {
     return (
       <>
         <div className="h-full w-full max-w-prose m-auto flex flex-col gap-4 items-center justify-center p-12">
@@ -49,6 +50,16 @@ export function PreviewArExperience({
                 }}
               >
                 <RotateCw /> Refresh
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                aria-label="recompile"
+                onClick={() => {
+                  invalidate();
+                }}
+              >
+                <Blocks /> Recompile
               </Button>
               <Button
                 size="sm"

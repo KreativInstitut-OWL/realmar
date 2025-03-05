@@ -1,7 +1,14 @@
-/* eslint-disable no-undef */
+/**
+ * @typedef {import('aframe')}
+ */
+
 import "https://cdn.jsdelivr.net/npm/aframe@1.7.0/dist/aframe-master.min.js";
 import "https://cdn.jsdelivr.net/npm/aframe-extras@7.5.4/dist/aframe-extras.min.js";
 import "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.min.js";
+
+const AFRAME = window.AFRAME;
+
+// #region look-at
 
 AFRAME.registerComponent("look-at", {
   schema: { type: "selector" },
@@ -12,6 +19,8 @@ AFRAME.registerComponent("look-at", {
     this.el.object3D.lookAt(this.data.object3D.position);
   },
 });
+
+// #region quaternion
 
 AFRAME.registerComponent("quaternion", {
   schema: { type: "vec4" },
@@ -26,6 +35,8 @@ AFRAME.registerComponent("quaternion", {
     this.el.object3D.quaternion.set(0, 0, 0, 1);
   },
 });
+
+// #region batchar-gallery
 
 // batchar-gallery component manages gallery state and navigation
 AFRAME.registerComponent("batchar-gallery", {
@@ -104,6 +115,8 @@ AFRAME.registerComponent("batchar-gallery", {
   },
 });
 
+// #region batchar-gallery-item
+
 // batchar-gallery-item component listens for index changes and updates its visibility
 AFRAME.registerComponent("batchar-gallery-item", {
   schema: {
@@ -152,6 +165,54 @@ AFRAME.registerComponent("batchar-gallery-item", {
     }
   },
 });
+
+// #region batchar-depends-on
+
+AFRAME.registerComponent("batchar-depends-on", {
+  schema: { type: "selector" },
+
+  init: function () {
+    this.didFindDependency = false;
+    // cache own the target index
+    this.mindArImageTargetIndex = this.el.getAttribute(
+      "mindar-image-target"
+    )?.targetIndex;
+
+    if (this.mindArImageTargetIndex === undefined) {
+      console.warn(
+        "batchar-depends-on component requires a mindar-image-target component with a targetIndex"
+      );
+      return;
+    }
+
+    const scene = document.querySelector("a-scene");
+
+    const handleTargetFound = (event) => {
+      if (event.target === this.data) {
+        this.didFindDependency = true;
+        this.el.emit("dependency-found");
+        scene.removeEventListener("targetFound", handleTargetFound);
+        this.updateMindArImageTarget();
+      }
+    };
+
+    scene.addEventListener("targetFound", handleTargetFound);
+
+    this.updateMindArImageTarget();
+  },
+
+  updateMindArImageTarget: function () {
+    this.el.setAttribute("mindar-image-target", {
+      targetIndex: this.didFindDependency ? this.mindArImageTargetIndex : -1,
+    });
+  },
+
+  tick: function () {
+    this.el.object3D.lookAt(this.data.object3D.position);
+  },
+});
+
+// #region DOM Controls
 
 function initDomControls(scene) {
   initGalleryControls(scene);

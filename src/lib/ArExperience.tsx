@@ -74,6 +74,9 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
           {...(item.displayMode === "gallery"
             ? { "batchar-gallery": toAttrs({ startIndex: 0 }) }
             : {})}
+          {...(item.itemDependencyId !== null
+            ? { "batchar-depends-on": `#${item.itemDependencyId}` }
+            : {})}
         >
           {item.entities.map((entity, entityIndex) => (
             <ArExperienceEntity

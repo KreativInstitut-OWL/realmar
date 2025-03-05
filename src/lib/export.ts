@@ -13,7 +13,7 @@ import {
 } from "./render";
 import { prettifyHtml } from "./prettier";
 import compileImageTargets from "./uploadAndCompile";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const getFileName = <T extends string>(
   type: T,
@@ -253,30 +253,20 @@ export const useCompiledPreviewArtifacts = () => {
     refetchOnReconnect: false,
   });
 
+  const queryClient = useQueryClient();
+
+  const invalidate = React.useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["compiled-preview-artifacts", appState],
+    });
+  }, [queryClient, appState]);
+
   return {
     ...result,
     progress,
+    invalidate,
   };
 };
-
-// export const useBlobAsString = (blob: Blob | undefined) => {
-//   const result = useQuery({
-//     queryKey: ["blob-as-string", crypto.randomUUID()],
-//     queryFn: async () => {
-//       if (!blob) return "";
-//       return await new Response(blob).text();
-//     },
-//     enabled: !!blob,
-//     networkMode: "always",
-//     staleTime: Infinity,
-//     refetchOnMount: false,
-//     refetchOnWindowFocus: false,
-//     refetchOnReconnect: false,
-//     gcTime: 0,
-//   });
-
-//   return result;
-// };
 
 // Function to zip and save artifacts
 export async function bundleArtifacts(
