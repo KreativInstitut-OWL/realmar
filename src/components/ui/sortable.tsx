@@ -22,6 +22,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
+import { createPortal } from "react-dom";
 
 const SortableItemContext = React.createContext<Pick<
   ReturnType<typeof useSortable>,
@@ -49,10 +50,12 @@ function SortableItem({
     isDragging,
   } = useSortable({ id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
+  const style = transform
+    ? {
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }
+    : undefined;
 
   return (
     <SortableItemContext.Provider
@@ -101,7 +104,11 @@ export function Sortable({
   withDragHandle?: boolean;
 } & React.ComponentProps<typeof DndContext>) {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -158,9 +165,12 @@ export function Sortable({
           </SortableItem>
         ))}
       </SortableContext>
-      <DragOverlay modifiers={[restrictToFirstScrollableAncestor]}>
-        {activeItem?.dragOverlay ?? activeItem?.node ?? null}
-      </DragOverlay>
+      {createPortal(
+        <DragOverlay modifiers={[restrictToFirstScrollableAncestor]}>
+          {activeItem?.dragOverlay ?? activeItem?.node ?? null}
+        </DragOverlay>,
+        document.body
+      )}
     </DndContext>
   );
 }

@@ -2,7 +2,8 @@
 
 import { Suspense } from "react";
 import { ItemListSelectedItemContent } from "./ItemList";
-import { EditorView, useStore } from "@/store";
+import { useStore } from "@/store";
+import { EditorView } from "@/const/editorView";
 import { PreviewArExperience } from "./PreviewArExperience";
 
 const components = {

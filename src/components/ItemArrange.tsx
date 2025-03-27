@@ -1,8 +1,20 @@
 import { cn } from "@/lib/utils";
-import { useStore, useCurrentItem, useAsset } from "@/store";
+import { useAsset, useCurrentItem, useStore } from "@/store";
 import { forwardRef, HTMLAttributes } from "react";
-import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemArrangeControls } from "./ItemArrangeControls";
+import { ItemArrangeEditor } from "./ItemArrangeEditor";
+import { ItemEntityList } from "./ItemEntityList";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarProvider,
+  SidebarSeparator,
+} from "./ui/sidebar";
 
 export const ItemArrange = forwardRef<
   HTMLDivElement,
@@ -24,10 +36,13 @@ export const ItemArrange = forwardRef<
   }
 
   return (
-    <div
-      ref={ref}
-      className={cn("h-[calc(100lvh-4rem)] relative", className)}
+    <SidebarProvider
+      className={cn(
+        "h-[calc(100vh-var(--header-height))] min-h-0 w-full relative overflow-clip",
+        className
+      )}
       {...props}
+      ref={ref}
     >
       <ItemArrangeEditor
         marker={targetAsset}
@@ -49,9 +64,38 @@ export const ItemArrange = forwardRef<
         displayMode={item.displayMode}
       />
 
-      <div className="absolute top-2 right-2 w-96">
-        <ItemArrangeControls />
-      </div>
-    </div>
+      <Sidebar
+        side="right"
+        // variant="floating"
+        className="top-16 bottom-0 h-auto [--sidebar-width:320px]"
+      >
+        <SidebarHeader>Properties</SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent className="px-1.5 md:px-0 -mx-2 w-[calc(100%+1rem)]">
+              <SidebarGroupLabel>Entities</SidebarGroupLabel>
+              <ItemEntityList
+                variant="compact"
+                onSelectedEntityIdsChange={(ids) => {
+                  setItem(item.id, {
+                    editorCurrentEntityId: ids[0],
+                  });
+                }}
+                canSelectMultipleEntities={false}
+                clearSelectedEntitiesOnOutsideClick={false}
+                selectedEntityIds={[currentEntity.id]}
+                className="max-h-96 overflow-y-scroll"
+              />
+            </SidebarGroupContent>
+            <SidebarSeparator className="my-2" />
+            <SidebarGroupContent className="px-1.5 md:px-0">
+              <SidebarGroupLabel>Entity Properties</SidebarGroupLabel>
+              <ItemArrangeControls />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>footer</SidebarFooter>
+      </Sidebar>
+    </SidebarProvider>
   );
 });

@@ -1,107 +1,90 @@
 import { cn } from "@/lib/utils";
 import { useItem, useStore } from "@/store";
-import * as TabsPrimitive from "@radix-ui/react-tabs";
 import * as React from "react";
-import { ItemTabs } from "./ItemTabs";
-import { Target } from "./Target";
-import { Sortable } from "./ui/sortable";
 import { ItemContextMenu } from "./ItemContextMenu";
-import { getItemName } from "@/lib/item";
-
-export const ItemListRoot = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.Root>,
-  Omit<
-    React.ComponentPropsWithoutRef<typeof TabsPrimitive.Root>,
-    "value" | "onValueChange"
-  >
->(({ className, ...props }, ref) => {
-  const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
-  const setEditorCurrentItemId = useStore(
-    (state) => state.setEditorCurrentItemId
-  );
-
-  return (
-    <TabsPrimitive.Root
-      value={editorCurrentItemId ?? undefined}
-      onValueChange={setEditorCurrentItemId}
-      orientation="vertical"
-      className={cn("contents", className)}
-      data-item-list-root=""
-      ref={ref}
-      {...props}
-    />
-  );
-});
-
-ItemListRoot.displayName = "ItemListRoot";
+import { ItemPreview } from "./ItemPreview";
+import { ItemTabs } from "./ItemTabs";
+import { ItemView } from "./ItemView";
+import {
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "./ui/sidebar";
+import { DragHandle, Sortable } from "./ui/sortable";
+import { GripHorizontal } from "lucide-react";
+import { Button } from "./ui/button";
 
 export const ItemListList = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.List>,
-  Omit<React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>, "children">
+  React.ElementRef<typeof SidebarMenuSub>,
+  Omit<React.ComponentPropsWithoutRef<typeof SidebarMenuSub>, "children">
 >(({ className, ...props }, ref) => {
   const items = useStore((state) => state.items);
   const moveItem = useStore((state) => state.moveItem);
 
   return (
-    <TabsPrimitive.List ref={ref} className={cn("", className)} {...props}>
+    <SidebarMenuSub
+      className={cn("relative overflow-y-scroll", className)}
+      ref={ref}
+      {...props}
+    >
       <Sortable
-        items={items.map((item, itemIndex) => ({
+        items={items.map((item) => ({
           id: item.id,
-          node: (
-            <ItemListTabsTrigger
-              key={item.id}
-              itemId={item.id}
-              itemIndex={itemIndex}
-            />
-          ),
+          node: <ItemListTabsTrigger key={item.id} itemId={item.id} />,
         }))}
         onItemMove={(oldIndex, newIndex) => {
           moveItem(oldIndex, newIndex);
         }}
+        withDragHandle
       />
-    </TabsPrimitive.List>
+    </SidebarMenuSub>
   );
 });
 
 ItemListList.displayName = "ItemListList";
 
 const ItemListTabsTrigger = React.forwardRef<
-  React.ElementRef<typeof TabsPrimitive.TabsTrigger>,
+  React.ElementRef<typeof SidebarMenuSubItem>,
   Omit<
-    React.ComponentPropsWithoutRef<typeof TabsPrimitive.TabsTrigger>,
+    React.ComponentPropsWithoutRef<typeof SidebarMenuSubItem>,
     "children" | "value"
-  > & { itemId: string; itemIndex: number }
->(({ className, itemId, itemIndex, ...props }, ref) => {
+  > & { itemId: string }
+>(({ className, itemId, ...props }, ref) => {
+  const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
+  const editorCurrentView = useStore((state) => state.editorCurrentView);
+  const editorSetCurrentItemId = useStore(
+    (state) => state.setEditorCurrentItemId
+  );
+  const editorSetCurrentView = useStore((state) => state.setEditorCurrentView);
   const item = useItem(itemId);
   if (!item) return null;
 
   return (
-    <TabsPrimitive.TabsTrigger
-      ref={ref}
-      value={itemId}
-      className={cn(
-        "w-full aspect-[16/5] flex items-start gap-4 whitespace-nowrap border-b p-4 pl-10 text-sm leading-tight last:border-b-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground aria-selected:bg-gray-200 relative",
-        className
-      )}
-      asChild
-      {...props}
-    >
-      <ItemContextMenu item={item}>
-        <Target
-          itemId={item.id}
-          assetId={item.targetAssetId}
-          className="size-16"
-        />
-        <div className="flex flex-col self-stretch w-full items-start justify-center gap-2">
-          <span>{getItemName(item, item.index)}</span>
-          <span className="text-xs text-gray-400">
-            {item.entityNavigation.count}{" "}
-            {item.entityNavigation.count === 1 ? "Entity" : "Entities"}
-          </span>
-        </div>
-        <div className="absolute top-4 left-4 text-xs">{itemIndex + 1}</div>
+    <SidebarMenuSubItem ref={ref} className={cn(className)} {...props}>
+      <ItemContextMenu item={item} asChild>
+        <SidebarMenuSubButton
+          isActive={
+            editorCurrentView === "items" && editorCurrentItemId === itemId
+          }
+          onClick={() => {
+            editorSetCurrentView("items");
+            editorSetCurrentItemId(itemId);
+          }}
+        >
+          <ItemPreview id={item.id} />
+          <DragHandle>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Drag item"
+              className="ml-auto"
+            >
+              <GripHorizontal />
+            </Button>
+          </DragHandle>
+        </SidebarMenuSubButton>
       </ItemContextMenu>
-    </TabsPrimitive.TabsTrigger>
+    </SidebarMenuSubItem>
   );
 });
 
@@ -120,5 +103,5 @@ export const ItemListSelectedItemContent = (
     );
   }
 
-  return <ItemTabs {...props} />;
+  return <ItemView {...props} />;
 };

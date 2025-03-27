@@ -63,7 +63,7 @@ export function ComboboxTriggerButton({
         {value
           ? options.find((option) => option.value === value)?.label
           : noValue}
-        <ChevronsUpDown className="w-4 h-4 ml-2 opacity-50 shrink-0" />
+        <ChevronsUpDown className="opacity-30" />
       </Button>
     </ComboboxTrigger>
   );
@@ -94,7 +94,7 @@ export function Combobox<
     label: React.ReactNode;
     value: string | number | null;
     disabled?: boolean;
-  }[]
+  }[],
 >({
   options,
   value,

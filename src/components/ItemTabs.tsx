@@ -19,6 +19,7 @@ export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
           editorCurrentTab: value as "target" | "entities" | "arrange",
         })
       }
+      className="flex-grow h-full"
     >
       {itemHeader
         ? createPortal(
@@ -43,7 +44,7 @@ export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
         <ItemMarker />
       </TabsContent>
       <TabsContent value="entities">
-        <ItemEntities />
+        <ItemEntities variant="compact" />
       </TabsContent>
       <TabsContent value="arrange" className="mt-0" asChild>
         <ItemArrange />

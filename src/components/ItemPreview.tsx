@@ -1,6 +1,7 @@
 import { getItemName } from "@/lib/item";
 import { useItem } from "@/store";
 import { Target } from "./Target";
+import { cn } from "@/lib/utils";
 
 export function ItemPreview({
   id,
@@ -13,13 +14,15 @@ export function ItemPreview({
   if (!item) return null;
 
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="inline-flex items-center gap-2 select-none">
       <Target
         itemId={item.id}
         assetId={item.targetAssetId}
         className="size-4"
       />
-      {getItemName(item, item?.index)}
+      <span className={cn({ italic: !item.name })}>
+        {getItemName(item, item?.index)}
+      </span>
       {children}
     </div>
   );

@@ -5,6 +5,74 @@ import * as React from "react";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
+const FormGroup = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn("grid grid-cols-1 gap-2", className)}
+      {...props}
+    />
+  );
+});
+FormGroup.displayName = "FormGroup";
+
+const FormRow = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    columns?: number;
+    end?: React.ReactNode;
+  }
+>(({ className, columns = 1, children, end, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "grid grid-cols-[repeat(var(--form-row-columns),minmax(0,1fr))] gap-2 pe-9 relative",
+        className
+      )}
+      style={{ "--form-row-columns": columns } as React.CSSProperties}
+      {...props}
+    >
+      {children}
+      {end ? (
+        <div data-form-row-end="" className="absolute end-0 w-7 h-full">
+          {end}
+        </div>
+      ) : null}
+    </div>
+  );
+});
+FormRow.displayName = "FormRow";
+
+const FormTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement> & {
+    end?: React.ReactNode;
+  }
+>(({ className, children, end, ...props }, ref) => {
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "flex gap-4 h-7 items-center text-xs pe-9 relative",
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {end ? (
+        <div data-form-title-end="" className="absolute end-0 w-7 h-full">
+          {end}
+        </div>
+      ) : null}
+    </div>
+  );
+});
+FormTitle.displayName = "FormTitle";
+
 const useFormItem = () => {
   const { id, ...rest } = React.useContext(FormItemContext);
 
@@ -29,13 +97,19 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 
 const FormItem = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { error?: string; disabled?: boolean }
->(({ className, error, disabled, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & {
+    error?: string;
+    disabled?: boolean;
+    asChild?: boolean;
+  }
+>(({ className, error, disabled, asChild, ...props }, ref) => {
   const id = React.useId();
+
+  const Component = asChild ? Slot : "div";
 
   return (
     <FormItemContext.Provider value={{ id, error, disabled }}>
-      <div ref={ref} className={cn("space-y-2", className)} {...props} />
+      <Component ref={ref} className={className} {...props} />
     </FormItemContext.Provider>
   );
 });
@@ -125,6 +199,9 @@ const FormMessage = React.forwardRef<
 FormMessage.displayName = "FormMessage";
 
 export {
+  FormGroup,
+  FormRow,
+  FormTitle,
   FormControl,
   FormDescription,
   FormItem,

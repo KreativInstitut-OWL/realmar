@@ -1,9 +1,9 @@
-import * as THREE from "three";
 import { toAttrs, toNumber, toVec3, toVec4 } from "./a-frame/attributes";
 import "./a-frame/types";
 import { AFrameEntityProps } from "./a-frame/types";
 import ArExperienceImport from "./ArExperienceImport";
 import { ExportAppState, ExportEntity } from "./export";
+import { decomposeMatrix4 } from "./three";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items } = state;
@@ -109,7 +109,7 @@ function ArExperienceEntityModel({
 }: {
   entity: ExportEntity;
 } & AFrameEntityProps) {
-  const { position, scale, quaternion } = decomposeTransform(entity.transform);
+  const { position, scale, quaternion } = decomposeMatrix4(entity.transform);
   return (
     <a-entity
       {...props}
@@ -131,7 +131,7 @@ function ArExperienceEntityPlane({
 }: {
   entity: ExportEntity;
 } & AFrameEntityProps) {
-  const { position, scale, quaternion } = decomposeTransform(entity.transform);
+  const { position, scale, quaternion } = decomposeMatrix4(entity.transform);
   return (
     <a-plane
       {...props}
@@ -147,15 +147,4 @@ function ArExperienceEntityPlane({
       data-entity-id={entity.id}
     />
   );
-}
-
-function decomposeTransform(transform: THREE.Matrix4Tuple) {
-  const matrix = new THREE.Matrix4().fromArray(transform);
-
-  const position = new THREE.Vector3();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3();
-  matrix.decompose(position, quaternion, scale);
-
-  return { position, scale, quaternion };
 }

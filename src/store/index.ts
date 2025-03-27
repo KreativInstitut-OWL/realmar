@@ -1,3 +1,5 @@
+import { EditorView } from "@/const/editorView";
+import { DEFAULT_TRANSFORM } from "@/lib/three";
 import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
@@ -103,14 +105,6 @@ export async function createAsset({
   };
 }
 
-// prettier-ignore
-const DEFAULT_TRANSFORM: THREE.Matrix4Tuple = [
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  0, 0, 0, 1,
-];
-
 const DEFAULT_CAMERA_POSITION: THREE.Vector3Tuple = [2, 2, 2];
 
 export type Entity = {
@@ -198,8 +192,6 @@ function createEntityNavigation({
     count,
   };
 }
-
-export type EditorView = "items" | "settings" | "preview";
 
 export interface BaseAppState {
   items: Item[];

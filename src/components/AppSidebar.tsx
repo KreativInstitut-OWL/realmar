@@ -1,6 +1,6 @@
 "use client";
 
-import { Cog, Images, PlusIcon, ScanEye } from "lucide-react";
+import { Cog, Images, Plus, ScanEye } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -11,139 +11,108 @@ import {
   SidebarGroupContent,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useStore } from "@/store";
+import ExportButton from "./ExportButton";
 import { ItemListList } from "./ItemList";
-import { Button } from "./ui/button";
+import { LoadButton } from "./LoadButton";
+import { SaveButton } from "./SaveButton";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { setOpen } = useSidebar();
-  const addItem = useStore((state) => state.addItem);
+  const projectName = useStore((state) => state.projectName);
   const editorCurrentView = useStore((state) => state.editorCurrentView);
   const setEditorCurrentView = useStore((state) => state.setEditorCurrentView);
+  const addItem = useStore((state) => state.addItem);
 
   return (
-    <Sidebar
-      collapsible="icon"
-      className="overflow-hidden [&>[data-sidebar=sidebar]]:flex-row"
-      {...props}
-    >
-      {/* This is the first sidebar */}
-      {/* We disable collapsible and adjust width to icon. */}
-      {/* This will make the sidebar appear as icons. */}
-      <Sidebar
-        collapsible="none"
-        className="!w-[calc(var(--sidebar-width-icon)_+_1px)] border-r"
-      >
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-                <a href="#">
-                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                    <span className="mt-px text-primary">AR</span>
-                  </div>
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">Acme Inc</span>
-                    <span className="truncate text-xs">Enterprise</span>
-                  </div>
-                </a>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupContent className="px-1.5 md:px-0">
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={{
-                      children: "AR Items",
-                      hidden: false,
-                    }}
-                    onClick={() => {
-                      setOpen(true);
-                      setEditorCurrentView("items");
-                    }}
-                    isActive={editorCurrentView === "items"}
-                    className="px-2.5 md:px-2"
-                  >
-                    <Images />
-                    <span>AR Items</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={{
-                      children: "Settings",
-                      hidden: false,
-                    }}
-                    onClick={() => {
-                      setOpen(true);
-                      setEditorCurrentView("settings");
-                    }}
-                    isActive={editorCurrentView === "settings"}
-                    className="px-2.5 md:px-2"
-                  >
-                    <Cog />
-                    <span>Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip={{
-                      children: "Preview",
-                      hidden: false,
-                    }}
-                    onClick={() => {
-                      setOpen(true);
-                      setEditorCurrentView("preview");
-                    }}
-                    isActive={editorCurrentView === "preview"}
-                    className="px-2.5 md:px-2"
-                  >
-                    <ScanEye />
-                    <span>Preview</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>{/* <NavUser user={data.user} /> */}</SidebarFooter>
-      </Sidebar>
+    <Sidebar collapsible="icon" className="overflow-hidden flex-row" {...props}>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem className="flex items-center gap-3">
+            <img src="/logo.svg" alt="BatchAR" className="size-8 max-w-none" />
+            <div className="flex-1 text-left truncate translate-y-0.5 text-base font-[Inter] font-normal">
+              {projectName}
+            </div>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent className="px-1.5 md:px-0">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={{
+                    children: "Markers",
+                    hidden: false,
+                  }}
+                  onClick={() => {
+                    setOpen(true);
+                    setEditorCurrentView("items");
+                  }}
+                  isActive={editorCurrentView === "items"}
+                  className="px-2.5 md:px-2"
+                >
+                  <Images />
+                  <span>Markers</span>
+                </SidebarMenuButton>
+                <SidebarMenuAction onClick={() => addItem()}>
+                  <Plus />
+                  <span className="sr-only">Add Marker</span>
+                </SidebarMenuAction>
 
-      {/* This is the second sidebar */}
-      {/* We disable collapsible and let it fill remaining space */}
-
-      <Sidebar collapsible="none" className="hidden flex-1 md:flex">
-        <SidebarHeader className="gap-3.5 border-b p-4">
-          <div className="flex w-full items-center justify-between">
-            <div className="text-base font-medium text-foreground">Items</div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => {
-                addItem();
-              }}
-            >
-              <PlusIcon />
-            </Button>
-          </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup className="p-0">
-            <SidebarGroupContent>
-              <ItemListList />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </SidebarContent>
-      </Sidebar>
+                <ItemListList />
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={{
+                    children: "Settings",
+                    hidden: false,
+                  }}
+                  onClick={() => {
+                    setOpen(true);
+                    setEditorCurrentView("settings");
+                  }}
+                  isActive={editorCurrentView === "settings"}
+                  className="px-2.5 md:px-2"
+                >
+                  <Cog />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={{
+                    children: "Preview",
+                    hidden: false,
+                  }}
+                  onClick={() => {
+                    setOpen(true);
+                    setEditorCurrentView("preview");
+                  }}
+                  isActive={editorCurrentView === "preview"}
+                  className="px-2.5 md:px-2"
+                >
+                  <ScanEye />
+                  <span>Preview</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter>
+        <div className="grid grid-cols-2 gap-1">
+          <SaveButton />
+          <LoadButton />
+        </div>
+        <ExportButton />
+      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -1,13 +1,20 @@
-import { degreesToRadians, radiansToDegrees } from "@/lib/math";
+import { radiansToDegrees } from "@/lib/math";
+import {
+  composeMatrix4WithMatrixComponentAndComponent,
+  decomposeMatrix4,
+  DEFAULT_TRANSFORM,
+  MatrixComponent,
+  QuaternionComponent,
+  Vector3Component,
+} from "@/lib/three";
 import { useAsset, useCurrentItem, useStore } from "@/store";
-import { ChevronLeft, RotateCcw } from "lucide-react";
-import * as THREE from "three";
-import { Button } from "./ui/button";
-import { FormControl, FormDescription, FormItem, FormLabel } from "./ui/form";
-import { InputNumber } from "./ui/input-number";
+import { Link2, Unlink2, Video, VideoOff } from "lucide-react";
+import { useCallback, useMemo } from "react";
+import { FormControlNumber } from "./FormControlNumber";
+import { FormGroup, FormItem, FormLabel, FormRow, FormTitle } from "./ui/form";
+import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
-
-const safeScale = (value: number) => (value === 0 ? 1e-6 : value);
+import { Toggle } from "./ui/toggle";
 
 export function ItemArrangeControls() {
   const setItem = useStore((state) => state.setItem);
@@ -17,232 +24,178 @@ export function ItemArrangeControls() {
   const currentEntity = item?.entityNavigation.current;
   const { data: currentEntityAsset } = useAsset(currentEntity?.assetId);
 
+  const currentEntityAssetType = currentEntityAsset?.file.type;
+
+  const currentEntityIs3dModel = currentEntityAssetType?.startsWith("model/");
+
+  const { position, rotation, scale } = useMemo(
+    () => decomposeMatrix4(currentEntity?.transform ?? DEFAULT_TRANSFORM),
+    [currentEntity?.transform]
+  );
+
+  const handleComponentChange = useCallback(
+    (
+      newValue: number | null,
+      component: QuaternionComponent | Vector3Component,
+      matrixComponent: MatrixComponent
+    ) => {
+      if (typeof newValue !== "number" || !currentEntity?.id) return;
+      const newTransform = composeMatrix4WithMatrixComponentAndComponent(
+        currentEntity.transform,
+        matrixComponent,
+        component,
+        newValue,
+        item.editorScaleUniformly
+      );
+
+      setItemEntity(item.id, currentEntity.id, {
+        transform: newTransform.toArray(),
+      });
+    },
+    [currentEntity, item.editorScaleUniformly, item.id, setItemEntity]
+  );
+
   if (!item || !currentEntity || !currentEntityAsset) return null;
 
-  const matrix = new THREE.Matrix4().fromArray(currentEntity.transform);
-  const position = new THREE.Vector3();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3();
-  matrix.decompose(position, quaternion, scale);
-  const rotation = new THREE.Euler().setFromQuaternion(quaternion);
-
   return (
-    <div className="grid grid-cols-1 gap-8 bg-white p-4">
-      <div className="grid grid-cols-6 items-center">
-        <Button
-          variant="ghost"
-          size="icon"
-          disabled={!item.entityNavigation.prev}
-          onClick={() => {
-            setItem(item.id, {
-              editorCurrentEntityId: item.entityNavigation.prev?.id,
-            });
-          }}
-        >
-          <ChevronLeft />
-        </Button>
-        <div className="col-span-4 text-center truncate">
-          {currentEntityAsset?.file?.name ?? "No asset"} (
-          {item.entityNavigation.currentIndex + 1}/{item.entityNavigation.count}
-          )
-        </div>
-        <Button
-          className="ml-auto"
-          variant="ghost"
-          size="icon"
-          disabled={!item.entityNavigation.next}
-          onClick={() => {
-            setItem(item.id, {
-              editorCurrentEntityId: item.entityNavigation.next?.id,
-            });
-          }}
-        >
-          <ChevronLeft className="transform rotate-180" />
-        </Button>
-      </div>
-      <Button
-        onClick={() => {
-          setItemEntity(item.id, currentEntity.id, {
-            transform: new THREE.Matrix4().toArray(),
-          });
-        }}
-      >
-        Reset Transform
-      </Button>
-      {["rotation", "position", "scale"].map((vectorType) => (
-        <div className="flex flex-col gap-2" key={vectorType}>
-          <div className="flex gap-4 items-center">
-            <span className="">
-              {vectorType.charAt(0).toUpperCase() + vectorType.slice(1)}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              type="button"
-              aria-label={`Reset ${vectorType}`}
-              onClick={() => {
-                switch (vectorType) {
-                  case "rotation":
-                    setItemEntity(item.id, currentEntity.id, {
-                      transform: new THREE.Matrix4()
-                        .compose(position, new THREE.Quaternion(), scale)
-                        .toArray(),
-                    });
-                    break;
-                  case "position":
-                    setItemEntity(item.id, currentEntity.id, {
-                      transform: new THREE.Matrix4()
-                        .compose(new THREE.Vector3(), quaternion, scale)
-                        .toArray(),
-                    });
-                    break;
-                  case "scale":
-                    setItemEntity(item.id, currentEntity.id, {
-                      transform: new THREE.Matrix4()
-                        .compose(
-                          position,
-                          quaternion,
-                          new THREE.Vector3(1, 1, 1)
-                        )
-                        .toArray(),
-                    });
-                    break;
-                }
+    <div className="grid gap-3">
+      {/* Position section */}
+      <FormGroup>
+        <FormTitle>Position</FormTitle>
+        <FormRow columns={3}>
+          {(["x", "y", "z"] as const).map((component) => (
+            <FormControlNumber
+              key={component}
+              description={`${component.toUpperCase()}-position`}
+              label={component.toUpperCase()}
+              step={0.1}
+              formatOptions={{
+                style: "decimal",
+                maximumFractionDigits: 5,
               }}
+              value={position[component]}
+              onChange={(newValue) =>
+                handleComponentChange(newValue, component, "position")
+              }
+            />
+          ))}
+        </FormRow>
+      </FormGroup>
+      <FormGroup>
+        <FormTitle>Rotation</FormTitle>
+        <FormRow
+          columns={3}
+          end={
+            <Toggle
+              size="icon-sm"
+              pressed={currentEntity.lookAtCamera}
+              onPressedChange={(lookAtCamera) => {
+                setItemEntity(item.id, currentEntity.id, { lookAtCamera });
+              }}
+              aria-label="Look at camera"
+              tooltip="Look at camera"
             >
-              <RotateCcw />
-            </Button>
-            {vectorType === "rotation" && (
-              <FormItem className="flex gap-2 items-center space-y-0 ml-auto">
-                <FormLabel>Look at camera</FormLabel>
+              {currentEntity.lookAtCamera ? <Video /> : <VideoOff />}
+            </Toggle>
+          }
+        >
+          {(["x", "y", "z"] as const).map((component) => (
+            <FormControlNumber
+              key={component}
+              description={`${component.toUpperCase()}-rotation`}
+              label={component.toUpperCase()}
+              step={1}
+              formatOptions={{
+                style: "unit",
+                unit: "degree",
+                unitDisplay: "narrow",
+                maximumFractionDigits: 5,
+              }}
+              value={radiansToDegrees(rotation[component])}
+              onChange={(newValue) =>
+                handleComponentChange(newValue, component, "rotation")
+              }
+              disabled={currentEntity.lookAtCamera}
+            />
+          ))}
+        </FormRow>
+      </FormGroup>
+      {/* Scale section */}
+      <FormGroup>
+        <FormTitle>Scale</FormTitle>
+        <FormRow
+          columns={3}
+          end={
+            <Toggle
+              size="icon-sm"
+              pressed={item.editorScaleUniformly}
+              onPressedChange={(editorScaleUniformly) => {
+                setItem(item.id, { editorScaleUniformly });
+              }}
+              aria-label="Scale uniformly"
+              tooltip="Scale uniformly"
+            >
+              {item.editorScaleUniformly ? <Link2 /> : <Unlink2 />}
+            </Toggle>
+          }
+        >
+          {(["x", "y", "z"] as const).map((component) => (
+            <FormControlNumber
+              key={component}
+              description={`${component.toUpperCase()}-scale`}
+              label={component.toUpperCase()}
+              step={0.1}
+              formatOptions={{
+                style: "decimal",
+                maximumFractionDigits: 5,
+              }}
+              value={scale[component]}
+              onChange={(newValue) =>
+                handleComponentChange(newValue, component, "scale")
+              }
+              hidden={component === "z" && !currentEntityIs3dModel}
+            />
+          ))}
+        </FormRow>
+      </FormGroup>
+      <Separator />
+      <FormGroup>
+        <FormTitle
+        // end={
+        //   <Button
+        //     variant="ghost"
+        //     size="icon-sm"
+        //     onClick={() => {}}
+        //     tooltip="Add Component"
+        //   >
+        //     <Plus />
+        //   </Button>
+        // }
+        >
+          OBJ Properties
+        </FormTitle>
+        {currentEntityIs3dModel && (
+          <FormRow>
+            <FormItem className="flex justify-between items-center">
+              <FormLabel>Play Animation</FormLabel>
+              <div className="flex justify-end">
                 <Switch
-                  onCheckedChange={(checked) => {
+                  size="sm"
+                  className="ml-auto"
+                  onCheckedChange={(playAnimation) => {
                     setItemEntity(item.id, currentEntity.id, {
-                      lookAtCamera: checked,
+                      playAnimation,
                     });
                   }}
-                  checked={currentEntity.lookAtCamera}
+                  checked={currentEntity.playAnimation}
                 />
-              </FormItem>
-            )}
-            {vectorType === "scale" && (
-              <FormItem className="flex gap-2 items-center space-y-0 ml-auto">
-                <FormLabel>Uniform</FormLabel>
-                <Switch
-                  onCheckedChange={(checked) => {
-                    setItem(item.id, { editorScaleUniformly: checked });
-                  }}
-                  checked={item.editorScaleUniformly}
-                />
-              </FormItem>
-            )}
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {(["x", "y", "z"] as const).map((axis) => {
-              const value =
-                vectorType === "position"
-                  ? position[axis]
-                  : vectorType === "rotation"
-                  ? radiansToDegrees(rotation[axis])
-                  : scale[axis];
+              </div>
+            </FormItem>
+          </FormRow>
+        )}
+      </FormGroup>
 
-              return (
-                <FormItem
-                  key={axis}
-                  className="flex space-y-0 gap-2 items-center"
-                >
-                  <FormLabel className="w-3">
-                    <span className="sr-only">{vectorType}</span>
-                    {axis.toUpperCase()}
-                  </FormLabel>
-                  <FormControl>
-                    <InputNumber
-                      step={vectorType === "rotation" ? 1 : 0.1}
-                      formatOptions={
-                        vectorType === "rotation"
-                          ? {
-                              style: "unit",
-                              unit: "degree",
-                              unitDisplay: "narrow",
-                              maximumFractionDigits: 5,
-                            }
-                          : {
-                              style: "decimal",
-                              maximumFractionDigits: 5,
-                            }
-                      }
-                      value={Object.is(value, -0) ? 0 : value}
-                      onChange={(newValue) => {
-                        if (typeof newValue !== "number") return;
-                        // create a new transform matrix based on the new value for the axis and vector type
-                        const newTransform = new THREE.Matrix4().compose(
-                          vectorType === "position"
-                            ? new THREE.Vector3(
-                                axis === "x" ? newValue : position.x,
-                                axis === "y" ? newValue : position.y,
-                                axis === "z" ? newValue : position.z
-                              )
-                            : position,
-                          vectorType === "rotation"
-                            ? new THREE.Quaternion().setFromEuler(
-                                new THREE.Euler(
-                                  axis === "x"
-                                    ? degreesToRadians(newValue)
-                                    : rotation.x,
-                                  axis === "y"
-                                    ? degreesToRadians(newValue)
-                                    : rotation.y,
-                                  axis === "z"
-                                    ? degreesToRadians(newValue)
-                                    : rotation.z
-                                )
-                              )
-                            : quaternion,
-                          vectorType === "scale"
-                            ? new THREE.Vector3(
-                                axis === "x" || item.editorScaleUniformly
-                                  ? safeScale(newValue)
-                                  : scale.x,
-                                axis === "y" || item.editorScaleUniformly
-                                  ? safeScale(newValue)
-                                  : scale.y,
-                                axis === "z" || item.editorScaleUniformly
-                                  ? safeScale(newValue)
-                                  : scale.z
-                              )
-                            : scale
-                        );
-
-                        setItemEntity(item.id, currentEntity.id, {
-                          transform: newTransform.toArray(),
-                        });
-                      }}
-                    />
-                  </FormControl>
-                </FormItem>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-
-      <FormItem className="flex gap-2 items-center space-y-0 w-full">
-        <div className="space-y-0.5">
-          <FormLabel>Play Animation</FormLabel>
-          <FormDescription>If available in 3D model</FormDescription>
-        </div>
-        <Switch
-          className="ml-auto"
-          onCheckedChange={(checked) => {
-            setItemEntity(item.id, currentEntity.id, {
-              playAnimation: checked,
-            });
-          }}
-          checked={currentEntity.playAnimation}
-        />
-      </FormItem>
-
-      <FormItem className="flex gap-2 items-center space-y-0 w-full">
+      {/* <FormItem className="flex gap-2 items-center space-y-0 w-full">
         <div className="space-y-0.5">
           <FormLabel>Link Transforms</FormLabel>
           <FormDescription>
@@ -258,7 +211,16 @@ export function ItemArrangeControls() {
           }}
           checked={item.editorLinkTransforms}
         />
-      </FormItem>
+      </FormItem> */}
+      {/* <Button
+        onClick={() => {
+          setItemEntity(item.id, currentEntity.id, {
+            transform: new THREE.Matrix4().toArray(),
+          });
+        }}
+      >
+        Reset Transform
+      </Button> */}
     </div>
   );
 }

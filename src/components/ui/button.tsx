@@ -4,9 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 import { inputVariants } from "./input";
+import { Tooltip, TooltipContent } from "./tooltip";
+import { TooltipTrigger } from "@radix-ui/react-tooltip";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium cursor-pointer ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  [
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-sm font-medium cursor-pointer",
+    "ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+    // support for being a toggle button
+    "data-[state=on]:!bg-blue-100 data-[state=on]:!text-blue-900",
+  ],
   {
     variants: {
       variant: {
@@ -39,18 +48,30 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
+  tooltip?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, tooltip, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return (
+    const button = (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}
       />
     );
+
+    if (tooltip) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side="bottom">{tooltip}</TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return button;
   }
 );
 Button.displayName = "Button";

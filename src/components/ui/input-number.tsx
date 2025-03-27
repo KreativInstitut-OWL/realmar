@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 import { inputVariants } from "./input";
 
-type InputNumberProps = {
+export type InputNumberProps = {
   onChange: (value: number | null) => void;
   value: number | null;
   formatOptions?: Intl.NumberFormatOptions;
@@ -15,7 +15,10 @@ type InputNumberProps = {
 >;
 
 const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
-  ({ value, onChange, formatOptions, className, onBlur, ...rest }, ref) => {
+  (
+    { value, onChange, formatOptions, className, onBlur, children, ...rest },
+    ref
+  ) => {
     const locale = "en-US"; // i18n.language;
     const [stringValue, setStringValue] = useState<string>(
       numberToString(value, locale)
@@ -83,15 +86,23 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
           setIsFocused(true);
           rest.onFocus?.(event);
         }}
+        onDoubleClick={(event) => {
+          // select the input text on double click
+          event.currentTarget.querySelector("input")?.select();
+          rest.onDoubleClick?.(event);
+        }}
         onBlur={handleBlur}
         value={stringValue}
       >
         <NumberInputPrimitive.Input className={cn(inputVariants(), "w-full")} />
-        <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-100 hover:bg-gray-200" />
+        {children}
+        {/* <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-100 hover:bg-gray-200" /> */}
       </NumberInputPrimitive.Root>
     );
   }
 );
+
+export const InputNumberScrubber = NumberInputPrimitive.Scrubber;
 
 /**
  * Formats a number to a string using the given locale.
@@ -102,6 +113,10 @@ function numberToString(value: number | null, locale: string) {
   // Check if value is a number
   if (value === null) {
     return "";
+  }
+
+  if (Object.is(value, -0)) {
+    return "0";
   }
 
   return new Intl.NumberFormat(locale).format(value);

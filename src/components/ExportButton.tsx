@@ -28,11 +28,7 @@ function ExportButton() {
 
   return (
     <Dialog open={mutation.isPending}>
-      <Button
-        className="ml-auto"
-        onClick={handleExport}
-        disabled={mutation.isPending}
-      >
+      <Button onClick={handleExport} disabled={mutation.isPending}>
         Export
         <ArrowRightFromLine />
       </Button>
