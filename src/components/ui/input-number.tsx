@@ -96,7 +96,7 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
       >
         <NumberInputPrimitive.Input className={cn(inputVariants(), "w-full")} />
         {children}
-        {/* <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-100 hover:bg-gray-200" /> */}
+        {/* <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-3 hover:bg-gray-4" /> */}
       </NumberInputPrimitive.Root>
     );
   }

@@ -20,7 +20,7 @@ export const FormControlNumber = forwardRef<
             <InputNumberScrubber asChild>
               <TooltipTrigger asChild>
                 <FormLabel
-                  className="w-7 grid items-center ps-2 absolute top-0 bottom-0 text-xs text-gray-500"
+                  className="w-7 grid items-center ps-2 absolute top-0 bottom-0 text-xs text-gray-11"
                   aria-description={description}
                 >
                   {label}

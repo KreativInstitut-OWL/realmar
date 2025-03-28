@@ -63,7 +63,7 @@ const Dropzone = ({
     <div
       {...dropzoneState.getRootProps({
         className: cn(
-          "flex justify-center items-center w-full min-h-32 border-4 border-dashed border-primary rounded-lg bg-clip-padding hover:bg-gray-100 transition-all select-none cursor-pointer",
+          "flex justify-center items-center w-full min-h-32 border-4 border-dashed border-lime-9 rounded-lg bg-clip-padding hover:bg-gray-3 transition-all select-none cursor-pointer",
           className
         ),
       })}
@@ -113,7 +113,7 @@ const DropzoneContent = ({
         <UploadIcon className="mr-2 h-4 w-4" /> Upload files
       </div>
       {dropzoneProps.maxSize && (
-        <div className="text-xs text-gray-400 font-medium">
+        <div className="text-xs text-gray-11 font-medium">
           Max. file size: {(dropzoneProps.maxSize / (1024 * 1024)).toFixed(2)}{" "}
           MB
         </div>

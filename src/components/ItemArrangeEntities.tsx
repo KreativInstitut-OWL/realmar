@@ -68,7 +68,7 @@ export function ItemEntities() {
               Add one or more entities to this marker by dropping them here or
               click to select files.
             </div>
-            <div className="text-gray-400">
+            <div className="text-gray-11">
               Supported file types: images and 3D models (*.glb)
             </div>
           </DropzoneContent>
@@ -129,7 +129,7 @@ export function ItemEntities() {
         </div>
       ) : (
         <div>
-          <div className="text-gray-400 text-sm">
+          <div className="text-gray-11 text-sm">
             Add one or more entities to this marker.
           </div>
         </div>

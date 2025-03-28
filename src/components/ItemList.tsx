@@ -96,7 +96,7 @@ export const ItemListSelectedItemContent = (
   if (!editorCurrentItemId) {
     return (
       <div>
-        <div className="text-gray-400 text-sm">
+        <div className="text-gray-11 text-sm">
           Select an item from the list to view and edit its properties.
         </div>
       </div>

@@ -58,7 +58,7 @@ function ExportButton() {
                 : progress.bundleProgress
             }
           />
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-gray-11">
             {progress.currentBundleFile ?? ""}
           </span>
         </div>

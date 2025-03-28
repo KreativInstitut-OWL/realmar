@@ -380,7 +380,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
   };
 
   return (
-    <div className="w-full h-full overflow-clip bg-white">
+    <div className="w-full h-full overflow-clip bg-gray-1">
       <Canvas>
         <ambientLight intensity={10} />
         {/* <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} /> */}

@@ -10,23 +10,23 @@ import { TooltipTrigger } from "@radix-ui/react-tooltip";
 const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium cursor-pointer",
-    "ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black",
+    "ring-offset-gray-1 ring-offset-4 ring-0 ring-gray-1 transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gray-12",
     "disabled:pointer-events-none disabled:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
     // support for being a toggle button
-    "data-[state=on]:bg-blue-100! data-[state=on]:text-blue-900!",
+    "data-[state=on]:bg-azure-3! data-[state=on]:text-azure-12!",
   ],
   {
     variants: {
       variant: {
         default:
-          "bg-primary-400 text-black hover:bg-primary-500 dark:bg-primary-900 dark:text-white dark:hover:bg-primary-950",
+          "bg-lime-9 text-gray-12 hover:bg-lime-10 dark:bg-lime-12 dark:text-gray-1 dark:hover:bg-lime-12",
         secondary:
-          "bg-black text-white hover:bg-gray-800 dark:bg-grey-400 dark:text-black dark:hover:bg-grey-500",
+          "bg-gray-12 text-gray-1 hover:bg-gray-10 dark:bg-gray-11 dark:text-gray-12 dark:hover:bg-gray-11",
         outline:
-          "bg-white border-2 border-black text-black hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-800 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          "bg-gray-1 border-2 border-gray-12 text-gray-12 hover:bg-gray-3 hover:text-gray-11 dark:border-gray-10 dark:bg-gray-10 dark:hover:bg-gray-10 dark:hover:text-gray-2",
         ghost:
-          "bg-transparent text-black ring-transparent ring-offset-transparent hover:bg-gray-100 hover:text-gray-900 dark:text-white dark:hover:bg-gray-800 dark:hover:text-gray-50",
+          "bg-transparent text-gray-12 ring-transparent ring-offset-transparent hover:bg-gray-3 hover:text-gray-11 dark:text-gray-1 dark:hover:bg-gray-10 dark:hover:text-gray-2",
         input: inputVariants(),
       },
       size: {

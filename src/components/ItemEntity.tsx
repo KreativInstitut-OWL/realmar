@@ -56,9 +56,9 @@ export const ItemEntity = forwardRef<
       >
         <div
           className={cn(
-            "flex gap-4 items-center h-14 bg-white even:bg-gray-50 px-4 transition-colors",
+            "flex gap-4 items-center h-14 bg-gray-1 even:bg-gray-2 px-4 transition-colors",
             {
-              "bg-blue-100 even:bg-blue-100": isEntitySelected,
+              "bg-azure-3 even:bg-azure-4": isEntitySelected,
               "h-7 text-sm gap-2": variant === "compact",
             },
             className,
@@ -90,13 +90,13 @@ export const ItemEntity = forwardRef<
           </div>
           {variant !== "compact" && (
             <>
-              <div className="w-24 truncate text-gray-600">
+              <div className="w-24 truncate text-gray-11">
                 {getAssetTypeName(entityAsset)}
               </div>
-              <div className="w-24 truncate text-gray-600">
+              <div className="w-24 truncate text-gray-11">
                 {byteFormatter.format(entityAsset.file.size)}
               </div>
-              <div className="w-42 truncate text-gray-600 text-right">
+              <div className="w-42 truncate text-gray-11 text-right">
                 {dateFormatter.format(entityAsset.updatedAt)}
               </div>
             </>
@@ -143,7 +143,7 @@ export const ItemEntityDragOverlay = forwardRef<
     return (
       <div
         className={cn(
-          "flex gap-4 items-center h-14 w-full bg-blue-100 px-4 cursor-grabbing",
+          "flex gap-4 items-center h-14 w-full bg-azure-3 px-4 cursor-grabbing",
           {
             "h-7 text-sm gap-2": variant === "compact",
           },

@@ -122,7 +122,7 @@ export function ItemEntityList({
     </div>
   ) : (
     <div>
-      <div className="text-gray-400 text-sm">
+      <div className="text-gray-11 text-sm">
         Add one or more entities to this marker.
       </div>
     </div>

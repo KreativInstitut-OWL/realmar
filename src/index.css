@@ -1,49 +1,221 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @plugin 'tailwindcss-animate';
 @plugin '@tailwindcss/typography';
 @plugin '@tailwindcss/container-queries';
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: T-StarTW, sans-serif;
+  --font-sans: var(--font-name-sans);
+  --font-sans--font-feature-settings: "ss01", "cv08";
 
-  --color-primary-50: #edffe4;
-  --color-primary-100: #d6ffc5;
-  --color-primary-200: #b0ff92;
-  --color-primary-300: #7dff52;
-  --color-primary-400: #55fc27;
-  --color-primary-500: #2de300;
-  --color-primary-600: #1eb600;
-  --color-primary-700: #188902;
-  --color-primary-800: #176c08;
-  --color-primary-900: #175b0c;
-  --color-primary-950: #053300;
-  --color-primary: #55fc27;
+  --font-mono: T-StarTW, monospace;
 
-  --color-grey-50: #f7f7f7;
-  --color-grey-100: #e6e6e6;
-  --color-grey-200: #dfdfdf;
-  --color-grey-300: #c8c8c8;
-  --color-grey-400: #a7a7a7;
-  --color-grey-500: #999999;
-  --color-grey-600: #888888;
-  --color-grey-700: #7b7b7b;
-  --color-grey-800: #676767;
-  --color-grey-900: #545454;
-  --color-grey-950: #363636;
-  --color-grey: #e6e6e6;
+  --color-*: initial;
 
-  --color-sidebar: hsl(var(--sidebar-background));
-  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
-  --color-sidebar-primary: hsl(var(--sidebar-primary));
-  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
-  --color-sidebar-accent: hsl(var(--sidebar-accent));
-  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
-  --color-sidebar-border: hsl(var(--sidebar-border));
-  --color-sidebar-ring: hsl(var(--sidebar-ring));
+  --color-transparent: transparent;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+  --color-black: #000;
+  --color-white: #fff;
+
+  --color-gray-1: oklch(1 0 0);
+  --color-gray-2: oklch(0.975 0 0);
+  --color-gray-3: oklch(0.955 0 0);
+  --color-gray-4: oklch(0.925 0 0);
+  --color-gray-5: oklch(0.91 0 0);
+  --color-gray-6: oklch(0.89 0 0);
+  --color-gray-7: oklch(0.86 0 0);
+  --color-gray-8: oklch(0.84 0 0);
+  --color-gray-9: oklch(0 0 0);
+  --color-gray-10: oklch(0.33 0 0);
+  --color-gray-11: oklch(0.46 0 0);
+  --color-gray-12: oklch(0 0 0);
+
+  --color-lime-1: oklch(0.994 0.0097 155);
+  --color-lime-2: oklch(0.981 0.016 154);
+  --color-lime-3: oklch(0.965 0.036 153);
+  --color-lime-4: oklch(0.955 0.043 152);
+  --color-lime-5: oklch(0.94 0.06 151);
+  --color-lime-6: oklch(0.92 0.075 150);
+  --color-lime-7: oklch(0.89 0.105 148);
+  --color-lime-8: oklch(0.87 0.14 146);
+  --color-lime-9: oklch(0.8698 0.2714 140.49);
+  --color-lime-10: oklch(0.82 0.28 140.49);
+  --color-lime-11: oklch(0.4468 0.166 139.75);
+  --color-lime-12: oklch(0.32 0.118 139);
+
+  --color-azure-1: oklch(0.99 0 219.53);
+  --color-azure-2: oklch(0.98 0.01 205.9);
+  --color-azure-3: oklch(0.96 0.03 202.56);
+  --color-azure-4: oklch(0.93 0.04 205.98);
+  --color-azure-5: oklch(0.9 0.05 206.45);
+  --color-azure-6: oklch(0.86 0.07 208.14);
+  --color-azure-7: oklch(0.8 0.08 209.7);
+  --color-azure-8: oklch(0.73 0.11 211.93);
+  --color-azure-9: oklch(0.75 0.18 221.74);
+  --color-azure-10: oklch(0.7 0.16 221.74);
+  --color-azure-11: oklch(0.448 0.11 223);
+  --color-azure-12: oklch(0.32 0.065 226);
+
+  --color-ruby-1: oklch(0.99 0.02 7.18);
+  --color-ruby-2: oklch(0.97 0.04 8.14);
+  --color-ruby-3: oklch(0.95 0.02 7.18);
+  --color-ruby-4: oklch(0.92 0.04 8.14);
+  --color-ruby-5: oklch(0.9 0.06 7.27);
+  --color-ruby-6: oklch(0.86 0.07 8);
+  --color-ruby-7: oklch(0.81 0.08 7.15);
+  --color-ruby-8: oklch(0.75 0.1 6.5);
+  --color-ruby-9: oklch(0.74 0.2045 17);
+  --color-ruby-10: oklch(0.695 0.198 17);
+  --color-ruby-11: oklch(0.45 0.2029 16.25);
+  --color-ruby-12: oklch(0.32 0.1441 15.5);
+
+  --color-amber-1: oklch(0.99 0.07 100.39);
+  --color-amber-2: oklch(0.98 0.07 100.39);
+  --color-amber-3: oklch(0.97 0.07 100.39);
+  --color-amber-4: oklch(0.94 0.1 97.91);
+  --color-amber-5: oklch(0.92 0.13 98.23);
+  --color-amber-6: oklch(0.88 0.12 93.39);
+  --color-amber-7: oklch(0.83 0.12 86.69);
+  --color-amber-8: oklch(0.76 0.14 76.72);
+  --color-amber-9: oklch(0.85 0.16 84.13);
+  --color-amber-10: oklch(0.83 0.17 80.85);
+  --color-amber-11: oklch(0.57 0.13 63.94);
+  --color-amber-12: oklch(0.35 0.05 54.17);
 }
+
+@layer base {
+  .dark {
+    --color-gray-1: oklch(0 0 0);
+    --color-gray-2: oklch(0.18 0 0);
+    --color-gray-3: oklch(0.21 0 0);
+    --color-gray-4: oklch(0.24 0 0);
+    --color-gray-5: oklch(0.28 0 0);
+    --color-gray-6: oklch(0.32 0 0);
+    --color-gray-7: oklch(0.36 0 0);
+    --color-gray-8: oklch(0.4 0 0);
+    --color-gray-9: oklch(1 0 0);
+    --color-gray-10: oklch(0.96 0 0);
+    --color-gray-11: oklch(0.7 0 0);
+    --color-gray-12: oklch(1 0 0);
+
+    --color-lime-1: oklch(0.135 0.0473 136.5);
+    --color-lime-2: oklch(0.16 0.05 137);
+    --color-lime-3: oklch(0.18 0.0642 137.5);
+    --color-lime-4: oklch(0.22 0.0794 138);
+    --color-lime-5: oklch(0.3 0.111 139);
+    --color-lime-6: oklch(0.34 0.13 140.49);
+    --color-lime-7: oklch(0.38 0.1376 140.49);
+    --color-lime-8: oklch(0.44 0.15 140.49);
+    --color-lime-9: oklch(0.8698 0.2714 140.49);
+    --color-lime-10: oklch(0.8975 0.2426 140.49);
+    --color-lime-11: oklch(0.88 0.12 143);
+    --color-lime-12: oklch(0.97 0.04 146);
+
+    --color-azure-1: oklch(0.19 0.02 222.83);
+    --color-azure-2: oklch(0.21 0.02 227.95);
+    --color-azure-3: oklch(0.27 0.04 220.38);
+    --color-azure-4: oklch(0.32 0.06 223.7);
+    --color-azure-5: oklch(0.36 0.07 223.74);
+    --color-azure-6: oklch(0.41 0.07 221.5);
+    --color-azure-7: oklch(0.48 0.08 221.64);
+    --color-azure-8: oklch(0.56 0.1 221.11);
+    --color-azure-9: oklch(0.75 0.18 221.74);
+    --color-azure-10: oklch(0.785 0.16 221.74);
+    --color-azure-11: oklch(0.83 0.12 213.8);
+    --color-azure-12: oklch(0.95 0.06 211.5);
+
+    --color-ruby-1: oklch(0.05 0.03 6.05);
+    --color-ruby-2: oklch(0.1 0.04 6.05);
+    --color-ruby-3: oklch(0.25 0.06 6.05);
+    --color-ruby-4: oklch(0.29 0.09 6.07);
+    --color-ruby-5: oklch(0.33 0.1 6.48);
+    --color-ruby-6: oklch(0.38 0.11 7.06);
+    --color-ruby-7: oklch(0.45 0.12 9.12);
+    --color-ruby-8: oklch(0.54 0.14 11.27);
+    --color-ruby-9: oklch(0.74 0.2045 17);
+    --color-ruby-10: oklch(0.77 0.1757 17);
+    --color-ruby-11: oklch(0.78 0.13 15.1);
+    --color-ruby-12: oklch(0.91 0.05 355.75);
+
+    --color-amber-1: oklch(0.16 0.07 74.39);
+    --color-amber-2: oklch(0.2 0.07 74.39);
+    --color-amber-3: oklch(0.26 0.04 74.48);
+    --color-amber-4: oklch(0.3 0.06 73.88);
+    --color-amber-5: oklch(0.34 0.07 72.9);
+    --color-amber-6: oklch(0.39 0.08 75.25);
+    --color-amber-7: oklch(0.45 0.08 74.96);
+    --color-amber-8: oklch(0.54 0.1 73.44);
+    --color-amber-9: oklch(0.85 0.16 84.13);
+    --color-amber-10: oklch(0.88 0.18 94.78);
+    --color-amber-11: oklch(0.86 0.17 89.02);
+    --color-amber-12: oklch(0.94 0.07 86.07);
+  }
+
+  @font-face {
+    font-family: "T-StarTW";
+    src: url("/T-StarTW-Medium.woff2") format("woff2");
+    font-weight: 500;
+  }
+
+  body {
+    @apply font-mono bg-gray-1 text-gray-12 antialiased text-pretty;
+    overscroll-behavior: none;
+  }
+
+  * {
+    @apply border-gray-6 ring-lime-9 ring-offset-2 ring-offset-gray-1 underline-offset-[0.15em] decoration-from-font;
+  }
+}
+
+@utility marker {
+  & > span {
+    @apply inline bg-gray-12 text-gray-1 leading-relaxed text-balance z-10 relative;
+    box-decoration-break: clone;
+    padding-bottom: 0.08em;
+    padding-top: 0.16em;
+    padding-left: 0.32em;
+    box-shadow: 0.32em 0 0 var(--color-gray-12);
+  }
+}
+/* 
+@utility text-heading-72 {
+  @apply text-7xl font-mono;
+}
+
+@utility text-heading-36 {
+  @apply text-4xl font-mono;
+}
+
+@utility text-heading-24 {
+  @apply text-2xl font-mono;
+}
+
+@utility text-heading-20 {
+  @apply text-xl font-mono;
+}
+
+@utility text-body-20 {
+  @apply text-xl font-sans;
+}
+
+@utility text-body-18 {
+  @apply text-lg font-sans;
+}
+
+@utility text-body-16 {
+  @apply text-base font-sans;
+}
+
+@utility text-body-14 {
+  @apply text-sm font-sans;
+}
+
+@utility text-body-12 {
+  @apply text-xs font-sans;
+} */
 
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
@@ -53,7 +225,7 @@
   If we ever want to remove these styles, we need to add an explicit border
   color utility to any element that depends on these defaults.
 */
-@layer base {
+/* @layer base {
   *,
   ::after,
   ::before,
@@ -64,11 +236,7 @@
 }
 
 @layer base {
-  @font-face {
-    font-family: "T-StarTW";
-    src: url("/T-StarTW-Medium.woff2") format("woff2");
-    font-weight: 500;
-  }
+
 
   body {
     @apply font-sans bg-gray-100 min-h-[100lvh] min-w-[100vw] bg-cover bg-center bg-fixed overscroll-none;
@@ -84,24 +252,5 @@
     @apply list-none;
   }
 
-  :root {
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-  .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-}
+
+} */
