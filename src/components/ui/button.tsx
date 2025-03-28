@@ -19,14 +19,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-lime-9 text-gray-12 hover:bg-lime-10 dark:bg-lime-12 dark:text-gray-1 dark:hover:bg-lime-12",
-        secondary:
-          "bg-gray-12 text-gray-1 hover:bg-gray-10 dark:bg-gray-11 dark:text-gray-12 dark:hover:bg-gray-11",
+        default: "bg-lime-9 text-gray-12 hover:bg-lime-10",
+        secondary: "bg-gray-12 text-gray-1 hover:bg-gray-10",
         outline:
-          "bg-gray-1 border-2 border-gray-12 text-gray-12 hover:bg-gray-3 hover:text-gray-11 dark:border-gray-10 dark:bg-gray-10 dark:hover:bg-gray-10 dark:hover:text-gray-2",
+          "bg-gray-1 border-2 border-gray-12 text-gray-12 hover:bg-gray-3 hover:text-gray-11",
         ghost:
-          "bg-transparent text-gray-12 ring-transparent ring-offset-transparent hover:bg-gray-3 hover:text-gray-11 dark:text-gray-1 dark:hover:bg-gray-10 dark:hover:text-gray-2",
+          "bg-transparent text-gray-12 ring-transparent ring-offset-transparent hover:bg-gray-3 hover:text-gray-11",
         input: inputVariants(),
       },
       size: {

@@ -46,10 +46,10 @@
   --color-lime-11: oklch(0.4468 0.166 139.75);
   --color-lime-12: oklch(0.32 0.118 139);
 
-  --color-azure-1: oklch(0.99 0 219.53);
-  --color-azure-2: oklch(0.98 0.01 205.9);
-  --color-azure-3: oklch(0.96 0.03 202.56);
-  --color-azure-4: oklch(0.93 0.04 205.98);
+  --color-azure-1: oklch(0.99 0 220);
+  --color-azure-2: oklch(0.98 0.01 220);
+  --color-azure-3: oklch(0.96 0.03 220);
+  --color-azure-4: oklch(0.94 0.04 220);
   --color-azure-5: oklch(0.9 0.05 206.45);
   --color-azure-6: oklch(0.86 0.07 208.14);
   --color-azure-7: oklch(0.8 0.08 209.7);
@@ -89,13 +89,13 @@
 @layer base {
   .dark {
     --color-gray-1: oklch(0 0 0);
-    --color-gray-2: oklch(0.18 0 0);
-    --color-gray-3: oklch(0.21 0 0);
-    --color-gray-4: oklch(0.24 0 0);
-    --color-gray-5: oklch(0.28 0 0);
+    --color-gray-2: oklch(0.2 0 0);
+    --color-gray-3: oklch(0.25 0 0);
+    --color-gray-4: oklch(0.29 0 0);
+    --color-gray-5: oklch(0.34 0 0);
     --color-gray-6: oklch(0.32 0 0);
-    --color-gray-7: oklch(0.36 0 0);
-    --color-gray-8: oklch(0.4 0 0);
+    --color-gray-7: oklch(0.39 0 0);
+    --color-gray-8: oklch(0.43 0 0);
     --color-gray-9: oklch(1 0 0);
     --color-gray-10: oklch(0.96 0 0);
     --color-gray-11: oklch(0.7 0 0);

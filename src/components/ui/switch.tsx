@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const switchVariants = cva(
-  "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gray-11 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-gray-11 data-[state=unchecked]:bg-gray-4 dark:focus-visible:ring-gray-8 dark:focus-visible:ring-offset-gray-11 dark:data-[state=checked]:bg-gray-2 dark:data-[state=unchecked]:bg-gray-10",
+  "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-gray-11 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-1 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-gray-11 data-[state=unchecked]:bg-gray-4",
   {
     variants: {
       size: {
@@ -20,7 +20,7 @@ const switchVariants = cva(
 );
 
 const switchThumbVariants = cva(
-  "pointer-events-none block rounded-full bg-gray-1 shadow-lg ring-0 transition-transform dark:bg-gray-11",
+  "pointer-events-none block rounded-full bg-gray-1 shadow-lg ring-0 transition-transform",
   {
     variants: {
       size: {

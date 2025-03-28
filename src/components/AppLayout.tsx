@@ -24,7 +24,7 @@ function AppLayout() {
   return (
     <SidebarProvider
       style={{ "--sidebar-width": "320px" } as React.CSSProperties}
-      className="[--header-height:64px] dark"
+      className="[--header-height:64px]"
     >
       <AppSidebar />
       <SidebarInset>
