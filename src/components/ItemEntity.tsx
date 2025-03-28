@@ -1,5 +1,5 @@
 import { byteFormatter, cn, dateFormatter } from "@/lib/utils";
-import { Asset, useAsset, useItem } from "@/store";
+import { Asset, useEntityAsset, useItem } from "@/store";
 import { FileAxis3d, FileIcon, FileVideo, GripHorizontal } from "lucide-react";
 import { forwardRef, useMemo } from "react";
 import { ItemEntityContextMenu } from "./ItemEntityContextMenu";
@@ -42,7 +42,7 @@ export const ItemEntity = forwardRef<
       return item?.entities.find((entity) => entity.id === entityId);
     }, [item?.entities, entityId]);
 
-    const { data: entityAsset } = useAsset(entity?.assetId);
+    const { data: entityAsset } = useEntityAsset(entity);
 
     if (!item || !entity || !entityAsset || entityIndex === -1) return null;
 
@@ -82,7 +82,7 @@ export const ItemEntity = forwardRef<
             entityAsset.originalWidth ? (
               <>
                 {" "}
-                <Badge>
+                <Badge variant="primary">
                   {entityAsset.originalWidth}×{entityAsset.originalHeight}
                 </Badge>
               </>
@@ -136,7 +136,7 @@ export const ItemEntityDragOverlay = forwardRef<
       return item?.entities.find((entity) => entity.id === entityId);
     }, [item?.entities, entityId]);
 
-    const { data: entityAsset } = useAsset(entity?.assetId);
+    const { data: entityAsset } = useEntityAsset(entity);
 
     if (!item || !entity || !entityAsset) return null;
 

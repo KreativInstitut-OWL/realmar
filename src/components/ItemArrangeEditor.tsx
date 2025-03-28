@@ -2,7 +2,17 @@ import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
 } from "@/lib/render";
-import { Asset, Entity, Item, useAsset } from "@/store";
+import {
+  assertIsEntityModel,
+  assertIsEntityVideo,
+  Asset,
+  Entity,
+  isEntityImage,
+  isEntityModel,
+  isEntityVideo,
+  Item,
+  useEntityAsset,
+} from "@/store";
 import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
   Edges,
@@ -32,7 +42,7 @@ import { GeneratedTarget } from "./GeneratedTarget";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
-const ImageAsset = forwardRef<
+const EntityImageComponent = forwardRef<
   THREE.Mesh,
   { asset: Asset; children: React.ReactNode }
 >(({ asset, children }, ref) => {
@@ -54,10 +64,14 @@ const ImageAsset = forwardRef<
   );
 });
 
-const VideoAsset = forwardRef<
+const EntityVideoComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset; children: React.ReactNode }
->(({ asset, children }, ref) => {
+  { asset: Asset; entity: Entity; children: React.ReactNode }
+>(({ asset, entity, children }, ref) => {
+  assertIsEntityVideo(entity);
+
+  // const { autoplay, loop, muted } = entity;
+
   const texture = useVideoTexture(asset.src);
 
   if (!texture) {
@@ -73,12 +87,16 @@ const VideoAsset = forwardRef<
   );
 });
 
-const GltfAsset = forwardRef<
+const EntityModelComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset; modelPlayAnimation: boolean; children: React.ReactNode }
->(({ asset, modelPlayAnimation, children }, ref) => {
+  { asset: Asset; entity: Entity; children: React.ReactNode }
+>(({ asset, entity, children }, ref) => {
+  assertIsEntityModel(entity);
+
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
+
+  const { playAnimation } = entity;
 
   useEffect(() => {
     if (!asset.file) return;
@@ -110,14 +128,14 @@ const GltfAsset = forwardRef<
   }, [asset]);
 
   useEffect(() => {
-    if (!modelPlayAnimation && mixer) {
+    if (!playAnimation && mixer) {
       mixer.setTime(0);
       mixer.update(0);
     }
-  }, [modelPlayAnimation, mixer]);
+  }, [playAnimation, mixer]);
 
   useFrame((_, delta) => {
-    if (modelPlayAnimation && mixer) {
+    if (playAnimation && mixer) {
       mixer.update(delta);
     }
   });
@@ -176,31 +194,22 @@ const PlaceholderAsset = forwardRef<THREE.Mesh, { children: React.ReactNode }>(
   }
 );
 
-function useAssetComponent(asset: Asset | null) {
-  const assetFileType = asset?.file?.type;
-
+function useEntityComponent(entity: Entity) {
   return useMemo(() => {
-    if (!assetFileType) {
-      return PlaceholderAsset;
+    if (isEntityImage(entity)) {
+      return EntityImageComponent;
     }
-
-    if (assetFileType.startsWith("image/")) {
-      return ImageAsset;
+    if (isEntityVideo(entity)) {
+      return EntityVideoComponent;
     }
-
-    if (assetFileType.startsWith("video/")) {
-      return VideoAsset;
+    if (isEntityModel(entity)) {
+      return EntityModelComponent;
     }
-
-    if (assetFileType.startsWith("model/gltf")) {
-      return GltfAsset;
-    }
-
     return PlaceholderAsset;
-  }, [assetFileType]);
+  }, [entity]);
 }
 
-function TransformableAsset({
+function TransformableEntity({
   entity,
   onTransformChange,
   isSelected,
@@ -211,9 +220,9 @@ function TransformableAsset({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  const { lookAtCamera, transform, modelPlayAnimation } = entity;
+  const { lookAtCamera, transform } = entity;
 
-  const { data: asset } = useAsset(entity.assetId);
+  const { data: asset } = useEntityAsset(entity);
 
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
@@ -248,7 +257,7 @@ function TransformableAsset({
     }
   });
 
-  const AssetComponent = useAssetComponent(asset);
+  const EntityComponent = useEntityComponent(entity);
 
   return (
     <group onClick={() => onSelect()}>
@@ -271,11 +280,7 @@ function TransformableAsset({
         disableScaling
         axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
       >
-        <AssetComponent
-          asset={asset!}
-          modelPlayAnimation={modelPlayAnimation}
-          ref={meshRef}
-        >
+        <EntityComponent asset={asset!} entity={entity} ref={meshRef}>
           <Edges
             visible={isSelected}
             scale={1.1}
@@ -283,7 +288,7 @@ function TransformableAsset({
             color="#999"
             lineWidth={1.25}
           />
-        </AssetComponent>
+        </EntityComponent>
       </PivotControls>
     </group>
   );
@@ -407,7 +412,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
           }
 
           return (
-            <TransformableAsset
+            <TransformableEntity
               key={entity.id}
               entity={entity}
               isSelected={entity.id === props.selectedEntityId}

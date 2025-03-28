@@ -44,7 +44,11 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
 function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
   return (
     <a-scene
-      mindar-image={toAttrs({ imageTargetSrc: "targets.mind" })}
+      mindar-image={toAttrs({
+        imageTargetSrc: "targets.mind",
+        filterMinCF: 0.00001,
+        filterBeta: 1000,
+      })}
       vr-mode-ui={toAttrs({ enabled: false })}
       device-orientation-permission-ui={toAttrs({ enabled: false })}
     >

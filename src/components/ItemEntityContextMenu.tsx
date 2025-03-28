@@ -10,7 +10,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { getItemName } from "@/lib/item";
-import { Entity, Item, useAsset, useStore } from "@/store";
+import { Entity, Item, useEntityAsset, useStore } from "@/store";
 import * as FileStore from "@/store/file-store";
 import {
   ArrowDown,
@@ -36,7 +36,7 @@ export const ItemEntityContextMenu = forwardRef<
     (state) => state.sendItemEntitiesToItem
   );
   const items = useStore((state) => state.items);
-  const { data: asset } = useAsset(entity.assetId);
+  const { data: asset } = useEntityAsset(entity);
 
   const isMultipleSelected = selectedEntityIds.length > 1;
 

@@ -1,13 +1,19 @@
 import { radiansToDegrees } from "@/lib/math";
 import {
   composeMatrix4WithMatrixComponentAndComponent,
-  decomposeMatrix4,
-  DEFAULT_TRANSFORM,
   MatrixComponent,
   QuaternionComponent,
+  useDecomposeMatrix4,
   Vector3Component,
 } from "@/lib/three";
-import { useAsset, useCurrentItem, useStore } from "@/store";
+import {
+  Entity,
+  isEntityModel,
+  isEntityVideo,
+  Item,
+  useEntityAsset,
+  useStore,
+} from "@/store";
 import {
   ArrowRightToLine,
   Link2,
@@ -20,7 +26,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { FormControlNumber } from "./FormControlNumber";
 import {
   FormControl,
@@ -34,48 +40,49 @@ import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Toggle } from "./ui/toggle";
 
-export function ItemArrangeControls() {
-  const setItemEntity = useStore((state) => state.setItemEntity);
-  const item = useCurrentItem();
-  const currentEntity = item?.entityNavigation.current;
-  const { data: currentEntityAsset } = useAsset(currentEntity?.assetId);
+export function EntityProperties({
+  item,
+  entity,
+}: {
+  item: Item;
+  entity: Entity;
+}) {
+  const { data: asset } = useEntityAsset(entity);
 
-  const currentEntityAssetType = currentEntityAsset?.file.type;
+  const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
-  const currentEntityIsModel = currentEntityAssetType?.startsWith("model/");
-  const currentEntityIsVideo = currentEntityAssetType?.startsWith("video/");
-
-  const { position, rotation, scale } = useMemo(
-    () => decomposeMatrix4(currentEntity?.transform ?? DEFAULT_TRANSFORM),
-    [currentEntity?.transform]
+  const updateEntity = useCallback(
+    (updatePayload: Partial<Entity>) => {
+      if (!item.id || !entity.id) return;
+      useStore.getState().setItemEntity(item.id, entity.id, updatePayload);
+    },
+    [item.id, entity.id]
   );
 
-  const handleComponentChange = useCallback(
+  const updateEntityTransform = useCallback(
     (
       newValue: number | null,
       component: QuaternionComponent | Vector3Component,
       matrixComponent: MatrixComponent
     ) => {
-      if (typeof newValue !== "number" || !currentEntity?.id) return;
+      if (typeof newValue !== "number") return;
       const newTransform = composeMatrix4WithMatrixComponentAndComponent(
-        currentEntity.transform,
+        entity.transform,
         matrixComponent,
         component,
         newValue,
-        currentEntity.editorScaleUniformly
+        entity.editorScaleUniformly
       );
 
-      setItemEntity(item.id, currentEntity.id, {
-        transform: newTransform.toArray(),
-      });
+      updateEntity({ transform: newTransform.toArray() });
     },
-    [currentEntity, item.id, setItemEntity]
+    [entity.editorScaleUniformly, entity.transform, updateEntity]
   );
 
-  if (!item || !currentEntity || !currentEntityAsset) return null;
+  if (!item || !entity || !asset) return null;
 
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-4">
       {/* Position section */}
       <FormGroup>
         <FormTitle>Position</FormTitle>
@@ -92,7 +99,7 @@ export function ItemArrangeControls() {
               }}
               value={position[component]}
               onChange={(newValue) =>
-                handleComponentChange(newValue, component, "position")
+                updateEntityTransform(newValue, component, "position")
               }
             />
           ))}
@@ -105,14 +112,14 @@ export function ItemArrangeControls() {
           end={
             <Toggle
               size="icon-sm"
-              pressed={currentEntity.lookAtCamera}
+              pressed={entity.lookAtCamera}
               onPressedChange={(lookAtCamera) => {
-                setItemEntity(item.id, currentEntity.id, { lookAtCamera });
+                updateEntity({ lookAtCamera });
               }}
               aria-label="Look at camera"
               tooltip="Look at camera"
             >
-              {currentEntity.lookAtCamera ? <Video /> : <VideoOff />}
+              {entity.lookAtCamera ? <Video /> : <VideoOff />}
             </Toggle>
           }
         >
@@ -130,9 +137,9 @@ export function ItemArrangeControls() {
               }}
               value={radiansToDegrees(rotation[component])}
               onChange={(newValue) =>
-                handleComponentChange(newValue, component, "rotation")
+                updateEntityTransform(newValue, component, "rotation")
               }
-              disabled={currentEntity.lookAtCamera}
+              disabled={entity.lookAtCamera}
             />
           ))}
         </FormRow>
@@ -145,16 +152,16 @@ export function ItemArrangeControls() {
           end={
             <Toggle
               size="icon-sm"
-              pressed={currentEntity.editorScaleUniformly}
+              pressed={entity.editorScaleUniformly}
               onPressedChange={(editorScaleUniformly) => {
-                setItemEntity(item.id, currentEntity.id, {
+                updateEntity({
                   editorScaleUniformly,
                 });
               }}
               aria-label="Scale uniformly"
               tooltip="Scale uniformly"
             >
-              {currentEntity.editorScaleUniformly ? <Link2 /> : <Unlink2 />}
+              {entity.editorScaleUniformly ? <Link2 /> : <Unlink2 />}
             </Toggle>
           }
         >
@@ -170,14 +177,14 @@ export function ItemArrangeControls() {
               }}
               value={scale[component]}
               onChange={(newValue) =>
-                handleComponentChange(newValue, component, "scale")
+                updateEntityTransform(newValue, component, "scale")
               }
-              hidden={component === "z" && !currentEntityIsModel}
+              hidden={component === "z" && !isEntityModel(entity)}
             />
           ))}
         </FormRow>
       </FormGroup>
-      {currentEntityIsModel && (
+      {isEntityModel(entity) && (
         <>
           <Separator />
           <FormGroup>
@@ -187,19 +194,13 @@ export function ItemArrangeControls() {
                 tooltip="Play Animation"
                 aria-label="Play Animation"
                 size="sm"
-                pressed={currentEntity.modelPlayAnimation}
-                onPressedChange={(modelPlayAnimation) => {
-                  setItemEntity(item.id, currentEntity.id, {
-                    modelPlayAnimation,
-                  });
+                pressed={entity.playAnimation}
+                onPressedChange={(playAnimation) => {
+                  updateEntity({ playAnimation });
                 }}
               >
-                {currentEntity.modelPlayAnimation ? (
-                  <PlayCircle />
-                ) : (
-                  <PauseCircle />
-                )}{" "}
-                Play Animation
+                {entity.playAnimation ? <PlayCircle /> : <PauseCircle />} Play
+                Animation
               </Toggle>
             </FormRow>
             <FormRow>
@@ -207,12 +208,10 @@ export function ItemArrangeControls() {
                 <FormControl>
                   <Switch
                     size="sm"
-                    onCheckedChange={(modelPlayAnimation) => {
-                      setItemEntity(item.id, currentEntity.id, {
-                        modelPlayAnimation,
-                      });
+                    onCheckedChange={(playAnimation) => {
+                      updateEntity({ playAnimation });
                     }}
-                    checked={currentEntity.modelPlayAnimation}
+                    checked={entity.playAnimation}
                   />
                 </FormControl>
                 <FormLabel>Play Animation</FormLabel>
@@ -222,7 +221,7 @@ export function ItemArrangeControls() {
         </>
       )}
 
-      {currentEntityIsVideo && (
+      {isEntityVideo(entity) && (
         <>
           <Separator />
           <FormGroup>
@@ -232,42 +231,34 @@ export function ItemArrangeControls() {
                 tooltip="Autoplay"
                 aria-label="Autoplay"
                 size="sm"
-                pressed={currentEntity.videoAutoplay}
-                onPressedChange={(videoAutoplay) => {
-                  setItemEntity(item.id, currentEntity.id, {
-                    videoAutoplay,
-                  });
+                pressed={entity.autoplay}
+                onPressedChange={(autoplay) => {
+                  updateEntity({ autoplay });
                 }}
               >
-                {currentEntity.videoAutoplay ? <PlayCircle /> : <PauseCircle />}{" "}
-                Autoplay
+                {entity.autoplay ? <PlayCircle /> : <PauseCircle />} Autoplay
               </Toggle>
               <Toggle
                 tooltip="Muted"
                 aria-label="Muted"
                 size="sm"
-                pressed={currentEntity.videoMuted}
-                onPressedChange={(videoMuted) => {
-                  setItemEntity(item.id, currentEntity.id, {
-                    videoMuted,
-                  });
+                pressed={entity.muted}
+                onPressedChange={(muted) => {
+                  updateEntity({ muted });
                 }}
               >
-                {currentEntity.videoMuted ? <VolumeX /> : <Volume2 />} Muted
+                {entity.muted ? <VolumeX /> : <Volume2 />} Muted
               </Toggle>
               <Toggle
                 tooltip="Loop"
                 aria-label="Loop"
                 size="sm"
-                pressed={currentEntity.videoLoop}
-                onPressedChange={(videoLoop) => {
-                  setItemEntity(item.id, currentEntity.id, {
-                    videoLoop,
-                  });
+                pressed={entity.loop}
+                onPressedChange={(loop) => {
+                  updateEntity({ loop });
                 }}
               >
-                {currentEntity.videoLoop ? <Repeat /> : <ArrowRightToLine />}{" "}
-                Loop
+                {entity.loop ? <Repeat /> : <ArrowRightToLine />} Loop
               </Toggle>
             </FormRow>
             <FormRow>
@@ -275,12 +266,10 @@ export function ItemArrangeControls() {
                 <FormControl>
                   <Switch
                     size="sm"
-                    onCheckedChange={(videoAutoplay) => {
-                      setItemEntity(item.id, currentEntity.id, {
-                        videoAutoplay,
-                      });
+                    onCheckedChange={(autoplay) => {
+                      updateEntity({ autoplay });
                     }}
-                    checked={currentEntity.videoAutoplay}
+                    checked={entity.autoplay}
                   />
                 </FormControl>
                 <FormLabel>Autoplay</FormLabel>
@@ -291,13 +280,10 @@ export function ItemArrangeControls() {
                 <FormControl>
                   <Switch
                     size="sm"
-                    onCheckedChange={(videoMuted) => {
-                      setItemEntity(item.id, currentEntity.id, {
-                        videoMuted,
-                      });
-                      // when setting muted to false
+                    onCheckedChange={(muted) => {
+                      updateEntity({ muted });
                     }}
-                    checked={currentEntity.videoMuted}
+                    checked={entity.muted}
                   />
                 </FormControl>
                 <FormLabel>Muted</FormLabel>
@@ -308,12 +294,10 @@ export function ItemArrangeControls() {
                 <FormControl>
                   <Switch
                     size="sm"
-                    onCheckedChange={(videoLoop) => {
-                      setItemEntity(item.id, currentEntity.id, {
-                        videoLoop,
-                      });
+                    onCheckedChange={(loop) => {
+                      updateEntity({ loop });
                     }}
-                    checked={currentEntity.videoLoop}
+                    checked={entity.loop}
                   />
                 </FormControl>
                 <FormLabel>Loop</FormLabel>

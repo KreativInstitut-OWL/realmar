@@ -1,9 +1,12 @@
+import { useMemo } from "react";
 import * as THREE from "three";
 import { degreesToRadians } from "./math";
 
 export function decomposeMatrix4(
-  matrixData: THREE.Matrix4Tuple | THREE.Matrix4
+  matrixData?: THREE.Matrix4Tuple | THREE.Matrix4
 ) {
+  matrixData = matrixData ?? DEFAULT_TRANSFORM;
+
   const matrix = Array.isArray(matrixData)
     ? new THREE.Matrix4().fromArray(matrixData)
     : matrixData.clone();
@@ -17,6 +20,10 @@ export function decomposeMatrix4(
 
   return { position, scale, quaternion, rotation, matrix };
 }
+
+export const useDecomposeMatrix4 = (
+  matrixData?: THREE.Matrix4Tuple | THREE.Matrix4
+) => useMemo(() => decomposeMatrix4(matrixData), [matrixData]);
 
 // prettier-ignore
 export const DEFAULT_TRANSFORM: THREE.Matrix4Tuple = [

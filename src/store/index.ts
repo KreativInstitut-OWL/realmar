@@ -107,38 +107,199 @@ export async function createAsset({
 
 const DEFAULT_CAMERA_POSITION: THREE.Vector3Tuple = [2, 2, 2];
 
-export type Entity = {
+export type EntityBase = {
   id: string;
-  assetId: string;
   transform: THREE.Matrix4Tuple;
+
+  // batchar aframe components
   lookAtCamera: boolean;
-
-  // model properties
-  modelPlayAnimation: boolean;
-
-  // video properties
-  videoAutoplay: boolean;
-  videoMuted: boolean;
-  videoLoop: boolean;
 
   // editor state (these have no effect for the export)
   editorScaleUniformly: boolean;
 };
 
+export type EntityBaseWithAsset = EntityBase & {
+  assetId: string;
+};
+
+export type EntityNull = EntityBase & {
+  type: "null";
+};
+
+export type EntityImage = EntityBaseWithAsset & {
+  type: "image";
+};
+
+export type EntityVideo = EntityBaseWithAsset & {
+  type: "video";
+  autoplay: boolean;
+  muted: boolean;
+  loop: boolean;
+};
+
+export type EntityModel = EntityBaseWithAsset & {
+  type: "model";
+  playAnimation: boolean;
+};
+
+export type EntityText = EntityBase & {
+  type: "text";
+  text: string;
+  fontSize: number;
+  fontColor: string;
+  extrude: number;
+};
+
+export type Entity =
+  | EntityNull
+  | EntityImage
+  | EntityVideo
+  | EntityModel
+  | EntityText;
+
+export type EntityWithAsset = EntityImage | EntityVideo | EntityModel;
+
+// Helper type for entities that require an assetId
+export type EntityWithAssetType = EntityWithAsset["type"];
+
+// Overload for asset-based entities (requires assetId)
+function createEntity<T extends EntityWithAssetType>(
+  props: { type: T; assetId: string } & Partial<
+    Omit<Extract<Entity, { type: T }>, "id" | "type" | "assetId">
+  >
+): Extract<Entity, { type: T }>;
+
+// Text entity overload
 function createEntity(
-  props: Partial<Omit<Entity, "id">> & { assetId: string }
-): Entity {
-  return {
+  props: { type: "text" } & Partial<Omit<EntityText, "id" | "type">>
+): EntityText;
+
+// Null entity overload
+function createEntity(
+  props?: { type?: "null" } & Partial<Omit<EntityNull, "id" | "type">>
+): EntityNull;
+
+// Implementation
+function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
+  const { type = "null", ...restProps } = props;
+
+  // Base entity properties common to all types
+  const baseEntity: EntityBase = {
     id: nanoid(5),
     transform: DEFAULT_TRANSFORM,
     lookAtCamera: false,
-    modelPlayAnimation: false,
-    videoAutoplay: true,
-    videoMuted: true,
-    videoLoop: true,
-    editorScaleUniformly: false,
-    ...props,
+    editorScaleUniformly: true,
   };
+
+  switch (type) {
+    case "image":
+      return {
+        ...baseEntity,
+        type: "image",
+        assetId: (props as EntityBaseWithAsset).assetId, // The overload ensures assetId is present
+        ...restProps,
+      } as EntityImage;
+
+    case "video":
+      return {
+        ...baseEntity,
+        type: "video",
+        assetId: (props as EntityBaseWithAsset).assetId, // The overload ensures assetId is present
+        autoplay: true,
+        muted: true,
+        loop: true,
+        ...restProps,
+      } as EntityVideo;
+
+    case "model":
+      return {
+        ...baseEntity,
+        type: "model",
+        assetId: (props as EntityBaseWithAsset).assetId, // The overload ensures assetId is present
+        playAnimation: false,
+        ...restProps,
+      } as EntityModel;
+
+    case "text":
+      return {
+        ...baseEntity,
+        type: "text",
+        text: "",
+        fontSize: 1,
+        fontColor: "#ffffff",
+        extrude: 0,
+        ...restProps,
+      } as EntityText;
+
+    case "null":
+    default:
+      return {
+        ...baseEntity,
+        type: "null",
+        ...restProps,
+      } as EntityNull;
+  }
+}
+
+export function isEntityWithAsset(entity: Entity): entity is EntityWithAsset {
+  return (
+    entity.type === "image" ||
+    entity.type === "video" ||
+    entity.type === "model"
+  );
+}
+export function isEntityNull(entity: Entity): entity is EntityNull {
+  return entity.type === "null";
+}
+export function assertIsEntityNull(
+  entity: Entity
+): asserts entity is EntityNull {
+  if (entity.type !== "null") throw new Error("Entity is not of type 'null'");
+}
+export function isEntityText(entity: Entity): entity is EntityText {
+  return entity.type === "text";
+}
+export function assertIsEntityText(
+  entity: Entity
+): asserts entity is EntityText {
+  if (entity.type !== "text") throw new Error("Entity is not of type 'text'");
+}
+export function isEntityVideo(entity: Entity): entity is EntityVideo {
+  return entity.type === "video";
+}
+export function assertIsEntityVideo(
+  entity: Entity
+): asserts entity is EntityVideo {
+  if (entity.type !== "video") throw new Error("Entity is not of type 'video'");
+}
+export function isEntityImage(entity: Entity): entity is EntityImage {
+  return entity.type === "image";
+}
+export function assertIsEntityImage(
+  entity: Entity
+): asserts entity is EntityImage {
+  if (entity.type !== "image") throw new Error("Entity is not of type 'image'");
+}
+export function isEntityModel(entity: Entity): entity is EntityModel {
+  return entity.type === "model";
+}
+export function assertIsEntityModel(
+  entity: Entity
+): asserts entity is EntityModel {
+  if (entity.type !== "model") throw new Error("Entity is not of type 'model'");
+}
+
+export function inferEntityTypeFromAsset(asset: Asset): EntityWithAssetType {
+  if (asset.file.type.startsWith("image/")) {
+    return "image";
+  }
+  if (asset.file.type.startsWith("video/")) {
+    return "video";
+  }
+  if (asset.file.type.startsWith("model/")) {
+    return "model";
+  }
+  throw new Error(`Unsupported asset type: ${asset.file.type}`);
 }
 
 export type Item = {
@@ -302,6 +463,7 @@ export const useStore = create<AppState>()(
           }
 
           for (const entity of item.entities) {
+            if (!isEntityWithAsset(entity)) continue;
             await FileStore.del(entity.assetId);
           }
 
@@ -433,7 +595,10 @@ export const useStore = create<AppState>()(
           for (const file of files) {
             const asset = await createAsset({ file });
             await FileStore.add(asset);
-            const entity = createEntity({ assetId: asset.id });
+            const entity = createEntity({
+              type: inferEntityTypeFromAsset(asset),
+              assetId: asset.id,
+            });
 
             newEntities.push(entity);
           }
@@ -453,7 +618,9 @@ export const useStore = create<AppState>()(
             [];
 
           await Promise.all(
-            entities.map((entity) => FileStore.del(entity.assetId))
+            entities
+              .filter((entity) => isEntityWithAsset(entity))
+              .map((entity) => FileStore.del(entity.assetId))
           );
 
           set((state) => {
@@ -519,4 +686,9 @@ export function useAsset(assetId: string | null | undefined) {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+}
+
+export function useEntityAsset(entity: Entity | null | undefined) {
+  const assetId = entity && isEntityWithAsset(entity) ? entity.assetId : null;
+  return useAsset(assetId);
 }

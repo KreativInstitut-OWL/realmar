@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useAsset, useCurrentItem, useStore } from "@/store";
 import { forwardRef, HTMLAttributes } from "react";
-import { ItemArrangeControls } from "./ItemArrangeControls";
+import { EntityProperties } from "./EntityProperties";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemEntityList } from "./ItemEntityList";
 import {
@@ -19,19 +19,18 @@ import {
 export const ItemArrange = forwardRef<
   HTMLDivElement,
   HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+>(({ className, style, ...props }, ref) => {
   const setItem = useStore((state) => state.setItem);
   const setItemEntity = useStore((state) => state.setItemEntity);
 
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
-  const { data: currentEntityAsset } = useAsset(currentEntity?.assetId);
 
   const { data: targetAsset } = useAsset(item?.targetAssetId);
 
   if (!item) return null;
 
-  if (!currentEntityAsset || !currentEntity) {
+  if (!currentEntity) {
     return <div>Please add entities to this item.</div>;
   }
 
@@ -41,6 +40,7 @@ export const ItemArrange = forwardRef<
         "h-[calc(100vh-var(--header-height))] min-h-0 w-full relative overflow-clip",
         className
       )}
+      style={{ "--sidebar-width": "340px", ...style } as React.CSSProperties}
       {...props}
       ref={ref}
     >
@@ -67,7 +67,7 @@ export const ItemArrange = forwardRef<
       <Sidebar
         side="right"
         // variant="floating"
-        className="top-16 bottom-0 h-auto [--sidebar-width:320px]"
+        className="top-16 bottom-0 h-auto"
       >
         <SidebarHeader>Properties</SidebarHeader>
         <SidebarContent>
@@ -90,7 +90,7 @@ export const ItemArrange = forwardRef<
             <SidebarSeparator className="my-2" />
             <SidebarGroupContent className="px-1.5 md:px-0">
               <SidebarGroupLabel>Entity Properties</SidebarGroupLabel>
-              <ItemArrangeControls />
+              <EntityProperties item={item} entity={currentEntity} />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
