@@ -32,7 +32,7 @@ export function ItemTarget() {
           <div className="absolute rounded-full p-2 bg-primary opacity-0 group-hover:opacity-100 transition-opacity">
             <ImagePlusIcon className="size-5" />
           </div>
-          <DropzoneDragAcceptContent className="grid aspect-square place-items-center absolute inset-0 bg-white/70 backdrop-blur-sm">
+          <DropzoneDragAcceptContent className="grid aspect-square place-items-center absolute inset-0 bg-white/70 backdrop-blur-xs">
             Replace marker…
           </DropzoneDragAcceptContent>
         </Dropzone>

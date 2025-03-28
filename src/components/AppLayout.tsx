@@ -24,11 +24,11 @@ function AppLayout() {
   return (
     <SidebarProvider
       style={{ "--sidebar-width": "320px" } as React.CSSProperties}
-      className="[--header-height:64px] "
+      className="[--header-height:64px]"
     >
       <AppSidebar />
       <SidebarInset>
-        <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-white px-4 h-[--header-height] z-10">
+        <header className="sticky top-0 flex shrink-0 items-center gap-2 border-b bg-white px-4 h-(--header-height) z-10">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
 

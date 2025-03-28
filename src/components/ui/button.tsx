@@ -9,12 +9,12 @@ import { TooltipTrigger } from "@radix-ui/react-tooltip";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded text-sm font-medium cursor-pointer",
-    "ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium cursor-pointer",
+    "ring-offset-white ring-offset-4 ring-0 ring-white transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-black",
     "disabled:pointer-events-none disabled:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
     // support for being a toggle button
-    "data-[state=on]:!bg-blue-100 data-[state=on]:!text-blue-900",
+    "data-[state=on]:bg-blue-100! data-[state=on]:text-blue-900!",
   ],
   {
     variants: {

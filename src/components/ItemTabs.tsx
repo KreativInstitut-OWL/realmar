@@ -19,7 +19,7 @@ export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
           editorCurrentTab: value as "target" | "entities" | "arrange",
         })
       }
-      className="flex-grow h-full"
+      className="grow h-full"
     >
       {itemHeader
         ? createPortal(

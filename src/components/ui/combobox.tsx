@@ -132,7 +132,7 @@ export function Combobox<
     <ComboboxContext.Provider value={contextValue}>
       <Popover open={open} onOpenChange={setOpen}>
         {typeof children === "function" ? children(contextValue) : children}
-        <PopoverContent className="p-0 w-max min-w-[--radix-popover-trigger-width]">
+        <PopoverContent className="p-0 w-max min-w-(--radix-popover-trigger-width)">
           <Command>
             <CommandInput placeholder={inputPlaceholder} />
             <CommandEmpty>{empty}</CommandEmpty>

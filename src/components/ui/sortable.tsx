@@ -66,7 +66,7 @@ function SortableItem({
       <Slot
         ref={setNodeRef}
         style={style}
-        className={cn("data-[is-dragging]:opacity-0", className)}
+        className={cn("data-is-dragging:opacity-0", className)}
         data-is-dragging={isDragging ? "" : undefined}
         {...(withDragHandle ? {} : attributes)}
         {...(withDragHandle ? {} : listeners)}

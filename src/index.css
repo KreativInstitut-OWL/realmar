@@ -1,6 +1,68 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin 'tailwindcss-animate';
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/container-queries';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --font-sans: T-StarTW, sans-serif;
+
+  --color-primary-50: #edffe4;
+  --color-primary-100: #d6ffc5;
+  --color-primary-200: #b0ff92;
+  --color-primary-300: #7dff52;
+  --color-primary-400: #55fc27;
+  --color-primary-500: #2de300;
+  --color-primary-600: #1eb600;
+  --color-primary-700: #188902;
+  --color-primary-800: #176c08;
+  --color-primary-900: #175b0c;
+  --color-primary-950: #053300;
+  --color-primary: #55fc27;
+
+  --color-grey-50: #f7f7f7;
+  --color-grey-100: #e6e6e6;
+  --color-grey-200: #dfdfdf;
+  --color-grey-300: #c8c8c8;
+  --color-grey-400: #a7a7a7;
+  --color-grey-500: #999999;
+  --color-grey-600: #888888;
+  --color-grey-700: #7b7b7b;
+  --color-grey-800: #676767;
+  --color-grey-900: #545454;
+  --color-grey-950: #363636;
+  --color-grey: #e6e6e6;
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+}
+
+/*
+  The default border color has changed to `currentColor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
 @layer base {
   @font-face {
     font-family: "T-StarTW";
