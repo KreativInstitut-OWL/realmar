@@ -75,8 +75,8 @@ const VideoAsset = forwardRef<
 
 const GltfAsset = forwardRef<
   THREE.Mesh,
-  { asset: Asset; playAnimation: boolean; children: React.ReactNode }
->(({ asset, playAnimation, children }, ref) => {
+  { asset: Asset; modelPlayAnimation: boolean; children: React.ReactNode }
+>(({ asset, modelPlayAnimation, children }, ref) => {
   const [gltf, setGltf] = useState<GLTF>();
   const [mixer, setMixer] = useState<THREE.AnimationMixer>();
 
@@ -110,14 +110,14 @@ const GltfAsset = forwardRef<
   }, [asset]);
 
   useEffect(() => {
-    if (!playAnimation && mixer) {
+    if (!modelPlayAnimation && mixer) {
       mixer.setTime(0);
       mixer.update(0);
     }
-  }, [playAnimation, mixer]);
+  }, [modelPlayAnimation, mixer]);
 
   useFrame((_, delta) => {
-    if (playAnimation && mixer) {
+    if (modelPlayAnimation && mixer) {
       mixer.update(delta);
     }
   });
@@ -211,7 +211,7 @@ function TransformableAsset({
   isSelected: boolean;
   onSelect: () => void;
 }) {
-  const { lookAtCamera, transform, playAnimation } = entity;
+  const { lookAtCamera, transform, modelPlayAnimation } = entity;
 
   const { data: asset } = useAsset(entity.assetId);
 
@@ -273,7 +273,7 @@ function TransformableAsset({
       >
         <AssetComponent
           asset={asset!}
-          playAnimation={playAnimation}
+          modelPlayAnimation={modelPlayAnimation}
           ref={meshRef}
         >
           <Edges
@@ -345,7 +345,7 @@ interface ItemArrangeEditorProps {
   // lookAtCamera: boolean;
   // transform: THREE.Matrix4Tuple;
   onTransformChange: (transform: THREE.Matrix4Tuple) => void;
-  // playAnimation: boolean;
+  // modelPlayAnimation: boolean;
   // asset: Asset | null;
   entities: Entity[];
   selectedEntityId: string | null;

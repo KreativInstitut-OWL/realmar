@@ -112,7 +112,17 @@ export type Entity = {
   assetId: string;
   transform: THREE.Matrix4Tuple;
   lookAtCamera: boolean;
-  playAnimation: boolean;
+
+  // model properties
+  modelPlayAnimation: boolean;
+
+  // video properties
+  videoAutoplay: boolean;
+  videoMuted: boolean;
+  videoLoop: boolean;
+
+  // editor state (these have no effect for the export)
+  editorScaleUniformly: boolean;
 };
 
 function createEntity(
@@ -122,7 +132,11 @@ function createEntity(
     id: nanoid(5),
     transform: DEFAULT_TRANSFORM,
     lookAtCamera: false,
-    playAnimation: false,
+    modelPlayAnimation: false,
+    videoAutoplay: true,
+    videoMuted: true,
+    videoLoop: true,
+    editorScaleUniformly: false,
     ...props,
   };
 }
@@ -138,7 +152,6 @@ export type Item = {
   // editor state (these have no effect for the export)
   editorLinkTransforms: boolean;
   editorPivotControlScale: number;
-  editorScaleUniformly: boolean;
   editorCurrentEntityId: string | null;
   editorCurrentTab: "target" | "entities" | "arrange";
   editorCameraPosition: THREE.Vector3Tuple;
@@ -155,7 +168,6 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
 
     editorLinkTransforms: true,
     editorPivotControlScale: 0.5,
-    editorScaleUniformly: true,
     editorCurrentEntityId: null,
     editorCurrentTab: "target",
     editorCameraPosition: DEFAULT_CAMERA_POSITION,
