@@ -16,6 +16,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { checkboxItemIndicatorVariants } from "./styles/menu";
 
 type ComboboxContextValue = {
   value: string | number | null;
@@ -63,7 +64,7 @@ export function ComboboxTriggerButton({
         {value
           ? options.find((option) => option.value === value)?.label
           : noValue}
-        <ChevronsUpDown className="opacity-30" />
+        <ChevronsUpDown className="text-gray-11" />
       </Button>
     </ComboboxTrigger>
   );
@@ -148,12 +149,17 @@ export function Combobox<
                     disabled={option.disabled}
                   >
                     <div className="flex items-center">{option.label}</div>
-                    <Check
-                      className={cn(
-                        "ml-2 size-4",
-                        value === option.value ? "opacity-100" : "opacity-0"
-                      )}
-                    />
+                    <span
+                      className={checkboxItemIndicatorVariants({
+                        position: "right",
+                      })}
+                    >
+                      <Check
+                        className={cn(
+                          value === option.value ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>

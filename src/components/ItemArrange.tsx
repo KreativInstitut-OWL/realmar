@@ -1,19 +1,28 @@
 import { cn } from "@/lib/utils";
-import { useAsset, useCurrentItem, useStore } from "@/store";
+import { createEntity, useAsset, useCurrentItem, useStore } from "@/store";
+import { FileStack, Plus, Text } from "lucide-react";
 import { forwardRef, HTMLAttributes } from "react";
+import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
 import { ItemEntityList } from "./ItemEntityList";
+import { Button } from "./ui/button";
+import { ControlGroup, ControlLabel } from "./ui/control";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Separator } from "./ui/separator";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarProvider,
-  SidebarSeparator,
 } from "./ui/sidebar";
 
 export const ItemArrange = forwardRef<
@@ -22,6 +31,7 @@ export const ItemArrange = forwardRef<
 >(({ className, style, ...props }, ref) => {
   const setItem = useStore((state) => state.setItem);
   const setItemEntity = useStore((state) => state.setItemEntity);
+  const addItemEntity = useStore((state) => state.addItemEntity);
 
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
@@ -69,28 +79,79 @@ export const ItemArrange = forwardRef<
         // variant="floating"
         className="top-16 bottom-0 h-auto"
       >
-        <SidebarHeader>Properties</SidebarHeader>
+        <SidebarHeader className="sr-only">Properties</SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupContent className="px-1.5 md:px-0 -mx-2 w-[calc(100%+1rem)]">
-              <SidebarGroupLabel>Entities</SidebarGroupLabel>
-              <ItemEntityList
-                variant="compact"
-                onSelectedEntityIdsChange={(ids) => {
-                  setItem(item.id, {
-                    editorCurrentEntityId: ids[0],
-                  });
-                }}
-                canSelectMultipleEntities={false}
-                clearSelectedEntitiesOnOutsideClick={false}
-                selectedEntityIds={[currentEntity.id]}
-                className="max-h-96 overflow-y-scroll"
-              />
+            <SidebarGroupContent>
+              <ControlGroup>
+                <ControlLabel
+                  end={
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          tooltip="Add entity"
+                        >
+                          <Plus />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <FileStack />
+                          Asset(s)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            addItemEntity(
+                              item.id,
+                              createEntity({ type: "text" })
+                            );
+                          }}
+                        >
+                          <Text />
+                          Text
+                        </DropdownMenuItem>
+                        {/* <DropdownMenuItem
+                          onClick={() => {
+                            addItemEntity(
+                              item.id,
+                              createEntity({ type: "null" })
+                            );
+                          }}
+                        >
+                          <Parentheses />
+                          Null
+                        </DropdownMenuItem> */}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  }
+                >
+                  Entities ({item.entities.length})
+                </ControlLabel>
+                <ItemEntityList
+                  variant="compact"
+                  onSelectedEntityIdsChange={(ids) => {
+                    setItem(item.id, {
+                      editorCurrentEntityId: ids[0],
+                    });
+                  }}
+                  canSelectMultipleEntities={false}
+                  clearSelectedEntitiesOnOutsideClick={false}
+                  selectedEntityIds={[currentEntity.id]}
+                  className="max-h-96 overflow-y-scroll -mx-2"
+                />
+              </ControlGroup>
             </SidebarGroupContent>
-            <SidebarSeparator className="my-2" />
-            <SidebarGroupContent className="px-1.5 md:px-0">
-              <SidebarGroupLabel>Entity Properties</SidebarGroupLabel>
-              <EntityProperties item={item} entity={currentEntity} />
+            <Separator className="my-2" />
+            <SidebarGroupContent>
+              <ControlGroup>
+                <ControlLabel end={<EntityIcon entity={currentEntity} />}>
+                  Entity: {currentEntity.name}
+                </ControlLabel>
+                <EntityProperties item={item} entity={currentEntity} />
+              </ControlGroup>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>

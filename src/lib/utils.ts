@@ -19,3 +19,8 @@ export const dateFormatter = Intl.DateTimeFormat("en", {
   hourCycle: "h23",
   formatMatcher: "best fit",
 });
+
+export function uppercaseFirstLetter(string?: string) {
+  if (!string) return "";
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}

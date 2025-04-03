@@ -55,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     setOpen(true);
                     setEditorCurrentView("items");
                   }}
-                  isActive={editorCurrentView === "items"}
+                  // isActive={editorCurrentView === "items"}
                   className="px-2.5 md:px-2"
                 >
                   <Images />

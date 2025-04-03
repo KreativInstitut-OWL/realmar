@@ -1,5 +1,6 @@
 import { EditorView } from "@/const/editorView";
 import { DEFAULT_TRANSFORM } from "@/lib/three";
+import { uppercaseFirstLetter } from "@/lib/utils";
 import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
@@ -109,6 +110,7 @@ const DEFAULT_CAMERA_POSITION: THREE.Vector3Tuple = [2, 2, 2];
 
 export type EntityBase = {
   id: string;
+  name: string;
   transform: THREE.Matrix4Tuple;
 
   // batchar aframe components
@@ -142,12 +144,39 @@ export type EntityModel = EntityBaseWithAsset & {
   playAnimation: boolean;
 };
 
+export type FontDef = {
+  family: string;
+  style: string;
+  path: string;
+};
+
+export const systemFonts = [
+  {
+    family: "Open Sans",
+    style: "Regular",
+    path: "/Open_Sans_Regular.json",
+  },
+  {
+    family: "Open Sans",
+    style: "Bold",
+    path: "/Open_Sans_Bold.json",
+  },
+] as const satisfies FontDef[];
+
+type SystemFont = (typeof systemFonts)[number];
+
 export type EntityText = EntityBase & {
   type: "text";
   text: string;
+  font: SystemFont;
+  curveSegments: number;
+  bevelSize: number;
+  bevelThickness: number;
+  height: number;
+  lineHeight: number;
+  letterSpacing: number;
   fontSize: number;
-  fontColor: string;
-  extrude: number;
+  color: string;
 };
 
 export type Entity =
@@ -163,29 +192,30 @@ export type EntityWithAsset = EntityImage | EntityVideo | EntityModel;
 export type EntityWithAssetType = EntityWithAsset["type"];
 
 // Overload for asset-based entities (requires assetId)
-function createEntity<T extends EntityWithAssetType>(
+export function createEntity<T extends EntityWithAssetType>(
   props: { type: T; assetId: string } & Partial<
     Omit<Extract<Entity, { type: T }>, "id" | "type" | "assetId">
   >
 ): Extract<Entity, { type: T }>;
 
 // Text entity overload
-function createEntity(
+export function createEntity(
   props: { type: "text" } & Partial<Omit<EntityText, "id" | "type">>
 ): EntityText;
 
 // Null entity overload
-function createEntity(
+export function createEntity(
   props?: { type?: "null" } & Partial<Omit<EntityNull, "id" | "type">>
 ): EntityNull;
 
 // Implementation
-function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
+export function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
   const { type = "null", ...restProps } = props;
 
   // Base entity properties common to all types
   const baseEntity: EntityBase = {
     id: nanoid(5),
+    name: uppercaseFirstLetter(type),
     transform: DEFAULT_TRANSFORM,
     lookAtCamera: false,
     editorScaleUniformly: true,
@@ -225,9 +255,15 @@ function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
         ...baseEntity,
         type: "text",
         text: "",
-        fontSize: 1,
-        fontColor: "#ffffff",
-        extrude: 0,
+        font: systemFonts[0],
+        curveSegments: 12,
+        bevelSize: 0,
+        bevelThickness: 0,
+        height: 0,
+        lineHeight: 0.7,
+        letterSpacing: 0,
+        fontSize: 0.1,
+        color: "#ffffff",
         ...restProps,
       } as EntityText;
 
@@ -409,7 +445,8 @@ interface AppState extends BaseAppState {
   setItemTarget: (itemId: string, file: File) => Promise<void>;
   removeItemTarget: (itemId: string) => Promise<void>;
 
-  addItemEntities: (id: string, files: File[]) => Promise<void>;
+  addItemEntity: (itemId: string, entity: Entity) => Promise<void>;
+  addFilesAsItemEntities: (id: string, files: File[]) => Promise<void>;
   removeItemEntities: (itemId: string, entityIds: string[]) => Promise<void>;
 }
 
@@ -589,7 +626,15 @@ export const useStore = create<AppState>()(
           }
         },
 
-        addItemEntities: async (id, files) => {
+        addItemEntity: async (itemId, entity) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            item.entities.push(entity);
+          });
+        },
+
+        addFilesAsItemEntities: async (itemId, files) => {
           const newEntities: Entity[] = [];
 
           for (const file of files) {
@@ -597,6 +642,7 @@ export const useStore = create<AppState>()(
             await FileStore.add(asset);
             const entity = createEntity({
               type: inferEntityTypeFromAsset(asset),
+              name: asset.file.name,
               assetId: asset.id,
             });
 
@@ -604,7 +650,7 @@ export const useStore = create<AppState>()(
           }
 
           set((state) => {
-            const item = state.items.find((item) => item.id === id);
+            const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(...newEntities);
           });

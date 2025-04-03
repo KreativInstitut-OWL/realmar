@@ -1,14 +1,20 @@
-import { byteFormatter, cn, dateFormatter } from "@/lib/utils";
-import { Asset, useEntityAsset, useItem } from "@/store";
-import { FileAxis3d, FileIcon, FileVideo, GripHorizontal } from "lucide-react";
+import {
+  byteFormatter,
+  cn,
+  dateFormatter,
+  uppercaseFirstLetter,
+} from "@/lib/utils";
+import { useEntityAsset, useItem } from "@/store";
+import { GripHorizontal } from "lucide-react";
 import { forwardRef, useMemo } from "react";
+import { EntityIcon } from "./EntityIcon";
 import { ItemEntityContextMenu } from "./ItemEntityContextMenu";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { DragHandle } from "./ui/sortable";
 
 export const ItemEntity = forwardRef<
-  HTMLDivElement,
+  HTMLButtonElement,
   {
     itemId: string;
     entityId: string;
@@ -16,7 +22,7 @@ export const ItemEntity = forwardRef<
     selectedEntityIds: string[];
     isDragging: boolean;
     variant?: "default" | "compact";
-  } & React.HTMLAttributes<HTMLDivElement>
+  } & React.HTMLAttributes<HTMLButtonElement>
 >(
   (
     {
@@ -44,7 +50,7 @@ export const ItemEntity = forwardRef<
 
     const { data: entityAsset } = useEntityAsset(entity);
 
-    if (!item || !entity || !entityAsset || entityIndex === -1) return null;
+    if (!item || !entity || entityIndex === -1) return null;
 
     return (
       <ItemEntityContextMenu
@@ -54,11 +60,16 @@ export const ItemEntity = forwardRef<
         selectedEntityIds={selectedEntityIds}
         asChild
       >
-        <div
+        <button
+          type="button"
+          aria-selected={isEntitySelected ? "true" : undefined}
           className={cn(
-            "flex gap-4 items-center h-14 bg-gray-1 even:bg-gray-2 px-4 transition-colors",
+            "group/entity flex w-full text-left gap-4 items-center h-14 px-4 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
+            // using where to make sure the even style has no special specificity
+            "bg-gray-1 [&:where(:nth-child(even))]:bg-gray-2",
+            "hover:bg-gray-4",
+            "aria-selected:bg-azure-4 aria-selected:hover:bg-azure-5",
             {
-              "bg-azure-3 even:bg-azure-4": isEntitySelected,
               "h-7 text-sm gap-2": variant === "compact",
             },
             className,
@@ -73,13 +84,16 @@ export const ItemEntity = forwardRef<
               "size-6": variant === "compact",
             })}
           >
-            <AssetTypeIcon asset={entityAsset} />
+            <EntityIcon
+              entity={entity}
+              aria-selected={isEntitySelected ? "true" : undefined}
+            />
           </div>
           <div className="grow min-w-0 truncate">
-            {entityAsset.file.name}
+            {entity.name}
             {variant !== "compact" &&
-            entityAsset.originalHeight &&
-            entityAsset.originalWidth ? (
+            entityAsset?.originalHeight &&
+            entityAsset?.originalWidth ? (
               <>
                 {" "}
                 <Badge variant="primary">
@@ -91,14 +105,18 @@ export const ItemEntity = forwardRef<
           {variant !== "compact" && (
             <>
               <div className="w-24 truncate text-gray-11">
-                {getAssetTypeName(entityAsset)}
+                {uppercaseFirstLetter(entity.type)}
               </div>
-              <div className="w-24 truncate text-gray-11">
-                {byteFormatter.format(entityAsset.file.size)}
-              </div>
-              <div className="w-42 truncate text-gray-11 text-right">
-                {dateFormatter.format(entityAsset.updatedAt)}
-              </div>
+              {entityAsset ? (
+                <div className="w-24 truncate text-gray-11">
+                  {byteFormatter.format(entityAsset.file.size)}
+                </div>
+              ) : null}
+              {entityAsset ? (
+                <div className="w-42 truncate text-gray-11 text-right">
+                  {dateFormatter.format(entityAsset.updatedAt)}
+                </div>
+              ) : null}
             </>
           )}
           <DragHandle>
@@ -107,11 +125,16 @@ export const ItemEntity = forwardRef<
               size="icon-sm"
               aria-label="Drag entity"
               className="shrink-0"
+              tabIndex={-1}
+              asChild
+              role="button"
             >
-              <GripHorizontal />
+              <span>
+                <GripHorizontal />
+              </span>
             </Button>
           </DragHandle>
-        </div>
+        </button>
       </ItemEntityContextMenu>
     );
   }
@@ -136,14 +159,13 @@ export const ItemEntityDragOverlay = forwardRef<
       return item?.entities.find((entity) => entity.id === entityId);
     }, [item?.entities, entityId]);
 
-    const { data: entityAsset } = useEntityAsset(entity);
-
-    if (!item || !entity || !entityAsset) return null;
+    if (!item || !entity) return null;
 
     return (
       <div
+        aria-selected="true"
         className={cn(
-          "flex gap-4 items-center h-14 w-full bg-azure-3 px-4 cursor-grabbing",
+          "group/entity flex gap-4 items-center h-14 w-full bg-azure-5 px-4 cursor-grabbing",
           {
             "h-7 text-sm gap-2": variant === "compact",
           },
@@ -157,9 +179,9 @@ export const ItemEntityDragOverlay = forwardRef<
             "size-6": variant === "compact",
           })}
         >
-          <AssetTypeIcon asset={entityAsset} />
+          <EntityIcon entity={entity} aria-selected="true" />
         </div>
-        <div className="min-w-0 truncate">{entityAsset.file.name}</div>
+        <div className="min-w-0 truncate">{entity.name}</div>
         {entitySelectCount > 1 ? <Badge>+{entitySelectCount - 1}</Badge> : null}
         <Button
           className="ml-auto shrink-0"
@@ -173,37 +195,3 @@ export const ItemEntityDragOverlay = forwardRef<
     );
   }
 );
-
-function AssetTypeIcon({ asset }: { asset: Asset }) {
-  if (asset.file.type.startsWith("image/")) {
-    return (
-      <img src={asset.src} alt="" className="size-full p-1 object-contain" />
-    );
-  }
-
-  if (asset.file.type.startsWith("model/")) {
-    return <FileAxis3d className="size-full p-1" />;
-  }
-
-  if (asset.file.type.startsWith("video/")) {
-    return <FileVideo className="size-full p-1" />;
-  }
-
-  return <FileIcon className="size-full p-1" />;
-}
-
-function getAssetTypeName(asset: Asset) {
-  if (asset.file.type.startsWith("image/")) {
-    return "Image";
-  }
-
-  if (asset.file.type.startsWith("model/")) {
-    return "3D Model";
-  }
-
-  if (asset.file.type.startsWith("video/")) {
-    return "Video";
-  }
-
-  return "File";
-}

@@ -4,6 +4,10 @@ import * as React from "react";
 import { ItemEntity, ItemEntityDragOverlay } from "./ItemEntity";
 import { Sortable } from "./ui/sortable";
 import { cn } from "@/lib/utils";
+import {
+  RovingFocusGroup,
+  RovingFocusGroupItem,
+} from "@radix-ui/react-roving-focus";
 
 export function ItemEntityList({
   selectedEntityIds: selectedEntityIdsProp,
@@ -70,56 +74,66 @@ export function ItemEntityList({
   if (!item) return null;
 
   return item?.entities && item?.entities.length > 0 ? (
-    <div className={cn("select-none", className)} ref={listRef}>
-      <Sortable
-        items={item?.entities.map((entity) => ({
-          id: entity.id,
-          node: (
-            <ItemEntity
-              itemId={item.id}
-              entityId={entity.id}
-              onClick={(event) => handleEntityClick(entity.id, event)}
-              onContextMenu={(event) => {
-                if (selectedEntityIds.includes(entity.id)) return;
-                handleEntityClick(entity.id, event);
-              }}
-              isEntitySelected={selectedEntityIds.includes(entity.id)}
-              selectedEntityIds={selectedEntityIds}
-              isDragging={isDragging}
-              variant={variant}
-            />
-          ),
-          dragOverlay: (
-            <ItemEntityDragOverlay
-              itemId={item.id}
-              entityId={entity.id}
-              entitySelectCount={selectedEntityIds.length}
-              variant={variant}
-            />
-          ),
-        }))}
-        onItemMove={(_oldIndex, newIndex) => {
-          moveItemEntities(item.id, selectedEntityIds, newIndex);
-        }}
-        onDragStart={(event) => {
-          setIsDragging(true);
+    <RovingFocusGroup
+      orientation="vertical"
+      onCurrentTabStopIdChange={(id) => {
+        if (id) setSelectedEntityIds([id]);
+      }}
+      asChild
+    >
+      <div className={cn("select-none", className)} ref={listRef}>
+        <Sortable
+          items={item?.entities.map((entity) => ({
+            id: entity.id,
+            node: (
+              <RovingFocusGroupItem tabStopId={entity.id} asChild>
+                <ItemEntity
+                  itemId={item.id}
+                  entityId={entity.id}
+                  onClick={(event) => handleEntityClick(entity.id, event)}
+                  onContextMenu={(event) => {
+                    if (selectedEntityIds.includes(entity.id)) return;
+                    handleEntityClick(entity.id, event);
+                  }}
+                  isEntitySelected={selectedEntityIds.includes(entity.id)}
+                  selectedEntityIds={selectedEntityIds}
+                  isDragging={isDragging}
+                  variant={variant}
+                />
+              </RovingFocusGroupItem>
+            ),
+            dragOverlay: (
+              <ItemEntityDragOverlay
+                itemId={item.id}
+                entityId={entity.id}
+                entitySelectCount={selectedEntityIds.length}
+                variant={variant}
+              />
+            ),
+          }))}
+          onItemMove={(_oldIndex, newIndex) => {
+            moveItemEntities(item.id, selectedEntityIds, newIndex);
+          }}
+          onDragStart={(event) => {
+            setIsDragging(true);
 
-          const { active, activatorEvent } = event;
-          if (!active?.id || typeof active.id !== "string") return;
+            const { active, activatorEvent } = event;
+            if (!active?.id || typeof active.id !== "string") return;
 
-          const entityId = active.id as string;
+            const entityId = active.id as string;
 
-          if (selectedEntityIds.includes(entityId)) return;
+            if (selectedEntityIds.includes(entityId)) return;
 
-          if (isMouseEvent(activatorEvent))
-            handleEntityClick(entityId, activatorEvent);
-        }}
-        onDragEnd={() => {
-          setIsDragging(false);
-        }}
-        withDragHandle
-      />
-    </div>
+            if (isMouseEvent(activatorEvent))
+              handleEntityClick(entityId, activatorEvent);
+          }}
+          onDragEnd={() => {
+            setIsDragging(false);
+          }}
+          withDragHandle
+        />
+      </div>
+    </RovingFocusGroup>
   ) : (
     <div>
       <div className="text-gray-11 text-sm">

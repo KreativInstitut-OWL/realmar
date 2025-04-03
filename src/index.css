@@ -21,7 +21,7 @@
   --color-white: #fff;
 
   --color-gray-1: oklch(1 0 0);
-  --color-gray-2: oklch(0.975 0 0);
+  --color-gray-2: oklch(0.98 0 0);
   --color-gray-3: oklch(0.955 0 0);
   --color-gray-4: oklch(0.925 0 0);
   --color-gray-5: oklch(0.91 0 0);
@@ -166,7 +166,7 @@
   }
 
   * {
-    @apply border-gray-6 ring-lime-9 ring-offset-2 ring-offset-gray-1 underline-offset-[0.15em] decoration-from-font;
+    @apply border-gray-6 ring-azure-8 ring-offset-2 ring-offset-gray-1 underline-offset-[0.15em] decoration-from-font;
   }
 }
 

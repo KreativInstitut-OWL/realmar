@@ -25,7 +25,9 @@ const Toggle = React.forwardRef<
   if (tooltip) {
     return (
       <Tooltip>
-        <TooltipTrigger>{toggle}</TooltipTrigger>
+        <TooltipTrigger tabIndex={-1} asChild>
+          <span>{toggle}</span>
+        </TooltipTrigger>
         <TooltipContent side="bottom">{tooltip}</TooltipContent>
       </Tooltip>
     );

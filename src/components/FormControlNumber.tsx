@@ -11,16 +11,20 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 export const FormControlNumber = forwardRef<
   HTMLInputElement,
   InputNumberProps & { label: ReactNode; description: string }
->(({ label, description, className, ...props }) => {
+>(({ label, description, className, ...props }, ref) => {
   return (
     <Tooltip delayDuration={1000}>
       <FormItem className="flex flex-col space-y-0 gap-1 items-start">
         <FormControl>
-          <InputNumber {...props} className={cn("[&>input]:ps-7", className)}>
+          <InputNumber
+            {...props}
+            ref={ref}
+            className={cn("[&>input]:ps-7", className)}
+          >
             <InputNumberScrubber asChild>
               <TooltipTrigger asChild>
                 <FormLabel
-                  className="w-7 grid items-center ps-2 absolute top-0 bottom-0 text-xs text-gray-11"
+                  className="w-6.5 grid items-center justify-center absolute top-0 bottom-0 text-xs text-gray-11"
                   aria-description={description}
                 >
                   {label}

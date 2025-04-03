@@ -4,11 +4,13 @@ import {
 } from "@/lib/render";
 import {
   assertIsEntityModel,
+  assertIsEntityText,
   assertIsEntityVideo,
   Asset,
   Entity,
   isEntityImage,
   isEntityModel,
+  isEntityText,
   isEntityVideo,
   Item,
   useEntityAsset,
@@ -23,6 +25,7 @@ import {
   OrbitControls,
   PerspectiveCamera,
   PivotControls,
+  Text3D,
   useVideoTexture,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
@@ -31,6 +34,7 @@ import {
   cloneElement,
   forwardRef,
   isValidElement,
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -44,14 +48,20 @@ const EulerNull = new THREE.Euler(0, 0, 0);
 
 const EntityImageComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset; children: React.ReactNode }
+  { asset: Asset | null; children: React.ReactNode }
 >(({ asset, children }, ref) => {
   const texture = useMemo(() => {
-    if (!asset.src) return null;
+    if (!asset?.src) return null;
     return new THREE.TextureLoader().load(asset.src);
-  }, [asset.src]);
+  }, [asset?.src]);
 
-  if (!texture) {
+  useEffect(() => {
+    return () => {
+      if (texture) texture.dispose();
+    };
+  }, [texture]);
+
+  if (!texture || !asset) {
     return null;
   }
 
@@ -66,22 +76,28 @@ const EntityImageComponent = forwardRef<
 
 const EntityVideoComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset; entity: Entity; children: React.ReactNode }
+  { asset: Asset | null; entity: Entity; children: React.ReactNode }
 >(({ asset, entity, children }, ref) => {
   assertIsEntityVideo(entity);
 
   // const { autoplay, loop, muted } = entity;
 
-  const texture = useVideoTexture(asset.src);
+  const texture = useVideoTexture(asset?.src ?? null);
 
-  if (!texture) {
+  useEffect(() => {
+    return () => {
+      if (texture) texture.dispose();
+    };
+  }, [texture]);
+
+  if (!texture || !asset) {
     return null;
   }
 
   return (
     <mesh ref={ref}>
       <planeGeometry args={[asset.width!, asset.height!]} />
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      <meshLambertMaterial map={texture} side={THREE.DoubleSide} />
       {children}
     </mesh>
   );
@@ -89,7 +105,7 @@ const EntityVideoComponent = forwardRef<
 
 const EntityModelComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset; entity: Entity; children: React.ReactNode }
+  { asset: Asset | null; entity: Entity; children: React.ReactNode }
 >(({ asset, entity, children }, ref) => {
   assertIsEntityModel(entity);
 
@@ -99,7 +115,7 @@ const EntityModelComponent = forwardRef<
   const { playAnimation } = entity;
 
   useEffect(() => {
-    if (!asset.file) return;
+    if (!asset?.file) return;
 
     let isMounted = true;
     const reader = new FileReader();
@@ -146,7 +162,7 @@ const EntityModelComponent = forwardRef<
   const meshRef = useRef<THREE.Mesh>(null);
 
   useEffect(() => {
-    if (gltf && !boundingGeometry) {
+    if (!boundingGeometry) {
       const mesh = meshRef.current;
       const scene = mesh?.children[0];
 
@@ -166,7 +182,7 @@ const EntityModelComponent = forwardRef<
         setBoundingGeometry(geometry);
       }
     }
-  }, [boundingGeometry, gltf]);
+  }, [boundingGeometry]);
 
   if (!gltf) {
     return null;
@@ -182,17 +198,89 @@ const EntityModelComponent = forwardRef<
   );
 });
 
-const PlaceholderAsset = forwardRef<THREE.Mesh, { children: React.ReactNode }>(
-  ({ children }, ref) => {
-    return (
-      <mesh ref={ref}>
-        <boxGeometry args={[0.125, 0.125, 0.125]} />
-        <meshBasicMaterial color="#55fc27" />
-        {children}
+const EntityTextComponent = forwardRef<
+  THREE.Mesh,
+  { children: React.ReactNode; entity: Entity }
+>(({ children, entity }, ref) => {
+  assertIsEntityText(entity);
+  const {
+    bevelSize,
+    bevelThickness,
+    color,
+    curveSegments,
+    fontSize,
+    height,
+    letterSpacing,
+    lineHeight,
+    text,
+  } = entity;
+
+  const [boundingGeometry, setBoundingGeometry] =
+    useState<THREE.BufferGeometry>();
+
+  const meshRef = useRef<THREE.Mesh>(null);
+
+  useEffect(() => {
+    void entity;
+
+    const mesh = meshRef.current;
+
+    const scene = mesh?.children[0] as THREE.Mesh;
+
+    if (scene) {
+      const backupMatrix = scene.matrix.clone();
+      scene.matrix.identity();
+      scene.updateMatrixWorld(true);
+
+      scene.geometry.computeBoundingBox();
+      const box = scene.geometry.boundingBox?.clone() ?? new THREE.Box3();
+      const size = box?.getSize(new THREE.Vector3());
+      const center = box?.getCenter(new THREE.Vector3());
+      const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
+      geometry.translate(center.x, center.y, center.z);
+
+      scene.applyMatrix4(backupMatrix);
+      setBoundingGeometry(geometry);
+    }
+  }, [entity]);
+
+  return (
+    <Suspense fallback={null}>
+      <mesh ref={composeRefs(ref, meshRef)}>
+        <Text3D
+          font="Open_Sans_Regular.json"
+          bevelEnabled
+          lineHeight={lineHeight}
+          letterSpacing={letterSpacing}
+          size={fontSize}
+          height={height}
+          curveSegments={curveSegments}
+          bevelSize={bevelSize}
+          bevelThickness={bevelThickness}
+        >
+          {text}
+          <meshLambertMaterial color={color} />
+        </Text3D>
+        {boundingGeometry && isValidElement<EdgesProps>(children)
+          ? cloneElement(children, { geometry: boundingGeometry })
+          : null}
       </mesh>
-    );
-  }
-);
+    </Suspense>
+  );
+});
+
+const EntityPlaceholderComponent = forwardRef<
+  THREE.Mesh,
+  { children: React.ReactNode }
+>(({ children }, ref) => {
+  return (
+    <mesh ref={ref}>
+      <boxGeometry args={[0.125, 0.125, 0.125]} />
+      <meshBasicMaterial color="#55fc27" />
+      {children}
+    </mesh>
+  );
+});
 
 function useEntityComponent(entity: Entity) {
   return useMemo(() => {
@@ -205,7 +293,10 @@ function useEntityComponent(entity: Entity) {
     if (isEntityModel(entity)) {
       return EntityModelComponent;
     }
-    return PlaceholderAsset;
+    if (isEntityText(entity)) {
+      return EntityTextComponent;
+    }
+    return EntityPlaceholderComponent;
   }, [entity]);
 }
 
@@ -220,9 +311,18 @@ function TransformableEntity({
   isSelected: boolean;
   onSelect: () => void;
 }) {
+  const renderCountRef = useRef(0);
+  renderCountRef.current += 1;
+
   const { lookAtCamera, transform } = entity;
 
   const { data: asset } = useEntityAsset(entity);
+
+  // console.log("TransformableEntity render", renderCountRef.current, {
+  //   entityId: entity.id,
+  //   type: entity.type,
+  //   asset,
+  // });
 
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
@@ -384,22 +484,54 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     }
   };
 
-  return (
-    <div className="w-full h-full overflow-clip bg-gray-2">
-      <Canvas>
-        <ambientLight intensity={10} />
-        {/* <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} /> */}
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [canvasKey, setCanvasKey] = useState(0);
+
+  // Set up context loss handler manually
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const handleContextLost = (event: Event) => {
+      console.error("WebGL context lost:", event);
+      event.preventDefault();
+      setCanvasKey((prevKey) => prevKey + 1); // Force a re-render of the canvas
+    };
+
+    const handleContextRestored = () => {
+      console.log("WebGL context restored");
+    };
+
+    canvas.addEventListener("webglcontextlost", handleContextLost);
+    canvas.addEventListener("webglcontextrestored", handleContextRestored);
+
+    return () => {
+      canvas.removeEventListener("webglcontextlost", handleContextLost);
+      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
+    };
+  }, []);
+
+  // console.log("ItemArrangeEditor render");
+
+  return (
+    <div className="w-full h-full overflow-clip bg-gray-2 test">
+      <Canvas ref={canvasRef} key={canvasKey}>
         <PerspectiveCamera
           ref={cameraRef}
           position={props.cameraPosition || [2, 2, 2]}
           makeDefault
+          near={0.01}
         />
         <OrbitControls
           makeDefault
           onStart={handleCameraStart}
           onEnd={handleCameraEnd}
         />
+
+        <ambientLight intensity={2.5} />
+        <directionalLight position={[5, 10, 5]} intensity={5} />
+        <directionalLight position={[0, 0, 10]} intensity={10} />
 
         <MarkerObject id={props.id} src={props.marker?.src} />
 

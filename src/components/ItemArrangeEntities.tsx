@@ -11,7 +11,9 @@ import { Sortable } from "./ui/sortable";
 import * as React from "react";
 
 export function ItemEntities() {
-  const addItemEntities = useStore((state) => state.addItemEntities);
+  const addFilesAsItemEntities = useStore(
+    (state) => state.addFilesAsItemEntities
+  );
   const moveItemEntities = useStore((state) => state.moveItemEntities);
 
   const [selectedEntityIds, setSelectedEntityIds] = React.useState<string[]>(
@@ -58,7 +60,7 @@ export function ItemEntities() {
       <DropzoneProvider
         // accept={{ "image/*": [], "model/*": [".glb"] }}
         onDrop={async (files) => {
-          await addItemEntities(item.id, files);
+          await addFilesAsItemEntities(item.id, files);
         }}
       >
         <Dropzone className="group p-8 mb-12">

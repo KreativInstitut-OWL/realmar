@@ -6,39 +6,37 @@ import {
   useDecomposeMatrix4,
   Vector3Component,
 } from "@/lib/three";
+import { uppercaseFirstLetter } from "@/lib/utils";
 import {
   Entity,
   isEntityModel,
+  isEntityText,
   isEntityVideo,
   Item,
-  useEntityAsset,
+  systemFonts,
   useStore,
 } from "@/store";
 import {
-  ArrowRightToLine,
+  ALargeSmall,
   Link2,
-  PauseCircle,
-  PlayCircle,
-  Repeat,
+  MoveDiagonal,
+  SeparatorHorizontal,
+  SeparatorVertical,
+  SquareRoundCorner,
   Unlink2,
   Video,
   VideoOff,
-  Volume2,
-  VolumeX,
 } from "lucide-react";
 import { useCallback } from "react";
 import { FormControlNumber } from "./FormControlNumber";
-import {
-  FormControl,
-  FormGroup,
-  FormItem,
-  FormLabel,
-  FormRow,
-  FormTitle,
-} from "./ui/form";
+import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
+import { FormControl, FormItem, FormLabel } from "./ui/form";
+import { Input, Textarea } from "./ui/input";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Toggle } from "./ui/toggle";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
+import { SelectValue } from "@radix-ui/react-select";
 
 export function EntityProperties({
   item,
@@ -47,8 +45,6 @@ export function EntityProperties({
   item: Item;
   entity: Entity;
 }) {
-  const { data: asset } = useEntityAsset(entity);
-
   const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
   const updateEntity = useCallback(
@@ -79,14 +75,34 @@ export function EntityProperties({
     [entity.editorScaleUniformly, entity.transform, updateEntity]
   );
 
-  if (!item || !entity || !asset) return null;
+  if (!item || !entity) return null;
 
   return (
     <div className="grid gap-4">
+      <ControlGroup>
+        <ControlLabel level={2}>
+          {uppercaseFirstLetter(entity.type)}
+        </ControlLabel>
+        <FormItem asChild>
+          <ControlRow columns={3}>
+            <FormLabel>Name</FormLabel>
+            <FormControl className="col-span-2">
+              <Input
+                type="text"
+                value={entity.name}
+                onChange={(e) => {
+                  updateEntity({ name: e.target.value });
+                }}
+              />
+            </FormControl>
+          </ControlRow>
+        </FormItem>
+      </ControlGroup>
+
       {/* Position section */}
-      <FormGroup>
-        <FormTitle>Position</FormTitle>
-        <FormRow columns={3}>
+      <ControlGroup>
+        <ControlLabel level={2}>Position</ControlLabel>
+        <ControlRow columns={3}>
           {(["x", "y", "z"] as const).map((component) => (
             <FormControlNumber
               key={component}
@@ -103,11 +119,11 @@ export function EntityProperties({
               }
             />
           ))}
-        </FormRow>
-      </FormGroup>
-      <FormGroup>
-        <FormTitle>Rotation</FormTitle>
-        <FormRow
+        </ControlRow>
+      </ControlGroup>
+      <ControlGroup>
+        <ControlLabel level={2}>Rotation</ControlLabel>
+        <ControlRow
           columns={3}
           end={
             <Toggle
@@ -142,12 +158,12 @@ export function EntityProperties({
               disabled={entity.lookAtCamera}
             />
           ))}
-        </FormRow>
-      </FormGroup>
+        </ControlRow>
+      </ControlGroup>
       {/* Scale section */}
-      <FormGroup>
-        <FormTitle>Scale</FormTitle>
-        <FormRow
+      <ControlGroup>
+        <ControlLabel level={2}>Scale</ControlLabel>
+        <ControlRow
           columns={3}
           end={
             <Toggle
@@ -182,128 +198,231 @@ export function EntityProperties({
               hidden={component === "z" && !isEntityModel(entity)}
             />
           ))}
-        </FormRow>
-      </FormGroup>
+        </ControlRow>
+      </ControlGroup>
+      {/*
+      
+  font: SystemFont;
+  curveSegments: number;
+  bevelSize: number;
+  bevelThickness: number;
+  height: number;
+  lineHeight: number;
+  letterSpacing: number;
+  fontSize: number;
+  color: string;
+  */}
+      {isEntityText(entity) && (
+        <>
+          <Separator />
+          <ControlGroup>
+            <ControlLabel level={2}>Text</ControlLabel>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel>Text</FormLabel>
+                <FormControl className="col-span-2">
+                  <Textarea
+                    value={entity.text}
+                    onChange={(e) => {
+                      updateEntity({ text: e.target.value });
+                    }}
+                    placeholder="Enter text"
+                  />
+                </FormControl>
+              </ControlRow>
+            </FormItem>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel>Font</FormLabel>
+                <Select
+                  value={entity.font?.path}
+                  onValueChange={(value) => {
+                    const font = systemFonts.find(
+                      (font) => font.path === value
+                    );
+                    if (!font) return;
+                    updateEntity({
+                      font,
+                    });
+                  }}
+                >
+                  <FormControl className="col-span-2">
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select font" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {systemFonts.map((font) => (
+                      <SelectItem key={font.path} value={font.path}>
+                        {font.family} {font.style}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ControlRow>
+            </FormItem>
+            <ControlRow columns={3}>
+              <FormControlNumber
+                description="Font Size"
+                label={<ALargeSmall />}
+                step={0.1}
+                min={0.1}
+                max={10}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 2,
+                }}
+                value={entity.fontSize}
+                onChange={(fontSize) => fontSize && updateEntity({ fontSize })}
+              />
+              <FormControlNumber
+                description="Letter Spacing"
+                label={<SeparatorVertical />}
+                step={0.01}
+                min={-5}
+                max={5}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 3,
+                }}
+                value={entity.letterSpacing}
+                onChange={(letterSpacing) =>
+                  letterSpacing && updateEntity({ letterSpacing })
+                }
+              />
+
+              <FormControlNumber
+                description="Line Height"
+                label={<SeparatorHorizontal />}
+                step={0.1}
+                min={0}
+                max={5}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 2,
+                }}
+                value={entity.lineHeight}
+                onChange={(lineHeight) =>
+                  lineHeight && updateEntity({ lineHeight })
+                }
+              />
+            </ControlRow>
+            <ControlRow columns={3}>
+              <FormControlNumber
+                description="Extrude"
+                label={<MoveDiagonal />}
+                step={0.01}
+                min={0}
+                max={10}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 2,
+                }}
+                value={entity.height}
+                onChange={(height) => height && updateEntity({ height })}
+              />
+              <FormControlNumber
+                description="Bevel Size"
+                label={<SquareRoundCorner />}
+                step={0.001}
+                min={0}
+                max={1}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 4,
+                }}
+                value={entity.bevelSize}
+                onChange={(bevelSize) =>
+                  bevelSize && updateEntity({ bevelSize })
+                }
+              />
+              <FormControlNumber
+                description="Bevel Thickness"
+                label={<SeparatorHorizontal />}
+                step={0.001}
+                min={0}
+                max={1}
+                formatOptions={{
+                  style: "decimal",
+                  maximumFractionDigits: 4,
+                }}
+                value={entity.bevelThickness}
+                onChange={(bevelThickness) =>
+                  bevelThickness && updateEntity({ bevelThickness })
+                }
+              />
+            </ControlRow>
+          </ControlGroup>
+        </>
+      )}
+
       {isEntityModel(entity) && (
         <>
           <Separator />
-          <FormGroup>
-            <FormTitle>3D Model</FormTitle>
-            <FormRow className="flex">
-              <Toggle
-                tooltip="Play Animation"
-                aria-label="Play Animation"
-                size="sm"
-                pressed={entity.playAnimation}
-                onPressedChange={(playAnimation) => {
-                  updateEntity({ playAnimation });
-                }}
-              >
-                {entity.playAnimation ? <PlayCircle /> : <PauseCircle />} Play
-                Animation
-              </Toggle>
-            </FormRow>
-            <FormRow>
-              <FormItem className="flex items-center gap-3">
+          <ControlGroup>
+            <ControlLabel level={2}>3D Model</ControlLabel>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel className="col-span-2">Play animation</FormLabel>
                 <FormControl>
                   <Switch
-                    size="sm"
                     onCheckedChange={(playAnimation) => {
                       updateEntity({ playAnimation });
                     }}
                     checked={entity.playAnimation}
                   />
                 </FormControl>
-                <FormLabel>Play Animation</FormLabel>
-              </FormItem>
-            </FormRow>
-          </FormGroup>
+              </ControlRow>
+            </FormItem>
+          </ControlGroup>
         </>
       )}
 
       {isEntityVideo(entity) && (
         <>
           <Separator />
-          <FormGroup>
-            <FormTitle>Video</FormTitle>
-            <FormRow className="flex">
-              <Toggle
-                tooltip="Autoplay"
-                aria-label="Autoplay"
-                size="sm"
-                pressed={entity.autoplay}
-                onPressedChange={(autoplay) => {
-                  updateEntity({ autoplay });
-                }}
-              >
-                {entity.autoplay ? <PlayCircle /> : <PauseCircle />} Autoplay
-              </Toggle>
-              <Toggle
-                tooltip="Muted"
-                aria-label="Muted"
-                size="sm"
-                pressed={entity.muted}
-                onPressedChange={(muted) => {
-                  updateEntity({ muted });
-                }}
-              >
-                {entity.muted ? <VolumeX /> : <Volume2 />} Muted
-              </Toggle>
-              <Toggle
-                tooltip="Loop"
-                aria-label="Loop"
-                size="sm"
-                pressed={entity.loop}
-                onPressedChange={(loop) => {
-                  updateEntity({ loop });
-                }}
-              >
-                {entity.loop ? <Repeat /> : <ArrowRightToLine />} Loop
-              </Toggle>
-            </FormRow>
-            <FormRow>
-              <FormItem className="flex items-center gap-3">
+          <ControlGroup>
+            <ControlLabel level={2}>Video</ControlLabel>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel className="col-span-2">Autoplay</FormLabel>
                 <FormControl>
                   <Switch
-                    size="sm"
                     onCheckedChange={(autoplay) => {
                       updateEntity({ autoplay });
                     }}
                     checked={entity.autoplay}
                   />
                 </FormControl>
-                <FormLabel>Autoplay</FormLabel>
-              </FormItem>
-            </FormRow>
-            <FormRow>
-              <FormItem className="flex items-center gap-3">
+              </ControlRow>
+            </FormItem>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel className="col-span-2">Muted</FormLabel>
                 <FormControl>
                   <Switch
-                    size="sm"
                     onCheckedChange={(muted) => {
                       updateEntity({ muted });
                     }}
                     checked={entity.muted}
                   />
                 </FormControl>
-                <FormLabel>Muted</FormLabel>
-              </FormItem>
-            </FormRow>
-            <FormRow>
-              <FormItem className="flex items-center gap-3">
+              </ControlRow>
+            </FormItem>
+            <FormItem asChild>
+              <ControlRow columns={3}>
+                <FormLabel className="col-span-2">Loop</FormLabel>
                 <FormControl>
                   <Switch
-                    size="sm"
                     onCheckedChange={(loop) => {
                       updateEntity({ loop });
                     }}
                     checked={entity.loop}
                   />
                 </FormControl>
-                <FormLabel>Loop</FormLabel>
-              </FormItem>
-            </FormRow>
-          </FormGroup>
+              </ControlRow>
+            </FormItem>
+          </ControlGroup>
         </>
       )}
 

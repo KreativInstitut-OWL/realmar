@@ -8,7 +8,9 @@ import { useCurrentItem, useStore } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
 
 export function ItemEntityDropzone() {
-  const addItemEntities = useStore((state) => state.addItemEntities);
+  const addFilesAsItemEntities = useStore(
+    (state) => state.addFilesAsItemEntities
+  );
 
   const item = useCurrentItem();
 
@@ -17,7 +19,7 @@ export function ItemEntityDropzone() {
   return (
     <DropzoneProvider
       onDrop={async (files) => {
-        await addItemEntities(item.id, files);
+        await addFilesAsItemEntities(item.id, files);
       }}
     >
       <Dropzone className="group p-8 mb-12">

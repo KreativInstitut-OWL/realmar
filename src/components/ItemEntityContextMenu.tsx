@@ -10,8 +10,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { getItemName } from "@/lib/item";
-import { Entity, Item, useEntityAsset, useStore } from "@/store";
-import * as FileStore from "@/store/file-store";
+import { Entity, Item, useStore } from "@/store";
 import {
   ArrowDown,
   ArrowDownToLine,
@@ -32,11 +31,11 @@ export const ItemEntityContextMenu = forwardRef<
 >(({ item, entity, entityIndex, selectedEntityIds, ...props }, ref) => {
   const removeItemEntities = useStore((state) => state.removeItemEntities);
   const moveItemEntity = useStore((state) => state.moveItemEntity);
+  const setItemEntity = useStore((state) => state.setItemEntity);
   const sendItemEntitiesToItem = useStore(
     (state) => state.sendItemEntitiesToItem
   );
   const items = useStore((state) => state.items);
-  const { data: asset } = useEntityAsset(entity);
 
   const isMultipleSelected = selectedEntityIds.length > 1;
 
@@ -46,7 +45,7 @@ export const ItemEntityContextMenu = forwardRef<
       <ContextMenuContent className="w-48">
         <ContextMenuLabel className="flex items-center gap-2">
           <div className="flex-1 truncate min-w-0">
-            {asset?.file.name ?? "Unknown entity"}{" "}
+            {entity?.name ?? "Unknown entity"}{" "}
           </div>
           {isMultipleSelected ? (
             <Badge>+{selectedEntityIds.length - 1}</Badge>
@@ -66,10 +65,10 @@ export const ItemEntityContextMenu = forwardRef<
           <ContextMenuItem
             disabled={isMultipleSelected}
             onSelect={() => {
-              const oldName = asset?.file.name;
+              const oldName = entity.name;
               const newName = prompt("Enter a new name", oldName);
               if (newName) {
-                FileStore.rename(asset!.id, newName);
+                setItemEntity(item.id, entity.id, { name: newName });
               }
             }}
           >
@@ -86,7 +85,7 @@ export const ItemEntityContextMenu = forwardRef<
                   moveItemEntity(item.id, entityIndex, 0);
                 }}
               >
-                <ArrowUpToLine className="size-4 mr-2" />
+                <ArrowUpToLine />
                 To start
               </ContextMenuItem>
               <ContextMenuItem
@@ -95,7 +94,7 @@ export const ItemEntityContextMenu = forwardRef<
                   moveItemEntity(item.id, entityIndex, entityIndex - 1);
                 }}
               >
-                <ArrowUp className="size-4 mr-2" />
+                <ArrowUp />
                 Up
               </ContextMenuItem>
               <ContextMenuItem
@@ -104,7 +103,7 @@ export const ItemEntityContextMenu = forwardRef<
                   moveItemEntity(item.id, entityIndex, entityIndex + 1);
                 }}
               >
-                <ArrowDown className="size-4 mr-2" />
+                <ArrowDown />
                 Down
               </ContextMenuItem>
               <ContextMenuItem
@@ -117,7 +116,7 @@ export const ItemEntityContextMenu = forwardRef<
                   );
                 }}
               >
-                <ArrowDownToLine className="size-4 mr-2" />
+                <ArrowDownToLine />
                 To end
               </ContextMenuItem>
             </ContextMenuSubContent>
