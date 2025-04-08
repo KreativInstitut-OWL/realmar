@@ -25,6 +25,12 @@ export const useDecomposeMatrix4 = (
   matrixData?: THREE.Matrix4Tuple | THREE.Matrix4
 ) => useMemo(() => decomposeMatrix4(matrixData), [matrixData]);
 
+export const useMatrix4 = (matrixData?: THREE.Matrix4Tuple) =>
+  useMemo(
+    () => new THREE.Matrix4(...(matrixData ?? DEFAULT_TRANSFORM)),
+    [matrixData]
+  );
+
 // prettier-ignore
 export const DEFAULT_TRANSFORM: THREE.Matrix4Tuple = [
   1, 0, 0, 0,

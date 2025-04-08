@@ -57,10 +57,6 @@ export const ItemArrange = forwardRef<
       <ItemArrangeEditor
         marker={targetAsset}
         id={item.id}
-        cameraPosition={item.editorCameraPosition}
-        onCameraPositionChange={(cameraPosition) => {
-          setItem(item.id, { editorCameraPosition: cameraPosition });
-        }}
         entities={item.entities}
         selectedEntityId={currentEntity.id}
         onTransformChange={(transform) => {

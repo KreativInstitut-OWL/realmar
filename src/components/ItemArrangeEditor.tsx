@@ -348,10 +348,10 @@ function TransformableEntity({
       );
 
       // add the matrix position to the camera position
-      const cameraPosition = camera.position.clone();
-      cameraPosition.add(matrixPosition);
+      const cameraTransform = camera.position.clone();
+      cameraTransform.add(matrixPosition);
 
-      meshRef.current?.lookAt(cameraPosition);
+      meshRef.current?.lookAt(cameraTransform);
     } else {
       meshRef.current?.setRotationFromEuler(EulerNull);
     }
@@ -456,33 +456,11 @@ interface ItemArrangeEditorProps {
   selectedEntityId: string | null;
   onSelectEntity: (id: string) => void;
   marker: Asset | null;
-  cameraPosition: THREE.Vector3Tuple;
-  onCameraPositionChange: (position: THREE.Vector3Tuple) => void;
   displayMode: Item["displayMode"];
 }
 
 export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera>(null);
-
-  const isDragging = useRef(false);
-
-  useEffect(() => {
-    if (cameraRef.current && props.cameraPosition && !isDragging.current) {
-      cameraRef.current.position.set(...props.cameraPosition);
-    }
-  }, [props.cameraPosition]);
-
-  const handleCameraStart = () => {
-    isDragging.current = true;
-  };
-
-  const handleCameraEnd = () => {
-    isDragging.current = false;
-    if (cameraRef.current && props.onCameraPositionChange) {
-      const pos = cameraRef.current.position;
-      props.onCameraPositionChange([pos.x, pos.y, pos.z]);
-    }
-  };
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -512,22 +490,16 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     };
   }, []);
 
-  // console.log("ItemArrangeEditor render");
-
   return (
     <div className="w-full h-full overflow-clip bg-gray-2 test">
       <Canvas ref={canvasRef} key={canvasKey}>
         <PerspectiveCamera
           ref={cameraRef}
-          position={props.cameraPosition || [2, 2, 2]}
           makeDefault
           near={0.01}
+          position={[2, 2, 2]}
         />
-        <OrbitControls
-          makeDefault
-          onStart={handleCameraStart}
-          onEnd={handleCameraEnd}
-        />
+        <OrbitControls makeDefault />
 
         <ambientLight intensity={2.5} />
         <directionalLight position={[5, 10, 5]} intensity={5} />

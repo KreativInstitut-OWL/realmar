@@ -106,8 +106,6 @@ export async function createAsset({
   };
 }
 
-const DEFAULT_CAMERA_POSITION: THREE.Vector3Tuple = [2, 2, 2];
-
 export type EntityBase = {
   id: string;
   name: string;
@@ -351,7 +349,6 @@ export type Item = {
   editorPivotControlScale: number;
   editorCurrentEntityId: string | null;
   editorCurrentTab: "target" | "entities" | "arrange";
-  editorCameraPosition: THREE.Vector3Tuple;
 };
 
 function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
@@ -367,7 +364,6 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     editorPivotControlScale: 0.5,
     editorCurrentEntityId: null,
     editorCurrentTab: "target",
-    editorCameraPosition: DEFAULT_CAMERA_POSITION,
     ...props,
   };
 }

@@ -1,11 +1,10 @@
-import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { inputVariants } from "./input";
-import { Tooltip, TooltipContent } from "./tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
+import { Tooltip, TooltipContent } from "./tooltip";
 
 const buttonVariants = cva(
   [
@@ -19,17 +18,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-lime-9 text-gray-12 hover:bg-lime-10",
-        secondary: "bg-gray-12 text-gray-1 hover:bg-gray-10",
-        outline:
-          "bg-gray-1 border-2 border-gray-12 text-gray-12 hover:bg-gray-3 hover:text-gray-11",
-        ghost: "bg-transparent text-gray-12 hover:bg-gray-3 active:bg-gray-4",
-        input: inputVariants(),
+        default: "bg-lime-9 text-black hover:bg-lime-10 active:bg-lime-9",
+        secondary: "bg-gray-9 text-gray-1 hover:bg-gray-10 active:bg-gray-9",
+        ghost: "bg-transparent text-gray-12 hover:bg-gray-4 active:bg-gray-5",
       },
       size: {
         default: "h-10 px-4 py-2",
         sm: "h-7 px-3",
-        lg: "h-11 px-8",
         icon: "size-10",
         "icon-sm": "size-7",
       },
