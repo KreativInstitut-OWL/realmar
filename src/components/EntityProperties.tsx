@@ -43,16 +43,16 @@ export function EntityProperties({
   entity,
 }: {
   item: Item;
-  entity: Entity;
+  entity: Entity | null;
 }) {
   const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
   const updateEntity = useCallback(
     (updatePayload: Partial<Entity>) => {
-      if (!item.id || !entity.id) return;
+      if (!item.id || !entity?.id) return;
       useStore.getState().setItemEntity(item.id, entity.id, updatePayload);
     },
-    [item.id, entity.id]
+    [item.id, entity?.id]
   );
 
   const updateEntityTransform = useCallback(
@@ -61,7 +61,7 @@ export function EntityProperties({
       component: QuaternionComponent | Vector3Component,
       matrixComponent: MatrixComponent
     ) => {
-      if (typeof newValue !== "number") return;
+      if (typeof newValue !== "number" || !entity?.transform) return;
       const newTransform = composeMatrix4WithMatrixComponentAndComponent(
         entity.transform,
         matrixComponent,
@@ -72,7 +72,7 @@ export function EntityProperties({
 
       updateEntity({ transform: newTransform.toArray() });
     },
-    [entity.editorScaleUniformly, entity.transform, updateEntity]
+    [entity?.editorScaleUniformly, entity?.transform, updateEntity]
   );
 
   if (!item || !entity) return null;

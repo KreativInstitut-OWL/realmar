@@ -5,12 +5,12 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const switchVariants = cva(
-  "peer inline-flex shrink-0 cursor-pointer items-center rounded-full border-1 border-transparent data-[state=unchecked]:hover:border-gray-8 transition-colors outline-hidden focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-azure-9 data-[state=checked]:hover:bg-azure-10 data-[state=unchecked]:bg-gray-5 overflow-clip",
+  "peer relative inline-flex shrink-0 cursor-pointer items-center rounded-full border-1 border-transparent data-[state=unchecked]:hover:border-gray-8 transition-colors outline-hidden focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-azure-9 data-[state=checked]:hover:bg-azure-10 data-[state=unchecked]:bg-gray-5",
   {
     variants: {
       size: {
-        default: "h-5 w-9.5",
-        sm: "h-4 w-8",
+        default:
+          "h-5 my-1.5 w-9.5 after:-inset-1.5 after:absolute after:rounded-full",
       },
     },
     defaultVariants: {

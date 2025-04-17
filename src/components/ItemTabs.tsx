@@ -44,7 +44,7 @@ export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
         <ItemMarker />
       </TabsContent>
       <TabsContent value="entities">
-        <ItemEntities variant="compact" />
+        <ItemEntities />
       </TabsContent>
       <TabsContent value="arrange" className="mt-0" asChild>
         <ItemArrange />

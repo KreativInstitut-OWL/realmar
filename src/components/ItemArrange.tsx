@@ -40,10 +40,6 @@ export const ItemArrange = forwardRef<
 
   if (!item) return null;
 
-  if (!currentEntity) {
-    return <div>Please add entities to this item.</div>;
-  }
-
   return (
     <SidebarProvider
       className={cn(
@@ -58,8 +54,9 @@ export const ItemArrange = forwardRef<
         marker={targetAsset}
         id={item.id}
         entities={item.entities}
-        selectedEntityId={currentEntity.id}
+        selectedEntityId={currentEntity?.id ?? null}
         onTransformChange={(transform) => {
+          if (!currentEntity) return;
           setItemEntity(item.id, currentEntity.id, { transform });
         }}
         onSelectEntity={(id) => {
@@ -135,7 +132,7 @@ export const ItemArrange = forwardRef<
                   }}
                   canSelectMultipleEntities={false}
                   clearSelectedEntitiesOnOutsideClick={false}
-                  selectedEntityIds={[currentEntity.id]}
+                  selectedEntityIds={currentEntity ? [currentEntity.id] : []}
                   className="max-h-96 overflow-y-scroll -mx-2"
                 />
               </ControlGroup>
@@ -143,8 +140,12 @@ export const ItemArrange = forwardRef<
             <Separator className="my-2" />
             <SidebarGroupContent>
               <ControlGroup>
-                <ControlLabel end={<EntityIcon entity={currentEntity} />}>
-                  Entity: {currentEntity.name}
+                <ControlLabel
+                  end={
+                    currentEntity ? <EntityIcon entity={currentEntity} /> : null
+                  }
+                >
+                  Entity: {currentEntity?.name ?? "None"}
                 </ControlLabel>
                 <EntityProperties item={item} entity={currentEntity} />
               </ControlGroup>
