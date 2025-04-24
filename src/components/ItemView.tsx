@@ -1,9 +1,9 @@
 import { ItemTabs } from "./ItemTabs";
 
-export function ItemView({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
+export function ItemView() {
   return (
     <div className="flex h-full w-full">
-      <ItemTabs itemHeader={itemHeader} />
+      <ItemTabs />
     </div>
   );
 }

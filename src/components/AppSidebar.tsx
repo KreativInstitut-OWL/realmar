@@ -1,6 +1,6 @@
 "use client";
 
-import { Cog, Images, Plus, ScanEye } from "lucide-react";
+import { Plus } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { EditorView, editorView, editorViewIcon } from "@/const/editorView";
 import { useStore } from "@/store";
 import ExportButton from "./ExportButton";
 import { ItemListList } from "./ItemList";
@@ -45,63 +46,37 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={{
-                    children: "Markers",
-                    hidden: false,
-                  }}
-                  onClick={() => {
-                    setOpen(true);
-                    setEditorCurrentView("items");
-                  }}
-                  // isActive={editorCurrentView === "items"}
-                  className="px-2.5 md:px-2"
-                >
-                  <Images />
-                  <span>Markers</span>
-                </SidebarMenuButton>
-                <SidebarMenuAction onClick={() => addItem()}>
-                  <Plus />
-                  <span className="sr-only">Add Marker</span>
-                </SidebarMenuAction>
+              {(Object.entries(editorView) as [EditorView, string][]).map(
+                ([key, label]) => (
+                  <SidebarMenuItem key={key}>
+                    <SidebarMenuButton
+                      tooltip={{
+                        children: label,
+                        hidden: false,
+                      }}
+                      onClick={() => {
+                        setOpen(true);
+                        setEditorCurrentView(key);
+                      }}
+                      isActive={editorCurrentView === key && key !== "items"}
+                      className="px-2.5 md:px-2"
+                    >
+                      {editorViewIcon[key]}
+                      <span>{label}</span>
+                    </SidebarMenuButton>
 
-                <ItemListList />
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={{
-                    children: "Settings",
-                    hidden: false,
-                  }}
-                  onClick={() => {
-                    setOpen(true);
-                    setEditorCurrentView("settings");
-                  }}
-                  isActive={editorCurrentView === "settings"}
-                  className="px-2.5 md:px-2"
-                >
-                  <Cog />
-                  <span>Settings</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={{
-                    children: "Preview",
-                    hidden: false,
-                  }}
-                  onClick={() => {
-                    setOpen(true);
-                    setEditorCurrentView("preview");
-                  }}
-                  isActive={editorCurrentView === "preview"}
-                  className="px-2.5 md:px-2"
-                >
-                  <ScanEye />
-                  <span>Preview</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+                    {key === "items" && (
+                      <>
+                        <SidebarMenuAction onClick={() => addItem()}>
+                          <Plus />
+                          <span className="sr-only">Add Marker</span>
+                        </SidebarMenuAction>
+                        <ItemListList />
+                      </>
+                    )}
+                  </SidebarMenuItem>
+                )
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

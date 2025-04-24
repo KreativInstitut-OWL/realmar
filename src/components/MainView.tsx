@@ -5,14 +5,16 @@ import { ItemListSelectedItemContent } from "./ItemList";
 import { useStore } from "@/store";
 import { EditorView } from "@/const/editorView";
 import { PreviewArExperience } from "./PreviewArExperience";
+import { MainViewAssets } from "./MainViewAssets";
 
 const components = {
   items: ItemListSelectedItemContent,
-  settings: ItemListSelectedItemContent,
+  assets: MainViewAssets,
+  settings: () => <div>Settings</div>,
   preview: PreviewArExperience,
 } as const satisfies Record<EditorView, React.ComponentType<any>>;
 
-export function MainView({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
+export function MainView() {
   const editorCurrentView = useStore((state) => state.editorCurrentView);
   const Component = components[editorCurrentView];
 
@@ -22,7 +24,7 @@ export function MainView({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
 
   return (
     <Suspense fallback="loading...">
-      <Component itemHeader={itemHeader} />
+      <Component />
     </Suspense>
   );
 }

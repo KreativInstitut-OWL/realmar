@@ -1,16 +1,13 @@
 import { useCompiledPreviewArtifacts } from "@/lib/export";
-import { Blocks, FlipHorizontal2, Loader2, RotateCw } from "lucide-react";
-import { Progress } from "./ui/progress";
-import { createPortal } from "react-dom";
-import { Button } from "./ui/button";
-import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { Blocks, FlipHorizontal2, Loader2, RotateCw } from "lucide-react";
+import { useRef, useState } from "react";
+import { AppBreadcrumbPortal } from "./AppBreadcrumb";
+import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
+import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 
-export function PreviewArExperience({
-  itemHeader,
-}: {
-  itemHeader: HTMLLIElement | null;
-}) {
+export function PreviewArExperience() {
   const { progress, data, isFetching, invalidate } =
     useCompiledPreviewArtifacts();
   const ref = useRef<HTMLIFrameElement>(null);
@@ -23,7 +20,10 @@ export function PreviewArExperience({
           <Loader2 className="size-6 animate-spin" />
           <Progress value={progress} />
         </div>
-        {itemHeader ? createPortal(<span>Loading…</span>, itemHeader) : null}
+        <AppBreadcrumbPortal>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>Compiling Preview…</BreadcrumbItem>
+        </AppBreadcrumbPortal>
       </>
     );
   }
@@ -38,43 +38,41 @@ export function PreviewArExperience({
         className={cn("w-full h-full", { "scale-x-[-1]": isFlipped })}
       />
 
-      {itemHeader
-        ? createPortal(
-            <span className="inline-flex gap-2 items-center">
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="refresh preview"
-                onClick={() => {
-                  ref.current?.contentWindow?.location.reload();
-                }}
-              >
-                <RotateCw /> Refresh
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="recompile"
-                onClick={() => {
-                  invalidate();
-                }}
-              >
-                <Blocks /> Recompile
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                aria-label="flip preview"
-                onClick={() => {
-                  setIsFlipped((prev) => !prev);
-                }}
-              >
-                <FlipHorizontal2 /> Flip
-              </Button>
-            </span>,
-            itemHeader
-          )
-        : null}
+      <AppBreadcrumbPortal>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem className="inline-flex gap-2 items-center">
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="refresh preview"
+            onClick={() => {
+              ref.current?.contentWindow?.location.reload();
+            }}
+          >
+            <RotateCw /> Refresh
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="recompile"
+            onClick={() => {
+              invalidate();
+            }}
+          >
+            <Blocks /> Recompile
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-label="flip preview"
+            onClick={() => {
+              setIsFlipped((prev) => !prev);
+            }}
+          >
+            <FlipHorizontal2 /> Flip
+          </Button>
+        </BreadcrumbItem>
+      </AppBreadcrumbPortal>
     </>
   );
 }

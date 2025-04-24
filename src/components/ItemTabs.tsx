@@ -1,12 +1,14 @@
 import { useCurrentItem, useStore } from "@/store";
 import { Images, Move3D, Scan } from "lucide-react";
-import { createPortal } from "react-dom";
+import { AppBreadcrumbPortal } from "./AppBreadcrumb";
 import { ItemArrange } from "./ItemArrange";
 import { ItemEntities } from "./ItemEntities";
 import { ItemMarker } from "./ItemMarker";
+import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
 
-export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
+export function ItemTabs() {
   const item = useCurrentItem();
   const setItem = useStore((state) => state.setItem);
 
@@ -21,25 +23,29 @@ export function ItemTabs({ itemHeader }: { itemHeader: HTMLLIElement | null }) {
       }
       className="grow h-full"
     >
-      {itemHeader
-        ? createPortal(
-            <TabsList className="">
-              <TabsTrigger value="target">
-                <Scan className="size-5 mr-3" />
-                Marker
-              </TabsTrigger>
-              <TabsTrigger value="entities">
-                <Images className="size-5 mr-3" />
-                Entities
-              </TabsTrigger>
-              <TabsTrigger value="arrange">
-                <Move3D className="size-5 mr-3" />
-                Arrange
-              </TabsTrigger>
-            </TabsList>,
-            itemHeader
-          )
-        : null}
+      <AppBreadcrumbPortal>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <ItemComboboxEditorCurrentItem />
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <TabsList className="">
+            <TabsTrigger value="target">
+              <Scan className="size-5 mr-3" />
+              Marker
+            </TabsTrigger>
+            <TabsTrigger value="entities">
+              <Images className="size-5 mr-3" />
+              Entities
+            </TabsTrigger>
+            <TabsTrigger value="arrange">
+              <Move3D className="size-5 mr-3" />
+              Arrange
+            </TabsTrigger>
+          </TabsList>
+        </BreadcrumbItem>
+      </AppBreadcrumbPortal>
       <TabsContent value="target" className="mt-6">
         <ItemMarker />
       </TabsContent>

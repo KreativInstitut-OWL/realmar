@@ -1,18 +1,17 @@
 import { cn } from "@/lib/utils";
 import { useItem, useStore } from "@/store";
+import { GripHorizontal } from "lucide-react";
 import * as React from "react";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemPreview } from "./ItemPreview";
-import { ItemTabs } from "./ItemTabs";
 import { ItemView } from "./ItemView";
+import { Button } from "./ui/button";
 import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "./ui/sidebar";
 import { DragHandle, Sortable } from "./ui/sortable";
-import { GripHorizontal } from "lucide-react";
-import { Button } from "./ui/button";
 
 export const ItemListList = React.forwardRef<
   React.ElementRef<typeof SidebarMenuSub>,
@@ -88,9 +87,7 @@ const ItemListTabsTrigger = React.forwardRef<
   );
 });
 
-export const ItemListSelectedItemContent = (
-  props: React.ComponentProps<typeof ItemTabs>
-) => {
+export const ItemListSelectedItemContent = () => {
   const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
 
   if (!editorCurrentItemId) {
@@ -103,5 +100,5 @@ export const ItemListSelectedItemContent = (
     );
   }
 
-  return <ItemView {...props} />;
+  return <ItemView />;
 };
