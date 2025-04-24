@@ -1,5 +1,6 @@
 /**
  * @typedef {import('aframe')}
+ * @typedef {import('three')}
  */
 
 import "https://cdn.jsdelivr.net/npm/aframe@1.7.0/dist/aframe-master.min.js";
@@ -7,6 +8,7 @@ import "https://cdn.jsdelivr.net/npm/aframe-extras@7.5.4/dist/aframe-extras.min.
 import "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.min.js";
 
 const AFRAME = window.AFRAME;
+const THREE = window.THREE;
 
 // #region look-at
 
@@ -35,6 +37,518 @@ AFRAME.registerComponent("quaternion", {
     this.el.object3D.quaternion.set(0, 0, 0, 1);
   },
 });
+
+// #region text-3d
+
+/**
+ * TextGeometry from three-stdlib
+ */
+/**
+ * TextGeometry creates 3D text geometry by extending THREE.ExtrudeGeometry
+ * @extends THREE.ExtrudeGeometry
+ */
+class TextGeometry extends THREE.ExtrudeGeometry {
+  /**
+   * Creates a new text geometry
+   * @param {string} text - The text to be rendered as 3D geometry
+   * @param {Object} [parameters={}] - Configuration options
+   * @param {boolean} [parameters.bevelEnabled=false] - Whether to use beveling
+   * @param {number} [parameters.bevelSize=8] - Size of the bevel
+   * @param {number} [parameters.bevelThickness=10] - Thickness of the bevel
+   * @param {Object} [parameters.font] - Font object used to generate text shapes
+   * @param {number} [parameters.height=50] - Height/extrusion depth of the text
+   * @param {number} [parameters.size=100] - Font size
+   * @param {number} [parameters.lineHeight=1] - Line height factor
+   * @param {number} [parameters.letterSpacing=0] - Spacing between letters
+   */
+  constructor(text, parameters = {}) {
+    const {
+      bevelEnabled = false,
+      bevelSize = 8,
+      bevelThickness = 10,
+      font,
+      height = 50,
+      size = 100,
+      lineHeight = 1,
+      letterSpacing = 0,
+      ...rest
+    } = parameters;
+    if (font === void 0) {
+      super();
+    } else {
+      const shapes = font.generateShapes(text, size, {
+        lineHeight,
+        letterSpacing,
+      });
+      super(shapes, {
+        ...rest,
+        bevelEnabled,
+        bevelSize,
+        bevelThickness,
+        height: height,
+      });
+    }
+    this.type = "TextGeometry";
+  }
+}
+
+class FontLoader extends THREE.Loader {
+  constructor(manager) {
+    super(manager);
+  }
+
+  load(url, onLoad, onProgress, onError) {
+    const scope = this;
+
+    const loader = new THREE.FileLoader(this.manager);
+    loader.setPath(this.path);
+    loader.setRequestHeader(this.requestHeader);
+    loader.setWithCredentials(this.withCredentials);
+    loader.load(
+      url,
+      function (text) {
+        const font = scope.parse(JSON.parse(text));
+
+        if (onLoad) onLoad(font);
+      },
+      onProgress,
+      onError
+    );
+  }
+
+  parse(json) {
+    return new Font(json);
+  }
+}
+
+//
+
+class Font {
+  constructor(data) {
+    this.isFont = true;
+
+    this.type = "Font";
+
+    this.data = data;
+  }
+
+  generateShapes(text, size = 100) {
+    const shapes = [];
+    const paths = createPaths(text, size, this.data);
+
+    for (let p = 0, pl = paths.length; p < pl; p++) {
+      shapes.push(...paths[p].toShapes());
+    }
+
+    return shapes;
+  }
+}
+
+function createPaths(text, size, data) {
+  const chars = Array.from(text);
+  const scale = size / data.resolution;
+  const line_height =
+    (data.boundingBox.yMax - data.boundingBox.yMin + data.underlineThickness) *
+    scale;
+
+  const paths = [];
+
+  let offsetX = 0,
+    offsetY = 0;
+
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+
+    if (char === "\n") {
+      offsetX = 0;
+      offsetY -= line_height;
+    } else {
+      const ret = createPath(char, scale, offsetX, offsetY, data);
+      offsetX += ret.offsetX;
+      paths.push(ret.path);
+    }
+  }
+
+  return paths;
+}
+
+function createPath(char, scale, offsetX, offsetY, data) {
+  const glyph = data.glyphs[char] || data.glyphs["?"];
+
+  if (!glyph) {
+    console.error(
+      'THREE.Font: character "' +
+        char +
+        '" does not exists in font family ' +
+        data.familyName +
+        "."
+    );
+
+    return;
+  }
+
+  const path = new THREE.ShapePath();
+
+  let x, y, cpx, cpy, cpx1, cpy1, cpx2, cpy2;
+
+  if (glyph.o) {
+    const outline =
+      glyph._cachedOutline || (glyph._cachedOutline = glyph.o.split(" "));
+
+    for (let i = 0, l = outline.length; i < l; ) {
+      const action = outline[i++];
+
+      switch (action) {
+        case "m": // moveTo
+          x = outline[i++] * scale + offsetX;
+          y = outline[i++] * scale + offsetY;
+
+          path.moveTo(x, y);
+
+          break;
+
+        case "l": // lineTo
+          x = outline[i++] * scale + offsetX;
+          y = outline[i++] * scale + offsetY;
+
+          path.lineTo(x, y);
+
+          break;
+
+        case "q": // quadraticCurveTo
+          cpx = outline[i++] * scale + offsetX;
+          cpy = outline[i++] * scale + offsetY;
+          cpx1 = outline[i++] * scale + offsetX;
+          cpy1 = outline[i++] * scale + offsetY;
+
+          path.quadraticCurveTo(cpx1, cpy1, cpx, cpy);
+
+          break;
+
+        case "b": // bezierCurveTo
+          cpx = outline[i++] * scale + offsetX;
+          cpy = outline[i++] * scale + offsetY;
+          cpx1 = outline[i++] * scale + offsetX;
+          cpy1 = outline[i++] * scale + offsetY;
+          cpx2 = outline[i++] * scale + offsetX;
+          cpy2 = outline[i++] * scale + offsetY;
+
+          path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, cpx, cpy);
+
+          break;
+      }
+    }
+  }
+
+  return { offsetX: glyph.ha * scale, path: path };
+}
+
+/**
+ * @typedef {Object} Text3DData
+ * @property {string} text
+ * @property {string} font
+ * @property {number} size
+ * @property {number} height
+ * @property {number} curveSegments
+ * @property {boolean} bevelEnabled
+ * @property {number} bevelThickness
+ * @property {number} bevelSize
+ * @property {number} bevelOffset
+ * @property {number} bevelSegments
+ * @property {string} material
+ * @property {string|number} color
+ * @property {number} lineHeight
+ * @property {number} letterSpacing
+ */
+
+/**
+ * Creates 3D text geometry using THREE.TextGeometry.
+ * Requires THREE.FontLoader and THREE.TextGeometry to be available.
+ * Make sure your A-Frame build includes these or load Three.js separately.
+ *
+ * @this {AFRAME.Component & {data: Text3DData}}
+ */
+AFRAME.registerComponent("text-3d", {
+  schema: {
+    text: { type: "string", default: "Hello three.js!" },
+    font: {
+      type: "string",
+      default:
+        "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/fonts/helvetiker_regular.typeface.json",
+    }, // Path to Three.js font JSON file
+    size: { type: "number", default: 1 }, // Corresponds to TextGeometry 'size', adjusted default for A-Frame scale
+    height: { type: "number", default: 0.1 }, // Corresponds to TextGeometry 'height', adjusted default
+    curveSegments: { type: "int", default: 12 },
+    bevelEnabled: { type: "boolean", default: false },
+    bevelThickness: { type: "number", default: 0.1 }, // Adjusted default
+    bevelSize: { type: "number", default: 0.05 }, // Adjusted default
+    bevelOffset: { type: "number", default: 0 },
+    bevelSegments: { type: "int", default: 3 },
+    material: { type: "string", default: "" }, // Optional: reference existing material component
+    color: { type: "color", default: "#FFF" }, // Default color if no material specified
+    lineHeight: { type: "number", default: 1 }, // Line height factor
+    letterSpacing: { type: "number", default: 0 }, // Spacing between letters
+  },
+  init: function () {
+    this.loader = new FontLoader();
+    this.font = null;
+    this.geometry = null;
+    this.mesh = null;
+    this.material = null;
+
+    this.loadFont();
+  },
+
+  /**
+   * @param {Text3DData} oldData
+   */
+  update: function (oldData) {
+    /** @type {Text3DData} */
+    const data = this.data;
+    let needsUpdate = false;
+    let needsFontReload = false;
+
+    // Check if font needs reloading
+    if (oldData && data.font !== oldData.font) {
+      needsFontReload = true;
+    }
+
+    // Check if geometry needs rebuilding
+    for (const key in data) {
+      if (
+        key !== "font" &&
+        key !== "material" &&
+        key !== "color" &&
+        oldData &&
+        data[key] !== oldData[key]
+      ) {
+        needsUpdate = true;
+        break;
+      }
+    }
+
+    // Check if material needs update
+    if (
+      oldData &&
+      (data.material !== oldData.material || data.color !== oldData.color)
+    ) {
+      needsUpdate = true; // Need to update mesh material reference or color
+    }
+
+    if (needsFontReload) {
+      this.loadFont(); // This will trigger createTextGeometry eventually
+    } else if (needsUpdate && this.font) {
+      this.createTextGeometry(); // Rebuild geometry or update material
+    } else if (!this.mesh && this.font) {
+      // Initial creation after font load
+      this.createTextGeometry();
+    }
+  },
+
+  loadFont: function () {
+    this.loader.load(
+      this.data.font,
+      (font) => {
+        this.font = font;
+        this.createTextGeometry();
+      },
+      undefined,
+      (err) => {
+        console.error("Could not load font: ", err);
+      }
+    );
+  },
+
+  createTextGeometry: function () {
+    /** @type {Text3DData} */
+    const data = this.data;
+
+    // Dispose old geometry if it exists
+    if (this.geometry) {
+      this.geometry.dispose();
+    }
+
+    // Create new geometry
+    this.geometry = new TextGeometry(data.text, {
+      font: this.font,
+      size: data.size,
+      height: data.height,
+      curveSegments: data.curveSegments,
+      bevelEnabled: data.bevelEnabled,
+      bevelThickness: data.bevelThickness,
+      bevelSize: data.bevelSize,
+      bevelOffset: data.bevelOffset,
+      bevelSegments: data.bevelSegments,
+      lineHeight: data.lineHeight,
+      letterSpacing: data.letterSpacing,
+    });
+
+    console.log("Text geometry created:", this.geometry);
+
+    // Center the geometry
+    this.geometry.computeBoundingBox();
+    const textWidth =
+      this.geometry.boundingBox.max.x - this.geometry.boundingBox.min.x;
+    const textHeight =
+      this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y;
+    // Note: Centering might need adjustment based on desired alignment (e.g., center, left)
+    this.geometry.translate(-textWidth / 2, -textHeight / 2, -data.height / 2);
+
+    // Material handling
+    let materialComponent = null;
+    if (data.material && this.el.sceneEl.systems.material) {
+      materialComponent =
+        this.el.sceneEl.systems.material.materials[data.material];
+    }
+
+    if (materialComponent) {
+      this.material = materialComponent;
+    } else {
+      // Dispose old internally managed material
+      if (this.mesh && this.mesh.material && !this.mesh.material.isShared) {
+        this.mesh.material.dispose();
+      }
+      // Create new basic material if no external one is provided
+      this.material = new THREE.MeshBasicMaterial({ color: data.color });
+      this.material.isShared = false; // Mark as not shared
+    }
+
+    // Create or update mesh
+    if (!this.mesh) {
+      this.mesh = new THREE.Mesh(this.geometry, this.material);
+      this.el.setObject3D("mesh", this.mesh);
+    } else {
+      this.mesh.geometry = this.geometry;
+      this.mesh.material = this.material;
+    }
+  },
+
+  remove: function () {
+    if (this.geometry) {
+      this.geometry.dispose();
+      this.geometry = null;
+    }
+    // Only dispose internally managed material
+    if (this.mesh && this.mesh.material && !this.mesh.material.isShared) {
+      this.mesh.material.dispose();
+    }
+    if (this.mesh) {
+      this.el.removeObject3D("mesh");
+      this.mesh = null;
+    }
+    this.font = null;
+    this.loader = null;
+  },
+});
+
+// #endregion text-3d
+
+// #region float
+
+/**
+ * @typedef {Object} FloatData
+ * @property {boolean} enabled - Whether the floating effect is active
+ * @property {number} speed - Speed of the floating animation
+ * @property {number} rotationIntensity - Intensity of rotation effect
+ * @property {number} intensity - Intensity of vertical floating motion
+ * @property {number} floatingRangeMin - Minimum value for the float range
+ * @property {number} floatingRangeMax - Maximum value for the float range
+ * @property {boolean} autoInvalidate - Whether to force updates on materials
+ */
+
+/**
+ * Adds a gentle floating animation to an entity.
+ * Creates smooth oscillating movement and rotation similar to drei's Float component.
+ *
+ * @this {AFRAME.Component & {data: FloatData}}
+ */
+AFRAME.registerComponent("float", {
+  schema: {
+    enabled: { type: "boolean", default: true },
+    speed: { type: "number", default: 1 },
+    rotationIntensity: { type: "number", default: 1 },
+    intensity: { type: "number", default: 1 },
+    floatingRangeMin: { type: "number", default: -0.1 },
+    floatingRangeMax: { type: "number", default: 0.1 },
+    autoInvalidate: { type: "boolean", default: false },
+  },
+
+  init: function () {
+    // Random offset like in the original component
+    this.offset = Math.random() * 10000;
+
+    // Store original values
+    this.originalY = this.el.object3D.position.y || 0;
+
+    // Store original matrix auto update setting
+    this.wasMatrixAutoUpdate = this.el.object3D.matrixAutoUpdate;
+
+    // Disable automatic matrix updates for performance
+    this.el.object3D.matrixAutoUpdate = false;
+  },
+
+  tick: function (time) {
+    /** @type {FloatData} */
+    const data = this.data;
+
+    if (!data.enabled || data.speed === 0) return;
+
+    const t = this.offset + time / 1000; // Convert ms to seconds like THREE.Clock.elapsedTime
+    const speed = data.speed;
+    const rotationIntensity = data.rotationIntensity;
+
+    // Apply rotations
+    this.el.object3D.rotation.x =
+      (Math.cos((t / 4) * speed) / 8) * rotationIntensity;
+    this.el.object3D.rotation.y =
+      (Math.sin((t / 4) * speed) / 8) * rotationIntensity;
+    this.el.object3D.rotation.z =
+      (Math.sin((t / 4) * speed) / 20) * rotationIntensity;
+
+    // Apply floating motion
+    let yPosition = Math.sin((t / 4) * speed) / 10;
+    // Map to custom range (similar to THREE.MathUtils.mapLinear)
+    yPosition = THREE.MathUtils.mapLinear(
+      yPosition,
+      -0.1,
+      0.1,
+      data.floatingRangeMin,
+      data.floatingRangeMax
+    );
+
+    // Apply position
+    this.el.object3D.position.y = this.originalY + yPosition * data.intensity;
+
+    // Manually update the matrix
+    this.el.object3D.updateMatrix();
+
+    // Force scene render if autoInvalidate is true
+    if (data.autoInvalidate) {
+      this.el.object3D.traverse((node) => {
+        if (node.material) node.material.needsUpdate = true;
+      });
+    }
+  },
+
+  // Utility function to replicate THREE.MathUtils.mapLinear
+  // mapLinear: function (x, a1, a2, b1, b2) {
+  //   return b1 + ((x - a1) * (b2 - b1)) / (a2 - a1);
+  // },
+
+  remove: function () {
+    // Reset position and rotation
+    this.el.object3D.position.y = this.originalY;
+    this.el.object3D.rotation.set(0, 0, 0);
+
+    // Restore original matrix auto update setting
+    this.el.object3D.matrixAutoUpdate = this.wasMatrixAutoUpdate;
+
+    // Make sure to update the matrix one last time
+    this.el.object3D.updateMatrix();
+  },
+});
+
+// #endregion float
 
 // #region batchar-gallery
 

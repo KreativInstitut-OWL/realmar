@@ -1,5 +1,12 @@
 import { GeneratedTarget } from "@/components/GeneratedTarget";
-import { BaseAppState, Entity, Item, useStore } from "@/store";
+import {
+  BaseAppState,
+  Entity,
+  EntityWithAsset,
+  isEntityWithAsset,
+  Item,
+  useStore,
+} from "@/store";
 import * as FileStore from "@/store/file-store";
 import saveAs from "file-saver";
 import JSZip from "jszip";
@@ -32,9 +39,19 @@ export type ExportAsset = {
   height: number | null;
 };
 
-export type ExportEntity = Entity & {
-  asset: ExportAsset;
-};
+export type ExportEntity =
+  | (EntityWithAsset & {
+      asset: ExportAsset;
+    })
+  | Entity;
+
+export function assertIsExportEntityWithAsset(
+  entity: Entity
+): asserts entity is EntityWithAsset & { asset: ExportAsset } {
+  if (!("assetId" in entity) || !entity.assetId) {
+    throw new Error("Entity does not have an asset");
+  }
+}
 
 export type ExportItem = Omit<Item, "entities"> & {
   index: number;
@@ -168,9 +185,13 @@ export async function compileArtifacts(
         entityIndex++
       ) {
         const entity = item.entities[entityIndex];
-        if (!entity.assetId) continue; // Fixed: return -> continue
+        if (!isEntityWithAsset(entity)) {
+          exportItem.entities.push(entity);
+          continue;
+        }
+
         const asset = await FileStore.get(entity.assetId);
-        if (!asset) continue; // Fixed: return -> continue
+        if (!asset) continue;
         const entityAssetPath = `markers/${itemFolderName}/${getFileName(
           "entity",
           asset.file,
@@ -215,6 +236,8 @@ export async function compileArtifacts(
         html = html.replaceAll(key, url);
       }
     }
+
+    console.log("HTML: ", await prettifyHtml(html));
 
     artifacts.set(
       "index.html",

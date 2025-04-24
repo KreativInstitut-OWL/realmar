@@ -1,18 +1,23 @@
+import { assertIsEntityText, EntityType, getComponent } from "@/store";
 import { toAttrs, toNumber, toVec3, toVec4 } from "./a-frame/attributes";
 import "./a-frame/types";
 import { AFrameEntityProps } from "./a-frame/types";
 import ArExperienceImport from "./ArExperienceImport";
-import { ExportAppState, ExportEntity } from "./export";
+import {
+  assertIsExportEntityWithAsset,
+  ExportAppState,
+  ExportEntity,
+} from "./export";
 import { decomposeMatrix4 } from "./three";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
-  const { items } = state;
+  const { items, projectName } = state;
 
   return (
     <html lang="en">
       <head>
         <meta charSet="UTF-8" />
-        <title>AR Experience</title>
+        <title>{projectName}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="style.css" rel="stylesheet" />
         <script src="batchar.js" type="module" />
@@ -46,8 +51,8 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
     <a-scene
       mindar-image={toAttrs({
         imageTargetSrc: "targets.mind",
-        filterMinCF: 0.00001,
-        filterBeta: 1000,
+        filterMinCF: 0.0001,
+        filterBeta: 0.001,
       })}
       vr-mode-ui={toAttrs({ enabled: false })}
       device-orientation-permission-ui={toAttrs({ enabled: false })}
@@ -56,7 +61,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
         {items.map((item) => {
           return item.entities
             .map((entity) => {
-              if (!entity.asset) return null;
+              if (!("asset" in entity)) return null;
               return <ArExperienceImport key={entity.id} {...entity.asset} />;
             })
             .flat();
@@ -97,14 +102,88 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
   );
 }
 
+const arExperienceEntityComponents = {
+  text: ArExperienceEntityText,
+  model: ArExperienceEntityModel,
+  null: () => null,
+  image: ArExperienceEntityPlane,
+  video: ArExperienceEntityPlane,
+} satisfies Record<
+  EntityType,
+  React.ComponentType<
+    {
+      entity: ExportEntity;
+    } & AFrameEntityProps
+  >
+>;
+
 function ArExperienceEntity(
   props: { entity: ExportEntity } & AFrameEntityProps
 ) {
-  if (props.entity.asset.fileType.includes("model")) {
-    return <ArExperienceEntityModel {...props} />;
-  } else {
-    return <ArExperienceEntityPlane {...props} />;
+  const Component = arExperienceEntityComponents[props.entity.type];
+  if (!Component) {
+    throw new Error(`Unknown entity type: ${props.entity.type}`);
   }
+
+  console.log("Entity: ", props.entity.type, props.entity);
+
+  const { position, scale, quaternion } = decomposeMatrix4(
+    props.entity.transform
+  );
+  const lookAtCamera = getComponent(props.entity, "look-at-camera");
+  const float = getComponent(props.entity, "float");
+
+  return (
+    <Component
+      position={toVec3(position)}
+      quaternion={toVec4(quaternion)}
+      scale={toVec3(scale)}
+      id={props.entity.id}
+      data-entity-id={props.entity.id}
+      look-at={lookAtCamera?.enabled ? "camera" : undefined}
+      float={
+        float?.enabled
+          ? toAttrs({
+              enabled: float.enabled,
+              speed: float.speed,
+              intensity: float.intensity,
+              rotationIntensity: float.rotationIntensity,
+              floatingRangeMin: float.floatingRange?.[0],
+              floatingRangeMax: float.floatingRange?.[1],
+            })
+          : undefined
+      }
+      {...props}
+    />
+  );
+}
+
+function ArExperienceEntityText({
+  entity,
+  ...props
+}: {
+  entity: ExportEntity;
+} & AFrameEntityProps) {
+  assertIsEntityText(entity);
+
+  return (
+    <a-entity
+      {...props}
+      text-3d={toAttrs({
+        text: entity.text,
+        font: entity.font.path,
+        size: toNumber(entity.fontSize),
+        height: toNumber(entity.height),
+        curveSegments: toNumber(entity.curveSegments),
+        bevelEnabled: true,
+        bevelThickness: toNumber(entity.bevelThickness),
+        bevelSize: toNumber(entity.bevelSize),
+        lineHeight: toNumber(entity.lineHeight),
+        letterSpacing: toNumber(entity.letterSpacing),
+        color: entity.color,
+      })}
+    />
+  );
 }
 
 function ArExperienceEntityModel({
@@ -113,19 +192,10 @@ function ArExperienceEntityModel({
 }: {
   entity: ExportEntity;
 } & AFrameEntityProps) {
-  const { position, scale, quaternion } = decomposeMatrix4(entity.transform);
+  assertIsExportEntityWithAsset(entity);
+
   return (
-    <a-entity
-      {...props}
-      position={toVec3(position)}
-      quaternion={toVec4(quaternion)}
-      scale={toVec3(scale)}
-      gltf-model={`#${entity.asset.id}`}
-      id={entity.id}
-      data-entity-id={entity.id}
-      look-at={entity.lookAtCamera ? "camera" : undefined}
-      animation-mixer
-    />
+    <a-entity {...props} gltf-model={`#${entity.asset.id}`} animation-mixer />
   );
 }
 
@@ -135,20 +205,14 @@ function ArExperienceEntityPlane({
 }: {
   entity: ExportEntity;
 } & AFrameEntityProps) {
-  const { position, scale, quaternion } = decomposeMatrix4(entity.transform);
+  assertIsExportEntityWithAsset(entity);
   return (
     <a-plane
       {...props}
-      position={toVec3(position)}
-      quaternion={toVec4(quaternion)}
-      scale={toVec3(scale)}
+      src={`#${entity.asset.id}`}
       width={toNumber(entity.asset.width!)}
       height={toNumber(entity.asset.height!)}
-      id={entity.id}
       color="#ffffff"
-      src={`#${entity.asset.id}`}
-      look-at={entity.lookAtCamera ? "camera" : undefined}
-      data-entity-id={entity.id}
     />
   );
 }

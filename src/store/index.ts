@@ -5,7 +5,7 @@ import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
 import { nanoid } from "nanoid";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import * as THREE from "three";
 import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
@@ -106,17 +106,84 @@ export async function createAsset({
   };
 }
 
+export interface ComponentBase<
+  TName = string,
+  TPayload extends { enabled: boolean } = { enabled: boolean },
+> {
+  name: TName;
+  payload: TPayload;
+}
+
+interface ComponentLookAtCamera extends ComponentBase<"look-at-camera"> {}
+
+interface ComponentFloat
+  extends ComponentBase<
+    "float",
+    {
+      enabled: boolean;
+      speed: number;
+      rotationIntensity: number;
+      intensity: number;
+      floatingRange: [number, number];
+    }
+  > {}
+
+export type Component = ComponentLookAtCamera | ComponentFloat;
+
+export type ComponentMap = {
+  [key in Component["name"]]?: Extract<Component, { name: key }>;
+};
+
+function createComponent<
+  TName extends Component["name"],
+  TPayload = Extract<Component, { name: TName }>["payload"],
+>(name: TName, payload: Partial<TPayload>) {
+  switch (name) {
+    case "look-at-camera":
+      return {
+        name,
+        payload: {
+          enabled: true,
+          ...payload,
+        },
+      } as ComponentLookAtCamera;
+    case "float":
+      return {
+        name,
+        payload: {
+          enabled: true,
+          speed: 1,
+          rotationIntensity: 1,
+          intensity: 1,
+          floatingRange: [-0.1, 0.1],
+          ...payload,
+        },
+      } as ComponentFloat;
+    default:
+      throw new Error(`Unknown component name: ${name}`);
+  }
+}
+
 export type EntityBase = {
   id: string;
   name: string;
   transform: THREE.Matrix4Tuple;
 
   // batchar aframe components
-  lookAtCamera: boolean;
+  components: ComponentMap;
 
   // editor state (these have no effect for the export)
   editorScaleUniformly: boolean;
 };
+
+export function getComponent<TName extends Component["name"]>(
+  entity: { components: ComponentMap } | null | undefined,
+  name: TName
+) {
+  return entity?.components?.[name]?.payload as
+    | Extract<Component, { name: TName }>["payload"]
+    | undefined;
+}
 
 export type EntityBaseWithAsset = EntityBase & {
   assetId: string;
@@ -184,6 +251,8 @@ export type Entity =
   | EntityModel
   | EntityText;
 
+export type EntityType = Entity["type"];
+
 export type EntityWithAsset = EntityImage | EntityVideo | EntityModel;
 
 // Helper type for entities that require an assetId
@@ -215,7 +284,7 @@ export function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
     id: nanoid(5),
     name: uppercaseFirstLetter(type),
     transform: DEFAULT_TRANSFORM,
-    lookAtCamera: false,
+    components: {},
     editorScaleUniformly: true,
   };
 
@@ -360,7 +429,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     itemDependencyId: null,
     displayMode: "scene",
 
-    editorLinkTransforms: true,
+    editorLinkTransforms: false,
     editorPivotControlScale: 0.5,
     editorCurrentEntityId: null,
     editorCurrentTab: "target",
@@ -422,8 +491,18 @@ interface AppState extends BaseAppState {
   setItemEntity: (
     itemId: string,
     entityId: string,
-    entity: Partial<Entity>
+    entityUpdate: Partial<Entity>
   ) => void;
+
+  setItemEntityComponent: <TName extends Component["name"]>(
+    itemId: string,
+    entityId: string,
+    componentName: TName,
+    payloadUpdate:
+      | Partial<Extract<Component, { name: TName }>["payload"]>
+      | undefined
+  ) => void;
+
   moveItemEntity: (itemId: string, oldIndex: number, newIndex: number) => void;
 
   moveItemEntities: (
@@ -558,6 +637,36 @@ export const useStore = create<AppState>()(
               );
               if (!entity) return;
               Object.assign(entity, entityUpdate);
+            }
+          });
+        },
+
+        setItemEntityComponent: (
+          itemId,
+          entityId,
+          componentName,
+          payloadUpdate
+        ) => {
+          set((state) => {
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            const entity = item.entities.find(
+              (entity) => entity.id === entityId
+            );
+            if (!entity) return;
+            if (payloadUpdate) {
+              if (!entity.components) {
+                entity.components = {};
+              }
+              entity.components[componentName] = createComponent(
+                componentName,
+                {
+                  ...entity.components[componentName]?.payload,
+                  ...payloadUpdate,
+                }
+              ) as ComponentMap[typeof componentName];
+            } else {
+              delete entity.components[componentName];
             }
           });
         },
@@ -733,4 +842,43 @@ export function useAsset(assetId: string | null | undefined) {
 export function useEntityAsset(entity: Entity | null | undefined) {
   const assetId = entity && isEntityWithAsset(entity) ? entity.assetId : null;
   return useAsset(assetId);
+}
+
+export function useUpdateEntity(
+  itemId: string | null | undefined,
+  entityId: string | null | undefined
+) {
+  return useCallback(
+    (updatePayload: Partial<Entity>) => {
+      if (!itemId || !entityId) return;
+      useStore.getState().setItemEntity(itemId, entityId, updatePayload);
+    },
+    [itemId, entityId]
+  );
+}
+
+export function useUpdateEntityComponent<TName extends Component["name"]>(
+  itemId: string | null | undefined,
+  entityId: string | null | undefined,
+  componentName: TName
+) {
+  return useCallback(
+    <
+      TPayload extends
+        | Partial<Extract<Component, { name: TName }>["payload"]>
+        | undefined,
+    >(
+      payloadUpdate: TPayload
+    ) => {
+      if (!itemId || !entityId) return;
+      useStore.getState().setItemEntityComponent(
+        itemId,
+        entityId,
+        componentName,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        payloadUpdate as any
+      );
+    },
+    [itemId, entityId, componentName]
+  );
 }

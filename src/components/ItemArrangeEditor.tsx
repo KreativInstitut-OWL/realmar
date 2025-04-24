@@ -8,6 +8,7 @@ import {
   assertIsEntityVideo,
   Asset,
   Entity,
+  getComponent,
   isEntityImage,
   isEntityModel,
   isEntityText,
@@ -19,6 +20,7 @@ import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
   Edges,
   EdgesProps,
+  Float,
   GizmoHelper,
   GizmoViewport,
   Grid,
@@ -217,36 +219,56 @@ const EntityTextComponent = forwardRef<
 
   const [boundingGeometry, setBoundingGeometry] =
     useState<THREE.BufferGeometry>();
+  // State to hold the calculated center offset
+  const [centerOffset, setCenterOffset] = useState<THREE.Vector3>(
+    () => new THREE.Vector3(0, 0, 0)
+  );
 
   const meshRef = useRef<THREE.Mesh>(null);
 
   useEffect(() => {
-    void entity;
-
+    // This effect calculates the center of the Text3D geometry
+    // and updates the state to apply an offset, centering the text.
     const mesh = meshRef.current;
+    // Access the Text3D mesh directly (assuming it's the first child)
+    const textMesh = mesh?.children[0] as THREE.Mesh;
 
-    const scene = mesh?.children[0] as THREE.Mesh;
+    if (textMesh?.geometry) {
+      // Ensure the geometry's bounding box is computed
+      textMesh.geometry.computeBoundingBox();
+      const box = textMesh.geometry.boundingBox;
 
-    if (scene) {
-      const backupMatrix = scene.matrix.clone();
-      scene.matrix.identity();
-      scene.updateMatrixWorld(true);
+      if (box) {
+        const center = box.getCenter(new THREE.Vector3());
+        // Calculate the offset needed to move the center to the origin
+        const offset = center.clone().negate();
+        setCenterOffset(offset);
 
-      scene.geometry.computeBoundingBox();
-      const box = scene.geometry.boundingBox?.clone() ?? new THREE.Box3();
-      const size = box?.getSize(new THREE.Vector3());
-      const center = box?.getCenter(new THREE.Vector3());
-      const geometry = new THREE.BoxGeometry(size.x, size.y, size.z);
-      geometry.translate(center.x, center.y, center.z);
-
-      scene.applyMatrix4(backupMatrix);
-      setBoundingGeometry(geometry);
+        // Create a bounding box geometry centered at the origin
+        // for the Edges component.
+        const size = box.getSize(new THREE.Vector3());
+        const geom = new THREE.BoxGeometry(size.x, size.y, size.z);
+        // No translation needed here as the BoxGeometry is already centered
+        // and will be placed relative to the parent mesh's origin.
+        setBoundingGeometry(geom);
+      } else {
+        // Reset if bounding box calculation fails
+        setCenterOffset(new THREE.Vector3(0, 0, 0));
+        setBoundingGeometry(undefined);
+      }
+    } else {
+      // Reset if geometry is not available
+      setCenterOffset(new THREE.Vector3(0, 0, 0));
+      setBoundingGeometry(undefined);
     }
+    // Re-run the effect if the entity properties affecting the text change
   }, [entity]);
 
   return (
     <Suspense fallback={null}>
+      {/* The outer mesh remains the pivot point */}
       <mesh ref={composeRefs(ref, meshRef)}>
+        {/* Apply the calculated position offset to center the Text3D */}
         <Text3D
           font="Open_Sans_Regular.json"
           bevelEnabled
@@ -257,10 +279,12 @@ const EntityTextComponent = forwardRef<
           curveSegments={curveSegments}
           bevelSize={bevelSize}
           bevelThickness={bevelThickness}
+          position={centerOffset} // Apply the centering offset here
         >
           {text}
           <meshLambertMaterial color={color} />
         </Text3D>
+        {/* The Edges component uses the centered boundingGeometry */}
         {boundingGeometry && isValidElement<EdgesProps>(children)
           ? cloneElement(children, { geometry: boundingGeometry })
           : null}
@@ -282,7 +306,7 @@ const EntityPlaceholderComponent = forwardRef<
   );
 });
 
-function useEntityComponent(entity: Entity) {
+function useEntityReactComponent(entity: Entity) {
   return useMemo(() => {
     if (isEntityImage(entity)) {
       return EntityImageComponent;
@@ -314,15 +338,13 @@ function TransformableEntity({
   const renderCountRef = useRef(0);
   renderCountRef.current += 1;
 
-  const { lookAtCamera, transform } = entity;
+  const lookAtCamera = getComponent(entity, "look-at-camera");
+
+  const float = getComponent(entity, "float");
+
+  const { transform } = entity;
 
   const { data: asset } = useEntityAsset(entity);
-
-  // console.log("TransformableEntity render", renderCountRef.current, {
-  //   entityId: entity.id,
-  //   type: entity.type,
-  //   asset,
-  // });
 
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
@@ -339,7 +361,7 @@ function TransformableEntity({
   const meshRef = useRef<THREE.Mesh>(null);
 
   useFrame(({ camera }) => {
-    if (lookAtCamera) {
+    if (lookAtCamera?.enabled) {
       const matrixPosition = new THREE.Vector3();
       matrixRef.current.decompose(
         matrixPosition,
@@ -357,7 +379,19 @@ function TransformableEntity({
     }
   });
 
-  const EntityComponent = useEntityComponent(entity);
+  const EntityReactComponent = useEntityReactComponent(entity);
+
+  const entityNode = (
+    <EntityReactComponent asset={asset!} entity={entity} ref={meshRef}>
+      <Edges
+        visible={isSelected}
+        scale={1.1}
+        renderOrder={1000}
+        color="#999"
+        lineWidth={1.25}
+      />
+    </EntityReactComponent>
+  );
 
   return (
     <group onClick={() => onSelect()}>
@@ -368,7 +402,7 @@ function TransformableEntity({
         onDragStart={() => {
           setIsDragging(true);
         }}
-        disableRotations={!isSelected || lookAtCamera}
+        disableRotations={!isSelected || lookAtCamera?.enabled}
         disableAxes={!isSelected}
         disableSliders={!isSelected}
         onDragEnd={() => {
@@ -380,15 +414,7 @@ function TransformableEntity({
         disableScaling
         axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
       >
-        <EntityComponent asset={asset!} entity={entity} ref={meshRef}>
-          <Edges
-            visible={isSelected}
-            scale={1.1}
-            renderOrder={1000}
-            color="#999"
-            lineWidth={1.25}
-          />
-        </EntityComponent>
+        {float?.enabled ? <Float {...float}>{entityNode}</Float> : entityNode}
       </PivotControls>
     </group>
   );
@@ -501,9 +527,9 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         />
         <OrbitControls makeDefault />
 
-        <ambientLight intensity={2.5} />
-        <directionalLight position={[5, 10, 5]} intensity={5} />
-        <directionalLight position={[0, 0, 10]} intensity={10} />
+        <ambientLight intensity={4} />
+        <directionalLight position={[5, 10, 5]} intensity={4} />
+        <directionalLight position={[0, 0, 10]} intensity={6} />
 
         <MarkerObject id={props.id} src={props.marker?.src} />
 

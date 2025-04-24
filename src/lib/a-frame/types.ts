@@ -73,6 +73,7 @@ export interface AFrameComponent {
 export interface CustomComponent {
   quaternion?: AFrameVec4;
   "look-at"?: string;
+  float?: AFrameMap;
   "mindar-image-target"?: string;
   "mindar-image"?: string;
   "batchar-display-mode"?: string;

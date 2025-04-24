@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { createEntity, useAsset, useCurrentItem, useStore } from "@/store";
 import { FileStack, Plus, Text } from "lucide-react";
-import { forwardRef, HTMLAttributes } from "react";
+import { forwardRef, HTMLAttributes, useEffect } from "react";
 import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
@@ -18,7 +18,6 @@ import { Separator } from "./ui/separator";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -32,6 +31,10 @@ export const ItemArrange = forwardRef<
   const setItem = useStore((state) => state.setItem);
   const setItemEntity = useStore((state) => state.setItemEntity);
   const addItemEntity = useStore((state) => state.addItemEntity);
+
+  useEffect(() => {
+    console.log(useStore.getState());
+  }, []);
 
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
@@ -152,7 +155,7 @@ export const ItemArrange = forwardRef<
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>footer</SidebarFooter>
+        {/* <SidebarFooter>footer</SidebarFooter> */}
       </Sidebar>
     </SidebarProvider>
   );

@@ -1,28 +1,29 @@
 import { createAsset } from "@/store";
-import { flushSync } from "react-dom";
-import { createRoot } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import * as THREE from "three";
 
 export function reactRenderToString(node: React.ReactNode) {
-  const container = document.createElement("div");
-  const root = createRoot(container);
+  return renderToStaticMarkup(node);
 
-  // Temporarily suppress DOM nesting validation warnings
-  const originalConsoleError = console.error;
-  console.error = (...args) => {
-    if (typeof args[0] === "string" && args[0].includes("validateDOMNesting")) {
-      return;
-    }
-    originalConsoleError.apply(console, args);
-  };
+  // const container = document.createElement("html");
+  // const root = createRoot(container);
 
-  try {
-    flushSync(() => root.render(node));
-    return container.innerHTML;
-  } finally {
-    // Restore original console.error
-    console.error = originalConsoleError;
-  }
+  // // Temporarily suppress DOM nesting validation warnings
+  // const originalConsoleError = console.error;
+  // // console.error = (...args) => {
+  // //   if (typeof args[0] === "string" && args[0].includes("validateDOMNesting")) {
+  // //     return;
+  // //   }
+  // //   originalConsoleError.apply(console, args);
+  // // };
+
+  // try {
+  //   flushSync(() => root.render(node));
+  //   return container.innerHTML;
+  // } finally {
+  //   // Restore original console.error
+  //   console.error = originalConsoleError;
+  // }
 }
 
 export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {

@@ -180,6 +180,28 @@
     box-shadow: 0.32em 0 0 var(--color-gray-12);
   }
 }
+
+.react-colorful.react-colorful {
+  @apply w-full;
+}
+
+.react-colorful__saturation.react-colorful__saturation {
+  @apply rounded-t;
+}
+
+.react-colorful__last-control.react-colorful__last-control {
+  @apply rounded-b;
+}
+
+.react-colorful__pointer.react-colorful__pointer {
+  @apply size-5 outline-none;
+}
+
+.react-colorful__interactive:focus
+  .react-colorful__pointer.react-colorful__pointer {
+  @apply ring ring-offset-0;
+}
+
 /* 
 @utility text-heading-72 {
   @apply text-7xl font-mono;

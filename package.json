@@ -58,6 +58,7 @@
     "prettier": "^3.5.1",
     "pure-rand": "^6.1.0",
     "react": "^19.1.0",
+    "react-colorful": "^5.6.1",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.5",
     "react-selecto": "^1.26.3",
@@ -68,6 +69,7 @@
     "tailwind-merge": "^2.5.4",
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.175.0",
+    "three-stdlib": "^2.35.15",
     "voronoi": "^1.0.0",
     "zustand": "^5.0.1"
   },

@@ -9,17 +9,23 @@ import {
 import { uppercaseFirstLetter } from "@/lib/utils";
 import {
   Entity,
+  getComponent,
   isEntityModel,
   isEntityText,
   isEntityVideo,
   Item,
   systemFonts,
-  useStore,
+  useUpdateEntity,
+  useUpdateEntityComponent,
 } from "@/store";
+import { SelectValue } from "@radix-ui/react-select";
 import {
   ALargeSmall,
+  Feather,
+  Gauge,
   Link2,
   MoveDiagonal,
+  MoveVertical,
   SeparatorHorizontal,
   SeparatorVertical,
   SquareRoundCorner,
@@ -29,14 +35,14 @@ import {
 } from "lucide-react";
 import { useCallback } from "react";
 import { FormControlNumber } from "./FormControlNumber";
+import { ColorPicker } from "./ui/color-picker";
 import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
 import { FormControl, FormItem, FormLabel } from "./ui/form";
 import { Input, Textarea } from "./ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Toggle } from "./ui/toggle";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
-import { SelectValue } from "@radix-ui/react-select";
 
 export function EntityProperties({
   item,
@@ -45,15 +51,19 @@ export function EntityProperties({
   item: Item;
   entity: Entity | null;
 }) {
+  const lookAtCamera = getComponent(entity, "look-at-camera");
+  const updateLookAtCamera = useUpdateEntityComponent(
+    item?.id,
+    entity?.id,
+    "look-at-camera"
+  );
+
+  const float = getComponent(entity, "float");
+  const updateFloat = useUpdateEntityComponent(item?.id, entity?.id, "float");
+
   const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
-  const updateEntity = useCallback(
-    (updatePayload: Partial<Entity>) => {
-      if (!item.id || !entity?.id) return;
-      useStore.getState().setItemEntity(item.id, entity.id, updatePayload);
-    },
-    [item.id, entity?.id]
-  );
+  const updateEntity = useUpdateEntity(item?.id, entity?.id);
 
   const updateEntityTransform = useCallback(
     (
@@ -128,14 +138,14 @@ export function EntityProperties({
           end={
             <Toggle
               size="icon-sm"
-              pressed={entity.lookAtCamera}
-              onPressedChange={(lookAtCamera) => {
-                updateEntity({ lookAtCamera });
+              pressed={lookAtCamera?.enabled}
+              onPressedChange={(enabled) => {
+                updateLookAtCamera({ enabled });
               }}
               aria-label="Look at camera"
               tooltip="Look at camera"
             >
-              {entity.lookAtCamera ? <Video /> : <VideoOff />}
+              {lookAtCamera?.enabled ? <Video /> : <VideoOff />}
             </Toggle>
           }
         >
@@ -155,7 +165,7 @@ export function EntityProperties({
               onChange={(newValue) =>
                 updateEntityTransform(newValue, component, "rotation")
               }
-              disabled={entity.lookAtCamera}
+              disabled={lookAtCamera?.enabled}
             />
           ))}
         </ControlRow>
@@ -265,15 +275,17 @@ export function EntityProperties({
               <FormControlNumber
                 description="Font Size"
                 label={<ALargeSmall />}
-                step={0.1}
-                min={0.1}
+                step={0.01}
+                min={0.01}
                 max={10}
                 formatOptions={{
                   style: "decimal",
                   maximumFractionDigits: 2,
                 }}
                 value={entity.fontSize}
-                onChange={(fontSize) => fontSize && updateEntity({ fontSize })}
+                onChange={(fontSize) =>
+                  typeof fontSize === "number" && updateEntity({ fontSize })
+                }
               />
               <FormControlNumber
                 description="Letter Spacing"
@@ -287,7 +299,8 @@ export function EntityProperties({
                 }}
                 value={entity.letterSpacing}
                 onChange={(letterSpacing) =>
-                  letterSpacing && updateEntity({ letterSpacing })
+                  typeof letterSpacing === "number" &&
+                  updateEntity({ letterSpacing })
                 }
               />
 
@@ -303,7 +316,7 @@ export function EntityProperties({
                 }}
                 value={entity.lineHeight}
                 onChange={(lineHeight) =>
-                  lineHeight && updateEntity({ lineHeight })
+                  typeof lineHeight === "number" && updateEntity({ lineHeight })
                 }
               />
             </ControlRow>
@@ -319,7 +332,9 @@ export function EntityProperties({
                   maximumFractionDigits: 2,
                 }}
                 value={entity.height}
-                onChange={(height) => height && updateEntity({ height })}
+                onChange={(height) =>
+                  typeof height === "number" && updateEntity({ height })
+                }
               />
               <FormControlNumber
                 description="Bevel Size"
@@ -333,7 +348,7 @@ export function EntityProperties({
                 }}
                 value={entity.bevelSize}
                 onChange={(bevelSize) =>
-                  bevelSize && updateEntity({ bevelSize })
+                  typeof bevelSize === "number" && updateEntity({ bevelSize })
                 }
               />
               <FormControlNumber
@@ -348,8 +363,18 @@ export function EntityProperties({
                 }}
                 value={entity.bevelThickness}
                 onChange={(bevelThickness) =>
-                  bevelThickness && updateEntity({ bevelThickness })
+                  typeof bevelThickness === "number" &&
+                  updateEntity({ bevelThickness })
                 }
+              />
+            </ControlRow>
+            <ControlRow>
+              <ColorPicker
+                color={entity.color}
+                onColorChange={(color) => {
+                  updateEntity({ color });
+                }}
+                label="Text Color"
               />
             </ControlRow>
           </ControlGroup>
@@ -425,6 +450,81 @@ export function EntityProperties({
           </ControlGroup>
         </>
       )}
+
+      <>
+        <Separator />
+        <ControlGroup>
+          <ControlLabel level={2}>Float</ControlLabel>
+          <FormItem asChild>
+            <ControlRow columns={3}>
+              <FormLabel className="col-span-2">Enable Float</FormLabel>
+              <FormControl>
+                <Switch
+                  onCheckedChange={(enabled) => {
+                    updateFloat({ enabled });
+                  }}
+                  checked={float?.enabled}
+                />
+              </FormControl>
+            </ControlRow>
+          </FormItem>
+          {float?.enabled ? (
+            <>
+              <ControlRow columns={3}>
+                <FormControlNumber
+                  description="Intensity"
+                  label={<Feather />}
+                  step={0.01}
+                  min={0}
+                  max={20}
+                  formatOptions={{
+                    style: "decimal",
+                    maximumFractionDigits: 2,
+                  }}
+                  value={float.intensity}
+                  onChange={(intensity) =>
+                    typeof intensity === "number" &&
+                    updateFloat({ intensity, rotationIntensity: intensity })
+                  }
+                />
+
+                <FormControlNumber
+                  description="Speed"
+                  label={<Gauge />}
+                  step={0.1}
+                  min={0.01}
+                  max={20}
+                  formatOptions={{
+                    style: "decimal",
+                    maximumFractionDigits: 2,
+                  }}
+                  value={float.speed}
+                  onChange={(speed) =>
+                    typeof speed === "number" && updateFloat({ speed })
+                  }
+                />
+
+                <FormControlNumber
+                  description="Y-Amplitude"
+                  label={<MoveVertical />}
+                  step={0.01}
+                  min={0}
+                  max={20}
+                  formatOptions={{
+                    style: "decimal",
+                    maximumFractionDigits: 2,
+                  }}
+                  value={float.floatingRange[1]}
+                  onChange={(value) =>
+                    typeof value === "number" &&
+                    updateFloat({ floatingRange: [-value, value] })
+                  }
+                />
+              </ControlRow>
+            </>
+          ) : null}
+        </ControlGroup>
+      </>
 
       {/* <FormItem className="flex gap-2 items-center space-y-0 w-full">
         <div className="space-y-0.5">
