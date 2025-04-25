@@ -9,10 +9,12 @@ import { ImagePlusIcon } from "lucide-react";
 import { ItemEntity, ItemEntityDragOverlay } from "./ItemEntity";
 import { Sortable } from "./ui/sortable";
 import * as React from "react";
+import { useOutsideClick } from "@/hooks/useOutsideClick";
+import { isMouseEvent } from "@/lib/utils";
 
 export function ItemEntities() {
-  const addFilesAsItemEntities = useStore(
-    (state) => state.addFilesAsItemEntities
+  const addItemEntitiesFromFiles = useStore(
+    (state) => state.addItemEntitiesFromFiles
   );
   const moveItemEntities = useStore((state) => state.moveItemEntities);
 
@@ -60,7 +62,7 @@ export function ItemEntities() {
       <DropzoneProvider
         // accept={{ "image/*": [], "model/*": [".glb"] }}
         onDrop={async (files) => {
-          await addFilesAsItemEntities(item.id, files);
+          await addItemEntitiesFromFiles(item.id, files);
         }}
       >
         <Dropzone className="group p-8 mb-12">
@@ -138,34 +140,4 @@ export function ItemEntities() {
       )}
     </div>
   );
-}
-
-function isMouseEvent(event: Event): event is MouseEvent {
-  return event instanceof MouseEvent;
-}
-
-function useOutsideClick(
-  ref: React.RefObject<HTMLElement>,
-  callback: () => void
-) {
-  React.useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      // also ignore all clicks on the context menus ([data-radix-popper-content-wrapper])
-      if (
-        ref.current &&
-        !ref.current.contains(event.target as Node) &&
-        !document
-          .querySelector("[data-radix-popper-content-wrapper]")
-          ?.contains(event.target as Node)
-      ) {
-        callback();
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [ref, callback]);
 }

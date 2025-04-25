@@ -10,7 +10,9 @@ import { Target } from "./Target";
 
 export function ItemTarget() {
   const item = useCurrentItem();
-  const setItemTarget = useStore((state) => state.setItemTarget);
+  const setItemTargetFromFile = useStore(
+    (state) => state.setItemTargetFromFile
+  );
   const removeItemTarget = useStore((state) => state.removeItemTarget);
 
   const { data: targetAsset } = useAsset(item?.targetAssetId);
@@ -24,7 +26,7 @@ export function ItemTarget() {
         accept={{ "image/*": [] }}
         preventDropOnDocument
         onDrop={(files) => {
-          setItemTarget(item.id, files[0]);
+          setItemTargetFromFile(item.id, files[0]);
         }}
       >
         <Dropzone className="group p-2 relative aspect-square col-span-1">

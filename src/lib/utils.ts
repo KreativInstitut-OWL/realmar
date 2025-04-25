@@ -24,3 +24,7 @@ export function uppercaseFirstLetter(string?: string) {
   if (!string) return "";
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+export function isMouseEvent(event: Event): event is MouseEvent {
+  return event instanceof MouseEvent;
+}

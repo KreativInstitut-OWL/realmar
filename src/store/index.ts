@@ -26,8 +26,10 @@ const storage: StateStorage = {
 
 export type Asset = {
   id: string;
-  file: File;
-  src: string;
+  fileId: string;
+  type: string;
+  name: string;
+  size: number;
   createdAt: Date;
   updatedAt: Date;
   width: number | null;
@@ -39,7 +41,10 @@ export type Asset = {
 export async function createAsset({
   id,
   file,
-  src,
+  type,
+  size,
+  fileId,
+  name,
   createdAt,
   updatedAt,
 }: Partial<Asset> & { file: File }): Promise<Asset> {
@@ -95,8 +100,10 @@ export async function createAsset({
   const now = new Date();
   return {
     id: id ?? nanoid(5),
-    file,
-    src: src ?? URL.createObjectURL(file),
+    fileId: fileId ?? nanoid(5),
+    type: type ?? file.type,
+    name: name ?? file.name,
+    size: size ?? file.size,
     createdAt: createdAt ?? now,
     updatedAt: updatedAt ?? now,
     width,
@@ -393,16 +400,16 @@ export function assertIsEntityModel(
 }
 
 export function inferEntityTypeFromAsset(asset: Asset): EntityWithAssetType {
-  if (asset.file.type.startsWith("image/")) {
+  if (asset.type.startsWith("image/")) {
     return "image";
   }
-  if (asset.file.type.startsWith("video/")) {
+  if (asset.type.startsWith("video/")) {
     return "video";
   }
-  if (asset.file.type.startsWith("model/")) {
+  if (asset.type.startsWith("model/")) {
     return "model";
   }
-  throw new Error(`Unsupported asset type: ${asset.file.type}`);
+  throw new Error(`Unsupported asset type: ${asset.type}`);
 }
 
 export type Item = {
@@ -469,6 +476,7 @@ function createEntityNavigation({
 
 export interface BaseAppState {
   items: Item[];
+  assets: Asset[];
   projectName: string | null;
   editorCurrentItemId: string | null;
   editorCurrentView: EditorView;
@@ -504,7 +512,6 @@ interface AppState extends BaseAppState {
   ) => void;
 
   moveItemEntity: (itemId: string, oldIndex: number, newIndex: number) => void;
-
   moveItemEntities: (
     itemId: string,
     entityIds: string[],
@@ -517,12 +524,18 @@ interface AppState extends BaseAppState {
     newItemId: string
   ) => void;
 
-  setItemTarget: (itemId: string, file: File) => Promise<void>;
-  removeItemTarget: (itemId: string) => Promise<void>;
+  setItemTargetFromFile: (itemId: string, file: File) => Promise<void>;
+  removeItemTarget: (itemId: string) => void;
 
   addItemEntity: (itemId: string, entity: Entity) => Promise<void>;
-  addFilesAsItemEntities: (id: string, files: File[]) => Promise<void>;
-  removeItemEntities: (itemId: string, entityIds: string[]) => Promise<void>;
+  addItemEntitiesFromFiles: (id: string, files: File[]) => Promise<void>;
+  removeItemEntities: (itemId: string, entityIds: string[]) => void;
+
+  addAssetsFromFiles: (files: File[]) => Promise<void>;
+  moveAsset: (oldIndex: number, newIndex: number) => void;
+  moveAssets: (assetIds: string[], newIndex: number) => void;
+  setAsset: (assetId: string, assetUpdate: Partial<Asset>) => void;
+  removeAssets: (assetIds: string[]) => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -531,6 +544,8 @@ export const useStore = create<AppState>()(
       const initialItem = createItem();
       return {
         items: [initialItem],
+        assets: [],
+
         projectName: null,
 
         setProjectName: (name) => {
@@ -570,14 +585,14 @@ export const useStore = create<AppState>()(
           const item = get().items.find((item) => item.id === itemId);
           if (!item) return;
 
-          if (item.targetAssetId) {
-            await FileStore.del(item.targetAssetId);
-          }
+          // if (item.targetAssetId) {
+          //   await FileStore.del(item.targetAssetId);
+          // }
 
-          for (const entity of item.entities) {
-            if (!isEntityWithAsset(entity)) continue;
-            await FileStore.del(entity.assetId);
-          }
+          // for (const entity of item.entities) {
+          //   if (!isEntityWithAsset(entity)) continue;
+          //   await FileStore.del(entity.assetId);
+          // }
 
           set((state) => {
             const index = state.items.findIndex((item) => item.id === itemId);
@@ -604,9 +619,9 @@ export const useStore = create<AppState>()(
           });
         },
 
-        setItemTarget: async (itemId, file) => {
+        setItemTargetFromFile: async (itemId, file) => {
           const targetAsset = await createAsset({ file });
-          await FileStore.add(targetAsset);
+          await FileStore.add({ id: targetAsset.fileId, file });
 
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
@@ -715,20 +730,20 @@ export const useStore = create<AppState>()(
           });
         },
 
-        removeItemTarget: async (itemId) => {
+        removeItemTarget: (itemId) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.targetAssetId = null;
           });
 
-          const targetAssetId =
-            get().items.find((item) => item.id === itemId)?.targetAssetId ??
-            null;
+          // const targetAssetId =
+          //   get().items.find((item) => item.id === itemId)?.targetAssetId ??
+          //   null;
 
-          if (targetAssetId) {
-            await FileStore.del(targetAssetId);
-          }
+          // if (targetAssetId) {
+          //   await FileStore.del(targetAssetId);
+          // }
         },
 
         addItemEntity: async (itemId, entity) => {
@@ -739,46 +754,110 @@ export const useStore = create<AppState>()(
           });
         },
 
-        addFilesAsItemEntities: async (itemId, files) => {
+        addItemEntitiesFromFiles: async (itemId, files) => {
           const newEntities: Entity[] = [];
+          const newAssets: Asset[] = [];
 
           for (const file of files) {
             const asset = await createAsset({ file });
-            await FileStore.add(asset);
+            await FileStore.add({ id: asset.fileId, file });
+            newAssets.push(asset);
+
             const entity = createEntity({
               type: inferEntityTypeFromAsset(asset),
-              name: asset.file.name,
+              name: asset.name,
               assetId: asset.id,
             });
-
             newEntities.push(entity);
           }
 
           set((state) => {
+            state.assets.push(...newAssets);
+
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(...newEntities);
           });
         },
 
-        removeItemEntities: async (itemId, entityIds) => {
-          const entities =
-            get()
-              .items.find((item) => item.id === itemId)
-              ?.entities.filter((entity) => entityIds.includes(entity.id)) ??
-            [];
+        removeItemEntities: (itemId, entityIds) => {
+          // const entities =
+          //   get()
+          //     .items.find((item) => item.id === itemId)
+          //     ?.entities.filter((entity) => entityIds.includes(entity.id)) ??
+          //   [];
 
-          await Promise.all(
-            entities
-              .filter((entity) => isEntityWithAsset(entity))
-              .map((entity) => FileStore.del(entity.assetId))
-          );
+          // await Promise.all(
+          //   entities
+          //     .filter((entity) => isEntityWithAsset(entity))
+          //     .map((entity) => FileStore.del(entity.assetId))
+          // );
 
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities = item.entities.filter(
               (entity) => !entityIds.includes(entity.id)
+            );
+          });
+        },
+
+        addAssetsFromFiles: async (files) => {
+          // Process all assets in parallel
+          const assetPromises = files.map(async (file) => {
+            const asset = await createAsset({ file });
+            await FileStore.add({ id: asset.fileId, file });
+            return asset;
+          });
+
+          // Wait for all assets to be processed and collect IDs
+          const newAssets = await Promise.all(assetPromises);
+
+          set((state) => {
+            state.assets.push(...newAssets);
+          });
+        },
+
+        moveAsset: (oldIndex, newIndex) => {
+          set((state) => {
+            const [removedAsset] = state.assets.splice(oldIndex, 1);
+            state.assets.splice(newIndex, 0, removedAsset);
+          });
+        },
+
+        moveAssets: (assetIds, newIndex) => {
+          set((state) => {
+            const assets = state.assets.filter((entity) =>
+              assetIds.includes(entity.id)
+            );
+            const otherAssets = state.assets.filter(
+              (entity) => !assetIds.includes(entity.id)
+            );
+            state.assets = [
+              ...otherAssets.slice(0, newIndex),
+              ...assets,
+              ...otherAssets.slice(newIndex),
+            ];
+          });
+        },
+
+        setAsset: (assetId, assetUpdate) => {
+          set((state) => {
+            const asset = state.assets.find((asset) => asset.id === assetId);
+            if (!asset) return;
+            Object.assign(asset, assetUpdate);
+          });
+        },
+
+        removeAssets: async (assetIds) => {
+          const assets =
+            get().assets.filter((asset) => assetIds.includes(asset.id)) ?? [];
+
+          await Promise.all(assets.map((asset) => FileStore.del(asset.id)));
+
+          set((state) => {
+            state.assets = state.assets.filter(
+              (asset) => !assetIds.includes(asset.id)
             );
           });
         },
