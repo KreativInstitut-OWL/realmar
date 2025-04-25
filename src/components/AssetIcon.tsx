@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { forwardRef } from "react";
 
-// Define MIME type category icons
 const mimeTypeIcons: Record<
   string,
   React.ForwardRefExoticComponent<
@@ -27,10 +26,8 @@ export const AssetIcon = forwardRef<
 >(({ asset, className, ...props }, ref) => {
   const type = asset.type;
 
-  // Find the appropriate icon based on MIME type prefix
   const iconKey = Object.keys(mimeTypeIcons).find(
-    (key) =>
-      type === key || (typeof type === "string" && type.startsWith(`${key}/`))
+    (key) => type === key || type.startsWith(key)
   );
 
   const Icon = iconKey ? mimeTypeIcons[iconKey] : FileQuestion;

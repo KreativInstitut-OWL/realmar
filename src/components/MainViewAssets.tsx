@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import { AssetDropzone } from "./AssetDropzone";
 import { AssetList } from "./AssetList";
 

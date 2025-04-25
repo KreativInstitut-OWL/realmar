@@ -15,7 +15,7 @@ export function ItemTarget() {
   );
   const removeItemTarget = useStore((state) => state.removeItemTarget);
 
-  const { data: targetAsset } = useAsset(item?.targetAssetId);
+  const asset = useAsset(item?.targetAssetId);
 
   if (!item) return null;
 
@@ -39,7 +39,7 @@ export function ItemTarget() {
           </DropzoneDragAcceptContent>
         </Dropzone>
       </DropzoneProvider>
-      {targetAsset ? (
+      {asset ? (
         <Button
           size="sm"
           className="mt-2"

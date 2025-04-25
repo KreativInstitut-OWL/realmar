@@ -39,7 +39,7 @@ export const ItemArrange = forwardRef<
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
 
-  const { data: targetAsset } = useAsset(item?.targetAssetId);
+  const targetAsset = useAsset(item?.targetAssetId);
 
   if (!item) return null;
 

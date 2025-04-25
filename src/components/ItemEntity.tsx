@@ -4,7 +4,7 @@ import {
   dateFormatter,
   uppercaseFirstLetter,
 } from "@/lib/utils";
-import { useEntityAsset, useItem } from "@/store";
+import { isEntityWithAsset, useAsset, useItem } from "@/store";
 import { GripHorizontal } from "lucide-react";
 import { forwardRef, useMemo } from "react";
 import { EntityIcon } from "./EntityIcon";
@@ -48,7 +48,7 @@ export const ItemEntity = forwardRef<
       return item?.entities.find((entity) => entity.id === entityId);
     }, [item?.entities, entityId]);
 
-    const { data: entityAsset } = useEntityAsset(entity);
+    const asset = useAsset(isEntityWithAsset(entity) ? entity.assetId : null);
 
     if (!item || !entity || entityIndex === -1) return null;
 
@@ -92,12 +92,12 @@ export const ItemEntity = forwardRef<
           <div className="grow min-w-0 truncate">
             {entity.name}
             {variant !== "compact" &&
-            entityAsset?.originalHeight &&
-            entityAsset?.originalWidth ? (
+            asset?.originalHeight &&
+            asset?.originalWidth ? (
               <>
                 {" "}
                 <Badge variant="primary">
-                  {entityAsset.originalWidth}×{entityAsset.originalHeight}
+                  {asset.originalWidth}×{asset.originalHeight}
                 </Badge>
               </>
             ) : null}
@@ -107,14 +107,14 @@ export const ItemEntity = forwardRef<
               <div className="w-24 truncate text-gray-11">
                 {uppercaseFirstLetter(entity.type)}
               </div>
-              {entityAsset ? (
+              {asset ? (
                 <div className="w-24 truncate text-gray-11">
-                  {byteFormatter.format(entityAsset.file.size)}
+                  {byteFormatter.format(asset.size)}
                 </div>
               ) : null}
-              {entityAsset ? (
+              {asset ? (
                 <div className="w-42 truncate text-gray-11 text-right">
-                  {dateFormatter.format(entityAsset.updatedAt)}
+                  {dateFormatter.format(asset.updatedAt)}
                 </div>
               ) : null}
             </>

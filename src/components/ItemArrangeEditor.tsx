@@ -13,8 +13,10 @@ import {
   isEntityModel,
   isEntityText,
   isEntityVideo,
+  isEntityWithAsset,
   Item,
-  useEntityAsset,
+  useAsset,
+  useFile,
 } from "@/store";
 import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
@@ -45,17 +47,20 @@ import {
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedTarget } from "./GeneratedTarget";
+import { useObjectUrl } from "@/hooks/useObjectUrl";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
 const EntityImageComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset | null; children: React.ReactNode }
->(({ asset, children }, ref) => {
+  { asset: Asset | null; file: File | null; children: React.ReactNode }
+>(({ asset, file, children }, ref) => {
+  const src = useObjectUrl(file);
+
   const texture = useMemo(() => {
-    if (!asset?.src) return null;
-    return new THREE.TextureLoader().load(asset.src);
-  }, [asset?.src]);
+    if (!src) return null;
+    return new THREE.TextureLoader().load(src);
+  }, [src]);
 
   useEffect(() => {
     return () => {
@@ -63,7 +68,7 @@ const EntityImageComponent = forwardRef<
     };
   }, [texture]);
 
-  if (!texture || !asset) {
+  if (!texture || !asset || !file) {
     return null;
   }
 
@@ -78,13 +83,18 @@ const EntityImageComponent = forwardRef<
 
 const EntityVideoComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset | null; entity: Entity; children: React.ReactNode }
->(({ asset, entity, children }, ref) => {
+  {
+    asset: Asset | null;
+    file: File | null;
+    entity: Entity;
+    children: React.ReactNode;
+  }
+>(({ asset, file, entity, children }, ref) => {
   assertIsEntityVideo(entity);
 
   // const { autoplay, loop, muted } = entity;
 
-  const texture = useVideoTexture(asset?.src ?? null);
+  const texture = useVideoTexture(useObjectUrl(file) ?? null);
 
   useEffect(() => {
     return () => {
@@ -107,8 +117,13 @@ const EntityVideoComponent = forwardRef<
 
 const EntityModelComponent = forwardRef<
   THREE.Mesh,
-  { asset: Asset | null; entity: Entity; children: React.ReactNode }
->(({ asset, entity, children }, ref) => {
+  {
+    asset: Asset | null;
+    file: File | null;
+    entity: Entity;
+    children: React.ReactNode;
+  }
+>(({ file, entity, children }, ref) => {
   assertIsEntityModel(entity);
 
   const [gltf, setGltf] = useState<GLTF>();
@@ -117,7 +132,7 @@ const EntityModelComponent = forwardRef<
   const { playAnimation } = entity;
 
   useEffect(() => {
-    if (!asset?.file) return;
+    if (!file) return;
 
     let isMounted = true;
     const reader = new FileReader();
@@ -138,12 +153,12 @@ const EntityModelComponent = forwardRef<
         }
       });
     };
-    reader.readAsArrayBuffer(asset.file);
+    reader.readAsArrayBuffer(file);
 
     return () => {
       isMounted = false;
     };
-  }, [asset]);
+  }, [file]);
 
   useEffect(() => {
     if (!playAnimation && mixer) {
@@ -344,7 +359,9 @@ function TransformableEntity({
 
   const { transform } = entity;
 
-  const { data: asset } = useEntityAsset(entity);
+  const asset = useAsset(isEntityWithAsset(entity) ? entity.assetId : null);
+
+  const file = useFile(asset?.fileId);
 
   const matrixRef = useRef<THREE.Matrix4>(
     new THREE.Matrix4().fromArray(transform)
@@ -382,7 +399,12 @@ function TransformableEntity({
   const EntityReactComponent = useEntityReactComponent(entity);
 
   const entityNode = (
-    <EntityReactComponent asset={asset!} entity={entity} ref={meshRef}>
+    <EntityReactComponent
+      asset={asset!}
+      file={file!}
+      entity={entity}
+      ref={meshRef}
+    >
       <Edges
         visible={isSelected}
         scale={1.1}
@@ -481,7 +503,7 @@ interface ItemArrangeEditorProps {
   entities: Entity[];
   selectedEntityId: string | null;
   onSelectEntity: (id: string) => void;
-  marker: Asset | null;
+  marker: Asset | undefined;
   displayMode: Item["displayMode"];
 }
 
@@ -516,6 +538,9 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     };
   }, []);
 
+  const markerFile = useFile(props.marker?.fileId);
+  const markerSrc = useObjectUrl(markerFile);
+
   return (
     <div className="w-full h-full overflow-clip bg-gray-2 test">
       <Canvas ref={canvasRef} key={canvasKey}>
@@ -531,7 +556,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         <directionalLight position={[5, 10, 5]} intensity={4} />
         <directionalLight position={[0, 0, 10]} intensity={6} />
 
-        <MarkerObject id={props.id} src={props.marker?.src} />
+        <MarkerObject id={props.id} src={markerSrc} />
 
         {props.entities.map((entity) => {
           if (

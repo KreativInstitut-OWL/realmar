@@ -1,9 +1,10 @@
 import { GeneratedTarget } from "@/components/GeneratedTarget";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useAsset } from "@/store";
+import { useAsset, useFile } from "@/store";
 import { Suspense } from "react";
 import { Skeleton } from "./ui/skeleton";
+import { useObjectUrl } from "@/hooks/useObjectUrl";
 
 function TargetImpl({
   assetId,
@@ -12,17 +13,19 @@ function TargetImpl({
   assetId: string | null;
   itemId: string;
 }) {
-  const { data: asset } = useAsset(assetId);
+  const asset = useAsset(assetId);
+  const file = useFile(asset?.fileId);
+  const src = useObjectUrl(file);
 
   return (
     <>
-      {asset?.src ? (
-        <img src={asset.src} alt="" className="object-contain w-full h-full" />
+      {src ? (
+        <img src={src} alt="" className="object-contain w-full h-full" />
       ) : (
         <GeneratedTarget id={itemId} />
       )}
       <Badge className="absolute bottom-3 right-3 z-10 hidden @[8rem]/target:flex">
-        {asset?.src ? "Custom" : "Auto"}
+        {src ? "Custom" : "Auto"}
       </Badge>
     </>
   );

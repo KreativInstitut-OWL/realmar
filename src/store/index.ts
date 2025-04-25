@@ -351,11 +351,13 @@ export function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
   }
 }
 
-export function isEntityWithAsset(entity: Entity): entity is EntityWithAsset {
+export function isEntityWithAsset(
+  entity: Entity | undefined
+): entity is EntityWithAsset {
   return (
-    entity.type === "image" ||
-    entity.type === "video" ||
-    entity.type === "model"
+    entity?.type === "image" ||
+    entity?.type === "video" ||
+    entity?.type === "model"
   );
 }
 export function isEntityNull(entity: Entity): entity is EntityNull {
@@ -906,21 +908,24 @@ export function useCurrentItem() {
   return useItem(useStore((state) => state.editorCurrentItemId!))!;
 }
 
-export function useAsset(assetId: string | null | undefined) {
-  return useSuspenseQuery({
-    queryKey: ["asset", assetId],
-    queryFn: () => FileStore.get(assetId),
+export function useFile(fileId: string | null | undefined) {
+  const { data: file } = useSuspenseQuery({
+    queryKey: ["file", fileId],
+    queryFn: () => FileStore.get(fileId),
     networkMode: "always",
     staleTime: Infinity,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  return file;
 }
 
-export function useEntityAsset(entity: Entity | null | undefined) {
-  const assetId = entity && isEntityWithAsset(entity) ? entity.assetId : null;
-  return useAsset(assetId);
+export function useAsset(assetId: string | null | undefined) {
+  return useStore((state) =>
+    assetId ? state.assets.find((asset) => asset.id === assetId) : undefined
+  );
 }
 
 export function useUpdateEntity(
