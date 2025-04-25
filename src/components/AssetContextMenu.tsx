@@ -24,15 +24,15 @@ export const AssetContextMenu = forwardRef<
   React.ComponentProps<typeof ContextMenuTrigger> & {
     assetIndex: number;
     asset: Asset;
-    selectedAssetIds: string[];
+    selectedIds: string[];
   }
->(({ asset, assetIndex, selectedAssetIds, ...props }, ref) => {
+>(({ asset, assetIndex, selectedIds, ...props }, ref) => {
   const removeAssets = useStore((state) => state.removeAssets);
   const moveAsset = useStore((state) => state.moveAsset);
   const setAsset = useStore((state) => state.setAsset);
   const assetsLength = useStore((state) => state.assets.length);
 
-  const isMultipleSelected = selectedAssetIds.length > 1;
+  const isMultipleSelected = selectedIds.length > 1;
 
   return (
     <ContextMenu>
@@ -42,18 +42,16 @@ export const AssetContextMenu = forwardRef<
           <div className="flex-1 truncate min-w-0">
             {asset?.name ?? "Unknown asset"}{" "}
           </div>
-          {isMultipleSelected ? (
-            <Badge>+{selectedAssetIds.length - 1}</Badge>
-          ) : null}
+          {isMultipleSelected ? <Badge>+{selectedIds.length - 1}</Badge> : null}
         </ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem
           onSelect={() => {
-            removeAssets(selectedAssetIds);
+            removeAssets(selectedIds);
           }}
         >
           {isMultipleSelected
-            ? `Delete ${selectedAssetIds.length} assets`
+            ? `Delete ${selectedIds.length} assets`
             : "Delete"}
         </ContextMenuItem>
         {!isMultipleSelected && (

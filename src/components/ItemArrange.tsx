@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { createEntity, useAsset, useCurrentItem, useStore } from "@/store";
 import { FileStack, Plus, Text } from "lucide-react";
-import { forwardRef, HTMLAttributes, useEffect } from "react";
+import { forwardRef, HTMLAttributes } from "react";
 import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
@@ -23,6 +23,7 @@ import {
   SidebarHeader,
   SidebarProvider,
 } from "./ui/sidebar";
+import ItemAddAssetEntitiesDialog from "./ItemAddAssetEntitiesDialog";
 
 export const ItemArrange = forwardRef<
   HTMLDivElement,
@@ -31,10 +32,6 @@ export const ItemArrange = forwardRef<
   const setItem = useStore((state) => state.setItem);
   const setItemEntity = useStore((state) => state.setItemEntity);
   const addItemEntity = useStore((state) => state.addItemEntity);
-
-  useEffect(() => {
-    console.log(useStore.getState());
-  }, []);
 
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
@@ -94,10 +91,16 @@ export const ItemArrange = forwardRef<
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <DropdownMenuItem>
-                          <FileStack />
-                          Asset(s)
-                        </DropdownMenuItem>
+                        <ItemAddAssetEntitiesDialog item={item}>
+                          <DropdownMenuItem
+                            onSelect={(event) => {
+                              event.preventDefault();
+                            }}
+                          >
+                            <FileStack />
+                            Asset(s)
+                          </DropdownMenuItem>
+                        </ItemAddAssetEntitiesDialog>
                         <DropdownMenuItem
                           onClick={() => {
                             addItemEntity(

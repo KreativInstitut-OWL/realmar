@@ -13,8 +13,8 @@ export const AssetListItem = forwardRef<
   {
     asset: Asset;
     assetIndex: number;
-    isAssetSelected: boolean;
-    selectedAssetIds: string[];
+    isSelected: boolean;
+    selectedIds: string[];
     isDragging: boolean;
   } & React.HTMLAttributes<HTMLButtonElement>
 >(
@@ -24,8 +24,8 @@ export const AssetListItem = forwardRef<
       assetIndex,
       className,
       onClick,
-      isAssetSelected,
-      selectedAssetIds,
+      isSelected,
+      selectedIds,
       isDragging,
       ...rest
     },
@@ -35,12 +35,12 @@ export const AssetListItem = forwardRef<
       <AssetContextMenu
         asset={asset}
         assetIndex={assetIndex!}
-        selectedAssetIds={selectedAssetIds}
+        selectedIds={selectedIds}
         asChild
       >
         <button
           type="button"
-          aria-selected={isAssetSelected ? "true" : undefined}
+          aria-selected={isSelected ? "true" : undefined}
           className={cn(
             "group/asset flex w-full text-left gap-4 items-center h-14 px-4 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
             // using where to make sure the even style has no special specificity
@@ -48,7 +48,7 @@ export const AssetListItem = forwardRef<
             "hover:bg-gray-4",
             "aria-selected:bg-azure-4 aria-selected:hover:bg-azure-5",
             className,
-            { invisible: isDragging && isAssetSelected }
+            { invisible: isDragging && isSelected }
           )}
           ref={ref}
           onClick={onClick}
@@ -57,7 +57,7 @@ export const AssetListItem = forwardRef<
           <div className={cn("size-8 grid place-items-center shrink-0")}>
             <AssetIcon
               asset={asset}
-              aria-selected={isAssetSelected ? "true" : undefined}
+              aria-selected={isSelected ? "true" : undefined}
             />
           </div>
           <div className="grow min-w-0 truncate">
@@ -80,7 +80,7 @@ export const AssetListItem = forwardRef<
           ) : null}
           {asset ? (
             <div className="w-42 truncate text-gray-11 text-right">
-              {dateFormatter.format(asset.updatedAt)}
+              {dateFormatter.format(new Date(asset.updatedAt))}
             </div>
           ) : null}
           <DragHandle>

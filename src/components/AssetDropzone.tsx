@@ -5,27 +5,28 @@ import {
   DropzoneProvider,
 } from "@/components/ui/dropzone";
 import { cn } from "@/lib/utils";
-import { useStore } from "@/store";
 import { ImagePlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export function AssetDropzone({
   className,
+  onFiles,
   ...props
-}: React.ComponentProps<typeof Dropzone>) {
-  const addAssetsFromFiles = useStore((state) => state.addAssetsFromFiles);
-
+}: React.ComponentProps<typeof Dropzone> & {
+  onFiles: (files: File[]) => void;
+}) {
   return (
     <DropzoneProvider
       // accept={{ "image/*": [], "model/*": [".glb"] }}
-      onDrop={async (files, fileRejections) => {
+      onDrop={(files, fileRejections) => {
         if (fileRejections.length > 0) {
           toast.error(
             "Some files were not accepted. Please check the file types."
           );
           return;
         }
-        await addAssetsFromFiles(files);
+
+        onFiles(files);
       }}
     >
       <Dropzone className={cn("group p-8", className)} {...props}>

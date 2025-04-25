@@ -114,7 +114,7 @@ export const ItemEntity = forwardRef<
               ) : null}
               {asset ? (
                 <div className="w-42 truncate text-gray-11 text-right">
-                  {dateFormatter.format(asset.updatedAt)}
+                  {dateFormatter.format(new Date(asset.updatedAt))}
                 </div>
               ) : null}
             </>

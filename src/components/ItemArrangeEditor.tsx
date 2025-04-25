@@ -444,7 +444,10 @@ function TransformableEntity({
 
 const MARKER_TEXTURE_SIZE = 512;
 
-function MarkerObject({ id, src }: { id: string; src?: string | null }) {
+function MarkerObject({ id, asset }: { id: string; asset: Asset | undefined }) {
+  const file = useFile(asset?.fileId);
+  const src = useObjectUrl(file);
+
   const { data: generatedMarkerTexture } = useSuspenseQuery({
     queryKey: ["generated-marker-texture", { id, src }],
     queryFn: () =>
@@ -538,9 +541,6 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     };
   }, []);
 
-  const markerFile = useFile(props.marker?.fileId);
-  const markerSrc = useObjectUrl(markerFile);
-
   return (
     <div className="w-full h-full overflow-clip bg-gray-2 test">
       <Canvas ref={canvasRef} key={canvasKey}>
@@ -556,7 +556,9 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         <directionalLight position={[5, 10, 5]} intensity={4} />
         <directionalLight position={[0, 0, 10]} intensity={6} />
 
-        <MarkerObject id={props.id} src={markerSrc} />
+        <Suspense>
+          <MarkerObject id={props.id} asset={props.marker} />
+        </Suspense>
 
         {props.entities.map((entity) => {
           if (
@@ -567,13 +569,14 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
           }
 
           return (
-            <TransformableEntity
-              key={entity.id}
-              entity={entity}
-              isSelected={entity.id === props.selectedEntityId}
-              onSelect={() => props.onSelectEntity(entity.id)}
-              onTransformChange={props.onTransformChange}
-            />
+            <Suspense key={entity.id}>
+              <TransformableEntity
+                entity={entity}
+                isSelected={entity.id === props.selectedEntityId}
+                onSelect={() => props.onSelectEntity(entity.id)}
+                onTransformChange={props.onTransformChange}
+              />
+            </Suspense>
           );
         })}
 

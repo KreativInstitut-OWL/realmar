@@ -1,21 +1,29 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /**
  * Creates an object URL for a given file and cleans it up afterwards.
  */
-export function useObjectUrl(file: Blob | MediaSource | null | undefined) {
-  const objectUrl = useMemo(
-    () => (file ? URL.createObjectURL(file) : undefined),
-    [file]
-  );
-  // Cleanup the object URL
+export function useObjectUrl(object: Blob | MediaSource | null | undefined) {
+  const previousObject = useRef<Blob | MediaSource | null | undefined>(null);
+
+  const [url, setUrl] = useState<string | undefined>();
+
+  useLayoutEffect(() => {
+    if (!object) return;
+    if (object === previousObject.current) return;
+
+    const newUrl = URL.createObjectURL(object);
+    setUrl(newUrl);
+    previousObject.current = object;
+  }, [object]);
+
   useEffect(() => {
     return () => {
-      if (objectUrl) {
-        console.log("revoking", objectUrl);
+      if (url) {
+        URL.revokeObjectURL(url);
       }
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [objectUrl]);
-  return objectUrl;
+  }, [url]);
+
+  return url;
 }

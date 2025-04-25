@@ -531,6 +531,7 @@ interface AppState extends BaseAppState {
 
   addItemEntity: (itemId: string, entity: Entity) => Promise<void>;
   addItemEntitiesFromFiles: (id: string, files: File[]) => Promise<void>;
+  addItemEntitiesFromAssetIds: (id: string, assetIds: string[]) => void;
   removeItemEntities: (itemId: string, entityIds: string[]) => void;
 
   addAssetsFromFiles: (files: File[]) => Promise<void>;
@@ -626,9 +627,13 @@ export const useStore = create<AppState>()(
           await FileStore.add({ id: targetAsset.fileId, file });
 
           set((state) => {
+            state.assets.push(targetAsset);
+
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.targetAssetId = targetAsset.id;
+
+            console.log("target asset", targetAsset, file, item.targetAssetId);
           });
         },
 
@@ -776,6 +781,30 @@ export const useStore = create<AppState>()(
           set((state) => {
             state.assets.push(...newAssets);
 
+            const item = state.items.find((item) => item.id === itemId);
+            if (!item) return;
+            item.entities.push(...newEntities);
+          });
+        },
+
+        addItemEntitiesFromAssetIds: (itemId, assetIds) => {
+          const newEntities: Entity[] = [];
+
+          const assets = get().assets.filter((asset) =>
+            assetIds.includes(asset.id)
+          );
+
+          console.log("found assets", assets);
+
+          for (const asset of assets) {
+            const entity = createEntity({
+              type: inferEntityTypeFromAsset(asset),
+              name: asset.name,
+              assetId: asset.id,
+            });
+            newEntities.push(entity);
+          }
+          set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(...newEntities);

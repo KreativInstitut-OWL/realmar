@@ -4,12 +4,27 @@ import { useStore } from "@/store";
 import * as React from "react";
 import { AssetListItem, AssetListItemDragOverlay } from "./AssetListItem";
 import { Sortable } from "./ui/sortable";
+import { useControllableState } from "@radix-ui/react-use-controllable-state";
 
-export function AssetList() {
+export function AssetList({
+  selectedIds: selectedIdsProp,
+  defaultSelectedIds = [],
+  onSelectedIdsChange,
+  resetOnOutsideClick = false,
+}: {
+  selectedIds?: string[];
+  defaultSelectedIds?: string[];
+  onSelectedIdsChange?: (selectedIds: string[]) => void;
+  resetOnOutsideClick?: boolean;
+}) {
   const assets = useStore((state) => state.assets);
   const moveAssets = useStore((state) => state.moveAssets);
 
-  const [selectedAssetIds, setSelectedAssetIds] = React.useState<string[]>([]);
+  const [selectedIds = [], setSelectedIds] = useControllableState<string[]>({
+    prop: selectedIdsProp,
+    defaultProp: defaultSelectedIds,
+    onChange: onSelectedIdsChange,
+  });
 
   const handleAssetClick = React.useCallback(
     (
@@ -19,11 +34,11 @@ export function AssetList() {
       const modifierPressed = event.ctrlKey || event.shiftKey || event.metaKey;
 
       if (!modifierPressed) {
-        setSelectedAssetIds([assetId]);
+        setSelectedIds([assetId]);
         return;
       }
 
-      setSelectedAssetIds((prev) => {
+      setSelectedIds((prev = []) => {
         if (prev.includes(assetId)) {
           return prev.filter((id) => id !== assetId);
         } else {
@@ -31,7 +46,7 @@ export function AssetList() {
         }
       });
     },
-    [setSelectedAssetIds]
+    [setSelectedIds]
   );
 
   const [isDragging, setIsDragging] = React.useState(false);
@@ -39,7 +54,7 @@ export function AssetList() {
   const listRef = React.useRef<HTMLDivElement>(null);
 
   useOutsideClick(listRef, () => {
-    setSelectedAssetIds([]);
+    if (resetOnOutsideClick) setSelectedIds([]);
   });
 
   return (
@@ -55,23 +70,23 @@ export function AssetList() {
                   assetIndex={index}
                   onClick={(event) => handleAssetClick(asset.id, event)}
                   onContextMenu={(event) => {
-                    if (selectedAssetIds.includes(asset.id)) return;
+                    if (selectedIds.includes(asset.id)) return;
                     handleAssetClick(asset.id, event);
                   }}
-                  isAssetSelected={selectedAssetIds.includes(asset.id)}
-                  selectedAssetIds={selectedAssetIds}
+                  isSelected={selectedIds.includes(asset.id)}
+                  selectedIds={selectedIds}
                   isDragging={isDragging}
                 />
               ),
               dragOverlay: (
                 <AssetListItemDragOverlay
                   asset={asset}
-                  assetSelectCount={selectedAssetIds.length}
+                  assetSelectCount={selectedIds.length}
                 />
               ),
             }))}
             onItemMove={(_oldIndex, newIndex) => {
-              moveAssets(selectedAssetIds, newIndex);
+              moveAssets(selectedIds, newIndex);
             }}
             onDragStart={(event) => {
               setIsDragging(true);
@@ -81,7 +96,7 @@ export function AssetList() {
 
               const assetId = active.id as string;
 
-              if (selectedAssetIds.includes(assetId)) return;
+              if (selectedIds.includes(assetId)) return;
 
               if (isMouseEvent(activatorEvent))
                 handleAssetClick(assetId, activatorEvent);

@@ -58,8 +58,8 @@ export const ItemEntityContextMenu = forwardRef<
           }}
         >
           {isMultipleSelected
-            ? `Delete ${selectedEntityIds.length} entities`
-            : "Delete"}
+            ? `Remove ${selectedEntityIds.length} entities`
+            : "Remove"}
         </ContextMenuItem>
         {!isMultipleSelected && (
           <ContextMenuItem
