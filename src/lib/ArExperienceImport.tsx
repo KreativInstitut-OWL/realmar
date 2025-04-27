@@ -1,9 +1,9 @@
 import { ExportAsset } from "./export";
 function ArExperienceImport(asset: ExportAsset) {
-  if (asset.fileType.includes("image")) {
+  if (asset.type.includes("image")) {
     return <img key={asset.id} id={asset.id} src={`${asset.path}`} />;
   }
-  if (asset.fileType.includes("video")) {
+  if (asset.type.includes("video")) {
     return (
       <video
         key={asset.id}
@@ -15,7 +15,7 @@ function ArExperienceImport(asset: ExportAsset) {
       />
     );
   }
-  if (asset.fileType.includes("model")) {
+  if (asset.type.includes("model")) {
     return <a-asset-item key={asset.id} id={asset.id} src={`${asset.path}`} />;
   }
 }

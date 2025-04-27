@@ -1,8 +1,10 @@
 import { GeneratedTarget } from "@/components/GeneratedTarget";
 import {
+  Asset,
   BaseAppState,
   Entity,
   EntityWithAsset,
+  EntityWithoutAsset,
   isEntityWithAsset,
   Item,
   useStore,
@@ -12,9 +14,9 @@ import saveAs from "file-saver";
 import JSZip from "jszip";
 import React from "react";
 import { ArExperience } from "./ArExperience";
-import { getItemFolderName, padStart } from "./item";
+import { getItemFolderName, autoPadStart } from "./item";
 import {
-  createSquareAssetFromSrc,
+  createSquareImageFileFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
 } from "./render";
@@ -22,28 +24,32 @@ import { prettifyHtml } from "./prettier";
 import compileImageTargets from "./uploadAndCompile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const getFileName = <T extends string>(
-  type: T,
-  file: File,
-  index: number
-) => {
-  const fileExtension = file.name.split(".").pop() as string;
-  return `${type}-${padStart(index, 4)}.${fileExtension}` as const;
+export const getFileName = ({
+  name,
+  originalBasename,
+  originalExtension,
+  index,
+  count,
+}: {
+  name?: string;
+  originalBasename: string;
+  originalExtension: string;
+  index: number;
+  count: number;
+}) => {
+  return `${autoPadStart(index + 1, count)}-${name ?? originalBasename}.${originalExtension}` as const;
 };
 
-export type ExportAsset = {
-  id: string;
-  fileType: string;
+export type ExportAsset = Asset & {
+  file: File;
   path: string;
-  width: number | null;
-  height: number | null;
 };
 
 export type ExportEntity =
   | (EntityWithAsset & {
       asset: ExportAsset;
     })
-  | Entity;
+  | EntityWithoutAsset;
 
 export function assertIsExportEntityWithAsset(
   entity: Entity
@@ -56,7 +62,7 @@ export function assertIsExportEntityWithAsset(
 export type ExportItem = Omit<Item, "entities"> & {
   index: number;
   folder: string;
-  targetAsset: ExportAsset;
+  // targetAsset: ExportAsset;
   entities: ExportEntity[];
 };
 
@@ -116,14 +122,26 @@ export async function compileArtifacts(
     artifacts.set("style.css", await fetchAsBlob("/js-includes/style.css"));
     artifacts.set("LICENSE", await fetchAsBlob("/LICENSE"));
 
-    const { items } = state;
+    const { items, assets } = state;
 
-    const targetAssets = await Promise.all(
+    const targetFiles = await Promise.all(
       items.map(async (item) => {
-        const targetAsset = await FileStore.get(item.targetAssetId);
-        if (targetAsset) {
-          return createSquareAssetFromSrc({
-            src: targetAsset.src,
+        if (item.targetAssetId) {
+          const targetAsset = assets.find(
+            (asset) => asset.id === item.targetAssetId
+          );
+          const file = await FileStore.get(targetAsset?.fileId);
+
+          if (!file || !targetAsset) {
+            throw new Error(
+              `Target asset (assetId: ${item.targetAssetId}, fileId: ${targetAsset?.fileId}) not found for item ${item.id}.`
+            );
+          }
+
+          const src = URL.createObjectURL(file);
+
+          const squareTargetFile = await createSquareImageFileFromSrc({
+            src,
             id: targetAsset.id,
             size: Math.max(
               targetAsset.originalWidth ?? 0,
@@ -131,51 +149,59 @@ export async function compileArtifacts(
               2048
             ),
           });
+
+          URL.revokeObjectURL(src);
+
+          return squareTargetFile;
         }
 
-        const src = renderSvgReactNodeToBase64Src(
-          React.createElement(GeneratedTarget, { id: item.id })
-        );
-
-        return createSquareAssetFromSrc({
-          src,
+        // If the target asset is not set, create a generated target
+        return createSquareImageFileFromSrc({
+          src: renderSvgReactNodeToBase64Src(
+            React.createElement(GeneratedTarget, { id: item.id })
+          ),
           id: `${item.id}.generated`,
           size: 2048,
         });
       })
     );
 
+    const targetFileSources = targetFiles.map((file) =>
+      URL.createObjectURL(file)
+    );
     const { exportedBuffer } = await compileImageTargets(
-      targetAssets.map((asset) => asset.src),
+      targetFileSources,
       (progress) => {
         // ignore progress update that resets the progress to 0 when the compile is done
         if (progress === 0) return;
         onCompileProgress(progress);
       }
     );
+    targetFileSources.forEach((src) => URL.revokeObjectURL(src));
+
     artifacts.set("targets.mind", new Blob([exportedBuffer]));
 
     const exportItems: ExportItem[] = [];
 
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
-      const itemFolderName = getItemFolderName(item, index);
+      const itemFolderName = getItemFolderName(item, index, items.length);
 
-      const targetAsset = targetAssets[index];
-      const targetAssetPath = `markers/${itemFolderName}/target.png`;
-      artifacts.set(targetAssetPath, targetAsset.file);
+      // const targetAsset = targetFiles[index];
+      // const targetAssetPath = `markers/${itemFolderName}/target.png`;
+      // artifacts.set(targetAssetPath, targetAsset.file);
 
       const exportItem: ExportItem = {
         ...item,
         index,
         folder: itemFolderName,
-        targetAsset: {
-          id: targetAsset.id,
-          fileType: targetAsset.file.type,
-          path: targetAssetPath,
-          width: targetAsset.width,
-          height: targetAsset.height,
-        },
+        // targetAsset: {
+        //   id: targetAsset.id,
+        //   fileType: targetAsset.file.type,
+        //   path: targetAssetPath,
+        //   width: targetAsset.width,
+        //   height: targetAsset.height,
+        // },
         entities: [],
       };
 
@@ -190,24 +216,37 @@ export async function compileArtifacts(
           continue;
         }
 
-        const asset = await FileStore.get(entity.assetId);
-        if (!asset) continue;
-        const entityAssetPath = `markers/${itemFolderName}/${getFileName(
-          "entity",
-          asset.file,
-          entityIndex
-        )}`;
+        assertIsExportEntityWithAsset(entity);
 
-        artifacts.set(entityAssetPath, asset.file);
+        const asset = assets.find((asset) => asset.id === entity.assetId);
+        if (!asset) {
+          throw new Error(
+            `Asset (id: ${entity.assetId}) not found for entity ${entity.id} in item ${item.id}.`
+          );
+        }
+        const file = await FileStore.get(asset.fileId);
+        if (!file) {
+          throw new Error(
+            `File (id: ${asset.fileId}) not found for asset ${asset.id} in entity ${entity.id} of item ${item.id}.`
+          );
+        }
+
+        const path = `markers/${itemFolderName}/${getFileName({
+          name: asset.name,
+          originalBasename: asset.originalBasename,
+          originalExtension: asset.originalExtension,
+          index: entityIndex,
+          count: item.entities.length,
+        })}` as const;
+
+        artifacts.set(path, file);
 
         exportItem.entities.push({
           ...entity,
           asset: {
-            id: asset.id,
-            fileType: asset.file.type,
-            path: entityAssetPath,
-            width: asset.width,
-            height: asset.height,
+            ...asset,
+            file,
+            path,
           },
         });
       }

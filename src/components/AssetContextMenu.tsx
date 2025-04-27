@@ -9,7 +9,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Asset, useStore } from "@/store";
+import { Asset, DeleteReferenceError, useStore } from "@/store";
 import {
   ArrowDown,
   ArrowDownToLine,
@@ -27,7 +27,7 @@ export const AssetContextMenu = forwardRef<
     selectedIds: string[];
   }
 >(({ asset, assetIndex, selectedIds, ...props }, ref) => {
-  const removeAssets = useStore((state) => state.removeAssets);
+  const deleteAssets = useStore((state) => state.deleteAssets);
   const moveAsset = useStore((state) => state.moveAsset);
   const setAsset = useStore((state) => state.setAsset);
   const assetsLength = useStore((state) => state.assets.length);
@@ -46,8 +46,14 @@ export const AssetContextMenu = forwardRef<
         </ContextMenuLabel>
         <ContextMenuSeparator />
         <ContextMenuItem
-          onSelect={() => {
-            removeAssets(selectedIds);
+          onSelect={async () => {
+            try {
+              await deleteAssets(selectedIds, "restrict");
+            } catch (error) {
+              if (error instanceof DeleteReferenceError) {
+                alert(error.message);
+              }
+            }
           }}
         >
           {isMultipleSelected

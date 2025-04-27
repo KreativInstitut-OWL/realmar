@@ -29,6 +29,8 @@ export type Asset = {
   fileId: string;
   type: string;
   name: string;
+  originalBasename: string;
+  originalExtension: string;
   size: number;
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +47,8 @@ export async function createAsset({
   size,
   fileId,
   name,
+  originalBasename,
+  originalExtension,
   createdAt,
   updatedAt,
 }: Partial<Asset> & { file: File }): Promise<Asset> {
@@ -98,11 +102,18 @@ export async function createAsset({
   }
 
   const now = new Date();
+  const _originalBasename =
+    originalBasename ?? file.name.split(".").slice(0, -1).join(".");
+  const _originalExtension =
+    originalExtension ?? file.name.split(".").pop() ?? "";
+
   return {
     id: id ?? nanoid(5),
     fileId: fileId ?? nanoid(5),
     type: type ?? file.type,
-    name: name ?? file.name,
+    name: name ?? _originalBasename,
+    originalBasename: _originalBasename,
+    originalExtension: _originalExtension,
     size: size ?? file.size,
     createdAt: createdAt ?? now,
     updatedAt: updatedAt ?? now,
@@ -193,7 +204,7 @@ export function getComponent<TName extends Component["name"]>(
 }
 
 export type EntityBaseWithAsset = EntityBase & {
-  assetId: string;
+  assetId: string | null;
 };
 
 export type EntityNull = EntityBase & {
@@ -261,6 +272,7 @@ export type Entity =
 export type EntityType = Entity["type"];
 
 export type EntityWithAsset = EntityImage | EntityVideo | EntityModel;
+export type EntityWithoutAsset = EntityNull | EntityText;
 
 // Helper type for entities that require an assetId
 export type EntityWithAssetType = EntityWithAsset["type"];
@@ -538,7 +550,10 @@ interface AppState extends BaseAppState {
   moveAsset: (oldIndex: number, newIndex: number) => void;
   moveAssets: (assetIds: string[], newIndex: number) => void;
   setAsset: (assetId: string, assetUpdate: Partial<Asset>) => void;
-  removeAssets: (assetIds: string[]) => Promise<void>;
+  deleteAssets: (
+    assetIds: string[],
+    mode?: DeleteReferenceMode
+  ) => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -880,13 +895,46 @@ export const useStore = create<AppState>()(
           });
         },
 
-        removeAssets: async (assetIds) => {
+        deleteAssets: async (assetIds, mode = "restrict") => {
+          // loop through all item entities and handle the reference delete mode
+          for (const item of get().items) {
+            for (const entity of item.entities) {
+              if (!isEntityWithAsset(entity)) continue;
+              if (
+                entity.assetId !== null &&
+                assetIds.includes(entity.assetId)
+              ) {
+                if (mode === "restrict") {
+                  throw new DeleteReferenceError(
+                    `Cannot delete asset ${entity.assetId} because it is used in item ${item.id}`
+                  );
+                }
+              }
+            }
+          }
+
           const assets =
             get().assets.filter((asset) => assetIds.includes(asset.id)) ?? [];
 
           await Promise.all(assets.map((asset) => FileStore.del(asset.id)));
 
           set((state) => {
+            // TODO: This could be optimized by noting the path to be deleted/nulled the first time we loop through items and entities
+            for (const item of state.items) {
+              for (const entity of item.entities) {
+                if (!isEntityWithAsset(entity)) continue;
+                if (mode === "cascade") {
+                  // remove the entity from the item
+                  item.entities = item.entities.filter(
+                    (e) => e.id !== entity.id
+                  );
+                } else if (mode === "set-null") {
+                  // set the assetId to null
+                  entity.assetId = null;
+                }
+              }
+            }
+
             state.assets = state.assets.filter(
               (asset) => !assetIds.includes(asset.id)
             );
@@ -994,4 +1042,13 @@ export function useUpdateEntityComponent<TName extends Component["name"]>(
     },
     [itemId, entityId, componentName]
   );
+}
+
+type DeleteReferenceMode = "restrict" | "cascade" | "set-null";
+
+export class DeleteReferenceError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DeleteReferenceError";
+  }
 }

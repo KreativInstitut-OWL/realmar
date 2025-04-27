@@ -1,4 +1,3 @@
-import { createAsset } from "@/store";
 import { renderToStaticMarkup } from "react-dom/server";
 import * as THREE from "three";
 
@@ -147,7 +146,7 @@ export async function createSquareThreeTextureFromSrc({
   return texture;
 }
 
-export async function createSquareAssetFromSrc({
+export async function createSquareImageFileFromSrc({
   src,
   id,
   size,
@@ -158,5 +157,5 @@ export async function createSquareAssetFromSrc({
 }) {
   const canvas = await createSquareCanvasFromSrc({ src, size });
   const file = await createPngFileFromCanvas(canvas, id);
-  return await createAsset({ file, id });
+  return file;
 }
