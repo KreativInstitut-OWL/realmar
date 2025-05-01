@@ -2,6 +2,7 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
+import { buttonVariants } from "./button";
 
 const Tabs = TabsPrimitive.Root;
 
@@ -11,10 +12,7 @@ const TabsList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
-    className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-gray-3 p-1 text-gray-11",
-      className
-    )}
+    className={cn("inline-flex items-center justify-center gap-2", className)}
     {...props}
   />
 ));
@@ -27,7 +25,11 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-xs px-3 py-1.5 text-sm font-medium transition-all outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-gray-1 data-[state=active]:text-gray-11 data-[state=active]:shadow-xs",
+      buttonVariants({ variant: "ghost", size: "sm" }),
+      // "inline-flex items-center gap-2 h-7 justify-center whitespace-nowrap rounded-md px-3 text-sm font-medium transition-all outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50",
+      // "hover:bg-gray-3",
+      "data-[state=active]:bg-gray-4 data-[state=active]:shadow-xs",
+      // "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
       className
     )}
     {...props}

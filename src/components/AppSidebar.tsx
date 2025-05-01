@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { ArrowRightToLine, FolderOpen, Plus, Save } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -18,17 +18,14 @@ import {
 } from "@/components/ui/sidebar";
 import { EditorView, editorView, editorViewIcon } from "@/const/editorView";
 import { useStore } from "@/store";
-import ExportButton from "./ExportButton";
+import { loadFromFile, save } from "@/store/save";
+import ExportDialog from "./ExportDialog";
 import { ItemListList } from "./ItemList";
-import { LoadButton } from "./LoadButton";
-import { SaveButton } from "./SaveButton";
+import { Separator } from "./ui/separator";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { setOpen } = useSidebar();
+  // const { setOpen } = useSidebar();
   const projectName = useStore((state) => state.projectName);
-  const editorCurrentView = useStore((state) => state.editorCurrentView);
-  const setEditorCurrentView = useStore((state) => state.setEditorCurrentView);
-  const addItem = useStore((state) => state.addItem);
 
   return (
     <Sidebar collapsible="icon" className="overflow-hidden flex-row" {...props}>
@@ -45,49 +42,92 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
-            <SidebarMenu>
-              {(Object.entries(editorView) as [EditorView, string][]).map(
-                ([key, label]) => (
-                  <SidebarMenuItem key={key}>
-                    <SidebarMenuButton
-                      tooltip={{
-                        children: label,
-                        hidden: false,
-                      }}
-                      onClick={() => {
-                        setOpen(true);
-                        setEditorCurrentView(key);
-                      }}
-                      isActive={editorCurrentView === key && key !== "items"}
-                      className="px-2.5 md:px-2"
-                    >
-                      {editorViewIcon[key]}
-                      <span>{label}</span>
-                    </SidebarMenuButton>
-
-                    {key === "items" && (
-                      <>
-                        <SidebarMenuAction onClick={() => addItem()}>
-                          <Plus />
-                          <span className="sr-only">Add Marker</span>
-                        </SidebarMenuAction>
-                        <ItemListList />
-                      </>
-                    )}
-                  </SidebarMenuItem>
-                )
-              )}
-            </SidebarMenu>
+            <AppSidebarMenu />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="grid grid-cols-2 gap-1">
-          <SaveButton />
-          <LoadButton />
-        </div>
-        <ExportButton />
+        <Separator />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <ExportDialog>
+              <SidebarMenuButton
+                tooltip={{ children: "Export" }}
+                className="px-2.5 md:px-2"
+              >
+                <ArrowRightToLine />
+                Export
+              </SidebarMenuButton>
+            </ExportDialog>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={{ children: "Save" }}
+              className="px-2.5 md:px-2"
+              onClick={() => {
+                save();
+              }}
+            >
+              <Save />
+              Save
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={{ children: "Load" }}
+              className="px-2.5 md:px-2"
+              onClick={() => {
+                loadFromFile();
+              }}
+            >
+              <FolderOpen />
+              Load
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function AppSidebarMenu() {
+  const editorCurrentView = useStore((state) => state.editorCurrentView);
+  const setEditorCurrentView = useStore((state) => state.setEditorCurrentView);
+  const addItem = useStore((state) => state.addItem);
+  const { state } = useSidebar();
+
+  return (
+    <SidebarMenu>
+      {(Object.entries(editorView) as [EditorView, string][]).map(
+        ([key, label]) => (
+          <SidebarMenuItem key={key}>
+            <SidebarMenuButton
+              tooltip={{ children: label }}
+              onClick={() => {
+                setEditorCurrentView(key);
+              }}
+              isActive={
+                editorCurrentView === key &&
+                !(key === "items" && state === "expanded")
+              }
+              className="px-2.5 md:px-2"
+            >
+              {editorViewIcon[key]}
+              <span>{label}</span>
+            </SidebarMenuButton>
+
+            {key === "items" && (
+              <>
+                <SidebarMenuAction onClick={() => addItem()}>
+                  <Plus />
+                  <span className="sr-only">Add Marker</span>
+                </SidebarMenuAction>
+                <ItemListList />
+              </>
+            )}
+          </SidebarMenuItem>
+        )
+      )}
+    </SidebarMenu>
   );
 }

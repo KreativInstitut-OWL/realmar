@@ -438,7 +438,7 @@ export type Item = {
   editorLinkTransforms: boolean;
   editorPivotControlScale: number;
   editorCurrentEntityId: string | null;
-  editorCurrentTab: "target" | "entities" | "arrange";
+  editorCurrentTab: "entities" | "target";
 };
 
 function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
@@ -453,7 +453,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     editorLinkTransforms: false,
     editorPivotControlScale: 0.5,
     editorCurrentEntityId: null,
-    editorCurrentTab: "target",
+    editorCurrentTab: "entities",
     ...props,
   };
 }

@@ -57,6 +57,7 @@ export function ComboboxTriggerButton({
       <Button
         variant="ghost"
         role="combobox"
+        size="sm"
         aria-expanded={open}
         className={cn("max-w-xs truncate", className)}
         {...props}
@@ -64,7 +65,7 @@ export function ComboboxTriggerButton({
         {value
           ? options.find((option) => option.value === value)?.label
           : noValue}
-        <ChevronsUpDown className="text-gray-11" />
+        <ChevronsUpDown className="text-gray-11 translate-x-0.5" />
       </Button>
     </ComboboxTrigger>
   );

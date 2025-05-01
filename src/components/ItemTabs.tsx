@@ -1,62 +1,7 @@
-import { useCurrentItem, useStore } from "@/store";
-import { Images, Move3D, Scan } from "lucide-react";
-import { AppBreadcrumbPortal } from "./AppBreadcrumb";
 import { ItemArrange } from "./ItemArrange";
-import { ItemEntities } from "./ItemEntities";
-import { ItemMarker } from "./ItemMarker";
-import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
 
 export function ItemTabs() {
-  const item = useCurrentItem();
-  const setItem = useStore((state) => state.setItem);
-
-  return (
-    <Tabs
-      defaultValue="arrange"
-      value={item.editorCurrentTab}
-      onValueChange={(value) =>
-        setItem(item.id, {
-          editorCurrentTab: value as "target" | "entities" | "arrange",
-        })
-      }
-      className="grow h-full"
-    >
-      <AppBreadcrumbPortal>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <ItemComboboxEditorCurrentItem />
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <TabsList className="">
-            <TabsTrigger value="target">
-              <Scan className="size-5 mr-3" />
-              Marker
-            </TabsTrigger>
-            <TabsTrigger value="entities">
-              <Images className="size-5 mr-3" />
-              Entities
-            </TabsTrigger>
-            <TabsTrigger value="arrange">
-              <Move3D className="size-5 mr-3" />
-              Arrange
-            </TabsTrigger>
-          </TabsList>
-        </BreadcrumbItem>
-      </AppBreadcrumbPortal>
-      <TabsContent value="target" className="mt-6">
-        <ItemMarker />
-      </TabsContent>
-      <TabsContent value="entities">
-        <ItemEntities />
-      </TabsContent>
-      <TabsContent value="arrange" className="mt-0" asChild>
-        <ItemArrange />
-      </TabsContent>
-    </Tabs>
-  );
+  return <ItemArrange />;
 }
 
 /**

@@ -14,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { SidebarGroup, SidebarGroupContent } from "./ui/sidebar";
+import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
+import { uppercaseFirstLetter } from "@/lib/utils";
 
 export function ItemMarker() {
   const item = useCurrentItem();
@@ -23,22 +26,39 @@ export function ItemMarker() {
   if (!item) return null;
 
   return (
-    <div className="p-8 grid 2xl:grid-cols-3 gap-8">
+    <div>
       <ItemTarget />
       <div className="2xl:col-span-2 flex flex-col gap-8">
-        <FormItem>
-          <FormLabel>Name</FormLabel>
-          <FormDescription>Optional name for the marker.</FormDescription>
-          <Input
-            onChange={(event) => {
-              setItem(item.id, {
-                name: event.target.value || null,
-              });
-            }}
-            value={item.name || ""}
-            placeholder={getItemDefaultName(item.index)}
-          />
-        </FormItem>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <ControlGroup>
+              <ControlLabel level={2}>Settings</ControlLabel>
+              <FormItem asChild>
+                <ControlRow columns={3}>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl className="col-span-2">
+                    <Input
+                      type="text"
+                      onChange={(event) => {
+                        setItem(item.id, {
+                          name: event.target.value || null,
+                        });
+                      }}
+                      value={item.name || ""}
+                      placeholder={getItemDefaultName(item.index)}
+                    />
+                  </FormControl>
+                </ControlRow>
+              </FormItem>
+            </ControlGroup>
+
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormDescription>Optional name for the marker.</FormDescription>
+              <Input />
+            </FormItem>
+          </SidebarGroupContent>
+        </SidebarGroup>
         <FormItem>
           <FormLabel>Display Mode</FormLabel>
           <FormDescription>

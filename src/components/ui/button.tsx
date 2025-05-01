@@ -20,7 +20,14 @@ const buttonVariants = cva(
       variant: {
         default: "bg-lime-9 text-black hover:bg-lime-10 active:bg-lime-9",
         secondary: "bg-gray-9 text-gray-1 hover:bg-gray-10 active:bg-gray-9",
-        ghost: "bg-transparent text-gray-12 hover:bg-gray-4 active:bg-gray-5",
+        ghost: [
+          "bg-transparent text-gray-12",
+          "hover:bg-gray-4/70 hover:dark:bg-gray-4/60",
+          "active:bg-gray-5/70 active:dark:bg-gray-5/60",
+          "transition-all",
+        ],
+        input:
+          "border border-transparent hover:border-gray-8 bg-gray-5 active:bg-gray-4",
       },
       size: {
         default: "h-10 px-4 py-2",

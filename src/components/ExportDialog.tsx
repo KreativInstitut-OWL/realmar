@@ -1,13 +1,13 @@
 import { createExport, defaultProgress, ProgressUpdate } from "@/lib/export";
+import { Slot } from "@radix-ui/react-slot";
 import { useMutation } from "@tanstack/react-query";
-import { ArrowRightFromLine, Loader2 } from "lucide-react"; // Replace with actual icon imports
+import { Loader2 } from "lucide-react"; // Replace with actual icon imports
 import { useCallback, useState } from "react";
-import { Button } from "./ui/button";
+import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Progress } from "./ui/progress";
-import { toast } from "sonner";
 
-function ExportButton() {
+function ExportDialog({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<ProgressUpdate>(defaultProgress);
 
   const mutation = useMutation({
@@ -28,10 +28,9 @@ function ExportButton() {
 
   return (
     <Dialog open={mutation.isPending}>
-      <Button onClick={handleExport} disabled={mutation.isPending}>
-        Export
-        <ArrowRightFromLine />
-      </Button>
+      <Slot
+        {...{ onClick: handleExport, disabled: mutation.isPending, children }}
+      />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -67,4 +66,4 @@ function ExportButton() {
   );
 }
 
-export default ExportButton;
+export default ExportDialog;
