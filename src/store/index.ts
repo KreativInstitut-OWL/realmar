@@ -340,7 +340,7 @@ export function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
       return {
         ...baseEntity,
         type: "text",
-        text: "",
+        text: "New Text",
         font: systemFonts[0],
         curveSegments: 12,
         bevelSize: 0,
@@ -554,6 +554,9 @@ interface AppState extends BaseAppState {
     assetIds: string[],
     mode?: DeleteReferenceMode
   ) => Promise<void>;
+
+  // reset everything
+  reset: () => Promise<void>;
 }
 
 export const useStore = create<AppState>()(
@@ -639,7 +642,7 @@ export const useStore = create<AppState>()(
 
         setItemTargetFromFile: async (itemId, file) => {
           const targetAsset = await createAsset({ file });
-          await FileStore.add({ id: targetAsset.fileId, file });
+          await FileStore.add(targetAsset.fileId, file);
 
           set((state) => {
             state.assets.push(targetAsset);
@@ -648,7 +651,7 @@ export const useStore = create<AppState>()(
             if (!item) return;
             item.targetAssetId = targetAsset.id;
 
-            console.log("target asset", targetAsset, file, item.targetAssetId);
+            // console.log("target asset", targetAsset, file, item.targetAssetId);
           });
         },
 
@@ -773,6 +776,9 @@ export const useStore = create<AppState>()(
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(entity);
+
+            // select the added entity
+            item.editorCurrentEntityId = entity.id;
           });
         },
 
@@ -782,7 +788,7 @@ export const useStore = create<AppState>()(
 
           for (const file of files) {
             const asset = await createAsset({ file });
-            await FileStore.add({ id: asset.fileId, file });
+            await FileStore.add(asset.fileId, file);
             newAssets.push(asset);
 
             const entity = createEntity({
@@ -799,6 +805,10 @@ export const useStore = create<AppState>()(
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(...newEntities);
+
+            // select the last added entity
+            const lastEntityId = newEntities.at(-1)?.id;
+            if (lastEntityId) item.editorCurrentEntityId = lastEntityId;
           });
         },
 
@@ -809,7 +819,7 @@ export const useStore = create<AppState>()(
             assetIds.includes(asset.id)
           );
 
-          console.log("found assets", assets);
+          // console.log("found assets", assets);
 
           for (const asset of assets) {
             const entity = createEntity({
@@ -823,6 +833,10 @@ export const useStore = create<AppState>()(
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(...newEntities);
+
+            // select the last added entity
+            const lastEntityId = newEntities.at(-1)?.id;
+            if (lastEntityId) item.editorCurrentEntityId = lastEntityId;
           });
         },
 
@@ -852,7 +866,7 @@ export const useStore = create<AppState>()(
           // Process all assets in parallel
           const assetPromises = files.map(async (file) => {
             const asset = await createAsset({ file });
-            await FileStore.add({ id: asset.fileId, file });
+            await FileStore.add(asset.fileId, file);
             return asset;
           });
 
@@ -939,6 +953,18 @@ export const useStore = create<AppState>()(
               (asset) => !assetIds.includes(asset.id)
             );
           });
+        },
+
+        reset: async () => {
+          const initialItem = createItem();
+          set(() => ({
+            items: [initialItem],
+            assets: [],
+            projectName: null,
+            editorCurrentItemId: initialItem.id,
+            editorCurrentView: "items",
+          }));
+          await FileStore.clear();
         },
       };
     }),

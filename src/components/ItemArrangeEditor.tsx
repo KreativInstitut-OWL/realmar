@@ -1,3 +1,4 @@
+import { useObjectUrl } from "@/hooks/useObjectUrl";
 import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
@@ -47,7 +48,6 @@ import {
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedTarget } from "./GeneratedTarget";
-import { useObjectUrl } from "@/hooks/useObjectUrl";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
@@ -92,9 +92,26 @@ const EntityVideoComponent = forwardRef<
 >(({ asset, file, entity, children }, ref) => {
   assertIsEntityVideo(entity);
 
-  // const { autoplay, loop, muted } = entity;
+  const src = useObjectUrl(file);
 
-  const texture = useVideoTexture(useObjectUrl(file) ?? null);
+  if (!src) return null;
+
+  return (
+    <EntityVideoComponentImpl asset={asset} src={src!} ref={ref}>
+      {children}
+    </EntityVideoComponentImpl>
+  );
+});
+
+const EntityVideoComponentImpl = forwardRef<
+  THREE.Mesh,
+  {
+    asset: Asset | null;
+    src: string;
+    children: React.ReactNode;
+  }
+>(({ asset, src, children }, ref) => {
+  const texture = useVideoTexture(src);
 
   useEffect(() => {
     return () => {
@@ -541,8 +558,10 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
     };
   }, []);
 
+  const ref = useRef<HTMLDivElement>(null);
+
   return (
-    <div className="w-full h-full overflow-clip bg-gray-2 test">
+    <div className="w-full h-full overflow-clip bg-gray-2 test" ref={ref}>
       <Canvas ref={canvasRef} key={canvasKey}>
         <PerspectiveCamera
           ref={cameraRef}

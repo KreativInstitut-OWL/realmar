@@ -35,12 +35,13 @@ export function ItemComboboxEditorCurrentItem() {
           </CommandGroup>
         </>
       )}
-    />
+    >
+      <ItemComboboxTrigger />
+    </ItemCombobox>
   );
 }
 
 export function ItemCombobox({
-  triggerButtonProps,
   disabledItemIds,
   ...props
 }: Omit<
@@ -49,7 +50,6 @@ export function ItemCombobox({
   >,
   "options"
 > & {
-  triggerButtonProps?: React.ComponentProps<typeof ComboboxTriggerButton>;
   disabledItemIds?: Map<string, string>;
 }) {
   const items = useStore((state) => state.items);
@@ -70,12 +70,18 @@ export function ItemCombobox({
       empty="No marker found."
       inputPlaceholder="Search marker..."
       {...props}
-    >
-      <ComboboxTriggerButton
-        aria-label="Choose Marker"
-        noValue="Choose Marker..."
-        {...triggerButtonProps}
-      />
-    </Combobox>
+    />
+  );
+}
+
+export function ItemComboboxTrigger(
+  props: React.ComponentProps<typeof ComboboxTriggerButton>
+) {
+  return (
+    <ComboboxTriggerButton
+      aria-label="Choose Marker"
+      noValue="Choose Marker..."
+      {...props}
+    />
   );
 }

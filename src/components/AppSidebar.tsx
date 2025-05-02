@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRightToLine, FolderOpen, Plus, Save } from "lucide-react";
+import { ArrowRightToLine, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
 import * as React from "react";
 
 import {
@@ -82,6 +82,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <FolderOpen />
               Load
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={{ children: "Load" }}
+              className="px-2.5 md:px-2"
+              onClick={() => {
+                if (
+                  confirm("Resetting will delete all your data. Are you sure?")
+                ) {
+                  useStore.getState().reset();
+                }
+              }}
+            >
+              <Trash2 />
+              Zurücksetzen
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

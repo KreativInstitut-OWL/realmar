@@ -62,11 +62,11 @@ export default function ItemAddAssetEntitiesDialog({
               variant="default"
               disabled={selectedIds.length === 0}
               onClick={() => {
-                console.log(
-                  "Adding entities from assets",
-                  selectedIds,
-                  item.id
-                );
+                // console.log(
+                //   "Adding entities from assets",
+                //   selectedIds,
+                //   item.id
+                // );
                 addItemEntitiesFromAssetIds(item.id, selectedIds);
               }}
             >

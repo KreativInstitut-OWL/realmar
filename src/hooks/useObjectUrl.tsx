@@ -1,29 +1,33 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
-/**
- * Creates an object URL for a given file and cleans it up afterwards.
- */
 export function useObjectUrl(object: Blob | MediaSource | null | undefined) {
-  const previousObject = useRef<Blob | MediaSource | null | undefined>(null);
-
   const [url, setUrl] = useState<string | undefined>();
-
-  useLayoutEffect(() => {
-    if (!object) return;
-    if (object === previousObject.current) return;
-
-    const newUrl = URL.createObjectURL(object);
-    setUrl(newUrl);
-    previousObject.current = object;
-  }, [object]);
+  const urlRef = useRef<string | undefined>();
 
   useEffect(() => {
-    return () => {
-      if (url) {
-        URL.revokeObjectURL(url);
+    if (!object) {
+      // Clean up previous URL if object becomes null/undefined
+      if (urlRef.current) {
+        // console.log("Revoking object URL", urlRef.current);
+        URL.revokeObjectURL(urlRef.current);
+        urlRef.current = undefined;
+        setUrl(undefined);
       }
+      return;
+    }
+
+    // Create new URL
+    const newUrl = URL.createObjectURL(object);
+    // console.log("Creating object URL", newUrl);
+    urlRef.current = newUrl;
+    setUrl(newUrl);
+
+    // Cleanup function
+    return () => {
+      // console.log("Revoking object URL", newUrl);
+      URL.revokeObjectURL(newUrl);
     };
-  }, [url]);
+  }, [object]);
 
   return url;
 }

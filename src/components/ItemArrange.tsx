@@ -77,6 +77,7 @@ export const ItemArrange = forwardRef<
 
       <Sidebar
         side="right"
+        // collapsible="none"
         // variant="floating"
         className="top-0 bottom-0 h-auto"
       >

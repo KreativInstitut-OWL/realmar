@@ -181,6 +181,12 @@
   }
 }
 
+@layer base {
+  li {
+    @apply list-none;
+  }
+}
+
 .react-colorful.react-colorful {
   @apply w-full;
 }
@@ -270,9 +276,7 @@
     @apply ring-black dark:ring-gray-50;
   }
 
-  li {
-    @apply list-none;
-  }
+
 
 
 } */

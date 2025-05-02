@@ -1,26 +1,16 @@
-import { get } from "idb-keyval";
-import {
-  APP_STATE_STORAGE_NAME,
-  appStateStore,
-  Asset,
-  createAsset,
-  useStore,
-} from ".";
-import * as FileStore from "./file-store";
 import saveAs from "file-saver";
+import { get } from "idb-keyval";
 import JSZip from "jszip";
 import slugify from "slugify";
+import { APP_STATE_STORAGE_NAME, appStateStore, useStore } from ".";
+import * as FileStore from "./file-store";
 
-export function getAssetFileName(asset: Asset) {
-  return `${asset.id}.${asset.file.name.split(".").pop() ?? "bin"}`;
-}
+const FILE_ID_NAME_DELIMITER = "___";
 
 export async function save() {
   const projectName =
     useStore.getState().projectName ?? "Untitled Batchar Project";
   const projectNameSlug = slugify(projectName, { lower: true });
-
-  const assets = await FileStore.getAll();
 
   const appStateString = await get<string>(
     APP_STATE_STORAGE_NAME,
@@ -35,19 +25,10 @@ export async function save() {
 
   zip.file("state.json", appStateString);
 
-  // Add assets
-  for (const asset of assets) {
-    zip.file(`assets/${getAssetFileName(asset)}`, asset.file);
+  // Add files
+  for (const [id, file] of (await FileStore.getAll()).entries()) {
+    zip.file(`files/${id}${FILE_ID_NAME_DELIMITER}${file.name}`, file);
   }
-
-  const assetsMetadata = assets.map((asset) => ({
-    id: asset.id,
-    path: `assets/${getAssetFileName(asset)}`,
-    name: asset.file.name,
-    mimeType: asset.file.type,
-    size: asset.file.size,
-  }));
-  zip.file("assets.json", JSON.stringify(assetsMetadata));
 
   const content = await zip.generateAsync(
     { type: "blob", comment: "batchar" },
@@ -77,39 +58,31 @@ export function load(file: File) {
       throw new Error("Invalid file format");
     }
 
-    const assetsMetadata = await zip.file("assets.json")?.async("text");
+    FileStore.clear();
 
-    if (!assetsMetadata) {
-      throw new Error("Invalid file format");
-    }
+    const filesFolder = zip.folder("files");
+    if (filesFolder) {
+      const filePromises: Promise<void>[] = [];
 
-    const assetMetadataArray = JSON.parse(assetsMetadata) as {
-      id: string;
-      path: string;
-      name: string;
-      mimeType: string;
-      size: number;
-    }[];
+      filesFolder.forEach((relativePath, file) => {
+        // Skip directory entries
+        if (relativePath.endsWith("/")) return;
 
-    const assets = await Promise.all(
-      assetMetadataArray.map(async (assetMetadata) => {
-        const file = await zip.file(assetMetadata.path)?.async("blob");
-
-        if (!file) {
-          throw new Error("Invalid file format");
-        }
-
-        return await createAsset({
-          id: assetMetadata.id,
-          file: new File([file], assetMetadata.name, {
-            type: assetMetadata.mimeType,
-          }),
+        const fileName = relativePath;
+        const promise = file.async("blob").then((fileBlob) => {
+          const fileType = fileBlob.type;
+          const fileId = relativePath.split(FILE_ID_NAME_DELIMITER)[0];
+          FileStore.add(
+            fileId,
+            new File([fileBlob], fileName, { type: fileType })
+          );
         });
-      })
-    );
 
-    await FileStore.clear();
-    await FileStore.addMany(assets);
+        filePromises.push(promise);
+      });
+
+      await Promise.all(filePromises);
+    }
 
     useStore.setState(JSON.parse(state).state);
   };

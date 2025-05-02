@@ -20,7 +20,7 @@ export function ItemTarget() {
   if (!item) return null;
 
   return (
-    <div className="max-w-[512px]">
+    <div className="max-w-[512px] p-2">
       <DropzoneProvider
         multiple={false}
         accept={{ "image/*": [] }}

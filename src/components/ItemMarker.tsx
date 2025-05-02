@@ -1,12 +1,13 @@
 import { getItemDefaultName } from "@/lib/item";
 import { useCurrentItem, useStore } from "@/store";
+import { ItemCombobox, ItemComboboxTrigger } from "./ItemCombobox";
+import { ItemPreview } from "./ItemPreview";
 import { ItemTarget } from "./ItemTarget";
-import { FormControl, FormDescription, FormItem, FormLabel } from "./ui/form";
-import { Input } from "./ui/input";
-import { ItemCombobox } from "./ItemCombobox";
 import { Badge } from "./ui/badge";
 import { CommandItem } from "./ui/command";
-import { ItemPreview } from "./ItemPreview";
+import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
+import { FormControl, FormItem, FormLabel } from "./ui/form";
+import { Input } from "./ui/input";
 import {
   Select,
   SelectContent,
@@ -15,8 +16,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import { SidebarGroup, SidebarGroupContent } from "./ui/sidebar";
-import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
-import { uppercaseFirstLetter } from "@/lib/utils";
 
 export function ItemMarker() {
   const item = useCurrentItem();
@@ -50,109 +49,109 @@ export function ItemMarker() {
                   </FormControl>
                 </ControlRow>
               </FormItem>
+              <FormItem asChild>
+                <ControlRow columns={3}>
+                  <FormLabel>Display Mode</FormLabel>
+                  <Select
+                    onValueChange={(
+                      newDisplayMode: (typeof item)["displayMode"]
+                    ) => {
+                      setItem(item.id, {
+                        displayMode: newDisplayMode,
+                      });
+                    }}
+                    defaultValue={item.displayMode}
+                  >
+                    <FormControl className="col-span-2">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a display mode" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="scene">
+                        Scene (All entities at once)
+                      </SelectItem>
+                      <SelectItem value="gallery">
+                        Gallery (Every entity one-by-one)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </ControlRow>
+              </FormItem>
             </ControlGroup>
-
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormDescription>Optional name for the marker.</FormDescription>
-              <Input />
-            </FormItem>
           </SidebarGroupContent>
         </SidebarGroup>
-        <FormItem>
-          <FormLabel>Display Mode</FormLabel>
-          <FormDescription>
-            Choose if you want to display all items in a scene at once or as a
-            gallery.
-          </FormDescription>
-          <Select
-            onValueChange={(newDisplayMode: (typeof item)["displayMode"]) => {
-              setItem(item.id, {
-                displayMode: newDisplayMode,
-              });
-            }}
-            defaultValue={item.displayMode}
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a display mode" />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectItem value="scene">
-                Scene (All entities at once)
-              </SelectItem>
-              <SelectItem value="gallery">
-                Gallery (Every entity one-by-one)
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </FormItem>
-        <FormItem>
-          <FormLabel>Dependency</FormLabel>
-          <FormDescription>
-            Enable this marker only after the marker it depends on has been
-            detected / scanned.
-          </FormDescription>
-
-          <ItemCombobox
-            onSelect={(itemId, close) => {
-              setItem(item.id, {
-                itemDependencyId: itemId,
-              });
-              close();
-            }}
-            value={item.itemDependencyId ?? undefined}
-            triggerButtonProps={{
-              variant: "input",
-              className: "w-full max-w-none justify-between",
-            }}
-            disabledItemIds={
-              new Map([
-                [item.id, "This marker"],
-                ...(items
-                  .filter((i) => {
-                    return i.id !== item.id && i.itemDependencyId === item.id;
-                  })
-                  .map((i) => [i.id, "Dependent marker"]) as [
-                  string,
-                  string,
-                ][]),
-              ])
-            }
-            commandListChildren={(context) => (
-              <CommandItem
-                onSelect={() => {
-                  setItem(item.id, {
-                    itemDependencyId: null,
-                  });
-                  context.setOpen(false);
-                }}
-              >
-                Clear dependency
-              </CommandItem>
-            )}
-          />
-          {/* a list of all items that have this item as a dependency */}
-        </FormItem>
-        <FormItem>
-          <FormLabel>Dependents</FormLabel>
-          <FormDescription>
-            These markers will only be enabled after this marker has been
-            detected / scanned. (Read-only)
-          </FormDescription>
-          <ul className="flex gap-2 flex-wrap">
-            {items
-              .filter((i) => i.itemDependencyId === item.id)
-              .map((i) => (
-                <li key={i.id}>
-                  <Badge size="lg">
-                    <ItemPreview id={i.id} />
-                  </Badge>
-                </li>
-              ))}
-          </ul>
-        </FormItem>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <ControlGroup>
+              <ControlLabel level={2}>Dependencies</ControlLabel>
+              <FormItem asChild>
+                <ControlRow columns={3}>
+                  <FormLabel>Dependency</FormLabel>
+                  <ItemCombobox
+                    onSelect={(itemId, close) => {
+                      setItem(item.id, {
+                        itemDependencyId: itemId,
+                      });
+                      close();
+                    }}
+                    value={item.itemDependencyId ?? undefined}
+                    disabledItemIds={
+                      new Map([
+                        [item.id, "This marker"],
+                        ...(items
+                          .filter((i) => {
+                            return (
+                              i.id !== item.id && i.itemDependencyId === item.id
+                            );
+                          })
+                          .map((i) => [i.id, "Dependent marker"]) as [
+                          string,
+                          string,
+                        ][]),
+                      ])
+                    }
+                    commandListChildren={(context) => (
+                      <CommandItem
+                        onSelect={() => {
+                          setItem(item.id, {
+                            itemDependencyId: null,
+                          });
+                          context.setOpen(false);
+                        }}
+                      >
+                        Clear dependency
+                      </CommandItem>
+                    )}
+                  >
+                    <FormControl className="col-span-2">
+                      <ItemComboboxTrigger
+                        className="w-full max-w-none justify-between"
+                        variant="input"
+                      />
+                    </FormControl>
+                  </ItemCombobox>
+                </ControlRow>
+              </FormItem>
+              <FormItem asChild>
+                <ControlRow columns={3}>
+                  <FormLabel>Dependents</FormLabel>
+                  <ul className="flex gap-2 flex-wrap">
+                    {items
+                      .filter((i) => i.itemDependencyId === item.id)
+                      .map((i) => (
+                        <li key={i.id}>
+                          <Badge>
+                            <ItemPreview id={i.id} />
+                          </Badge>
+                        </li>
+                      ))}
+                  </ul>
+                </ControlRow>
+              </FormItem>
+            </ControlGroup>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </div>
     </div>
   );

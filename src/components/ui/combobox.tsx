@@ -59,33 +59,13 @@ export function ComboboxTriggerButton({
         role="combobox"
         size="sm"
         aria-expanded={open}
-        className={cn("max-w-xs truncate", className)}
+        className={cn("max-w-xs truncate pe-2", className)}
         {...props}
       >
         {value
           ? options.find((option) => option.value === value)?.label
           : noValue}
-        <ChevronsUpDown className="text-gray-11 translate-x-0.5" />
-      </Button>
-    </ComboboxTrigger>
-  );
-}
-
-export function ComboboxTriggerButtonSimple({
-  children,
-  ...props
-}: ButtonProps) {
-  const { open } = useCombobox();
-  return (
-    <ComboboxTrigger asChild>
-      <Button
-        variant="ghost"
-        role="combobox"
-        size="sm"
-        {...props}
-        aria-expanded={open}
-      >
-        {children} <ChevronsUpDown className="size-4" />
+        <ChevronsUpDown className="text-gray-11" />
       </Button>
     </ComboboxTrigger>
   );
