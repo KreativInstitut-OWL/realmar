@@ -72,9 +72,10 @@ export function load(file: File) {
         const promise = file.async("blob").then((fileBlob) => {
           const fileType = fileBlob.type;
           const fileId = relativePath.split(FILE_ID_NAME_DELIMITER)[0];
+          const fileNameWithoutId = fileName.split(FILE_ID_NAME_DELIMITER)[1];
           FileStore.add(
             fileId,
-            new File([fileBlob], fileName, { type: fileType })
+            new File([fileBlob], fileNameWithoutId, { type: fileType })
           );
         });
 
