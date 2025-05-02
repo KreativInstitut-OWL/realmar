@@ -247,6 +247,7 @@ const EntityTextComponent = forwardRef<
     letterSpacing,
     lineHeight,
     text,
+    font,
   } = entity;
 
   const [boundingGeometry, setBoundingGeometry] =
@@ -295,6 +296,7 @@ const EntityTextComponent = forwardRef<
     bevelSize,
     bevelThickness,
     curveSegments,
+    font,
   ]);
 
   return (
@@ -307,7 +309,7 @@ const EntityTextComponent = forwardRef<
               setFontLoaded(true);
             }
           }}
-          font="Open_Sans_Regular.json"
+          font={font.path}
           bevelEnabled
           lineHeight={lineHeight}
           letterSpacing={letterSpacing}

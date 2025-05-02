@@ -14,6 +14,7 @@ export function PreviewArExperience() {
   const [isFlipped, setIsFlipped] = useState(true);
 
   if (isFetching || !data?.srcDoc) {
+    // console.log("srcDoc", data?.srcDoc);
     return (
       <>
         <div className="h-full w-full max-w-prose m-auto flex flex-col gap-4 items-center justify-center p-12">

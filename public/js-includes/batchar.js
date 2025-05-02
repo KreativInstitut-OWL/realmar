@@ -76,6 +76,13 @@ class TextGeometry extends THREE.ExtrudeGeometry {
     if (font === void 0) {
       super();
     } else {
+      console.log("TextGeometry:", {
+        font,
+        text,
+        size,
+        lineHeight,
+        letterSpacing,
+      });
       const shapes = font.generateShapes(text, size, {
         lineHeight,
         letterSpacing,
@@ -92,20 +99,27 @@ class TextGeometry extends THREE.ExtrudeGeometry {
   }
 }
 
-class FontLoader extends THREE.Loader {
+export class FontLoader extends THREE.Loader {
   constructor(manager) {
     super(manager);
   }
 
   load(url, onLoad, onProgress, onError) {
     const loader = new THREE.FileLoader(this.manager);
+
     loader.setPath(this.path);
     loader.setRequestHeader(this.requestHeader);
     loader.setWithCredentials(this.withCredentials);
+
     loader.load(
       url,
-      (text) => {
-        const font = this.parse(JSON.parse(text));
+      (response) => {
+        if (typeof response !== "string")
+          throw new Error("unsupported data type");
+
+        const json = JSON.parse(response);
+
+        const font = this.parse(json);
 
         if (onLoad) onLoad(font);
       },
@@ -114,35 +128,35 @@ class FontLoader extends THREE.Loader {
     );
   }
 
+  loadAsync(url, onProgress) {
+    return super.loadAsync(url, onProgress);
+  }
+
   parse(json) {
     return new Font(json);
   }
 }
 
-//
+export class Font {
+  isFont = true;
+  type = "Font";
 
-class Font {
   constructor(data) {
-    this.isFont = true;
-
-    this.type = "Font";
-
     this.data = data;
   }
 
-  generateShapes(text, size = 100) {
+  generateShapes(text, size = 100, _options) {
     const shapes = [];
-    const paths = createPaths(text, size, this.data);
-
+    const options = { letterSpacing: 0, lineHeight: 1, ..._options };
+    const paths = createPaths(text, size, this.data, options);
     for (let p = 0, pl = paths.length; p < pl; p++) {
-      shapes.push(...paths[p].toShapes());
+      Array.prototype.push.apply(shapes, paths[p].toShapes(false));
     }
-
     return shapes;
   }
 }
 
-function createPaths(text, size, data) {
+function createPaths(text, size, data, options) {
   const chars = Array.from(text);
   const scale = size / data.resolution;
   const line_height =
@@ -159,11 +173,13 @@ function createPaths(text, size, data) {
 
     if (char === "\n") {
       offsetX = 0;
-      offsetY -= line_height;
+      offsetY -= line_height * options.lineHeight;
     } else {
       const ret = createPath(char, scale, offsetX, offsetY, data);
-      offsetX += ret.offsetX;
-      paths.push(ret.path);
+      if (ret) {
+        offsetX += ret.offsetX + options.letterSpacing;
+        paths.push(ret.path);
+      }
     }
   }
 
@@ -181,7 +197,6 @@ function createPath(char, scale, offsetX, offsetY, data) {
         data.familyName +
         "."
     );
-
     return;
   }
 
@@ -198,38 +213,38 @@ function createPath(char, scale, offsetX, offsetY, data) {
 
       switch (action) {
         case "m": // moveTo
-          x = outline[i++] * scale + offsetX;
-          y = outline[i++] * scale + offsetY;
+          x = parseInt(outline[i++]) * scale + offsetX;
+          y = parseInt(outline[i++]) * scale + offsetY;
 
           path.moveTo(x, y);
 
           break;
 
         case "l": // lineTo
-          x = outline[i++] * scale + offsetX;
-          y = outline[i++] * scale + offsetY;
+          x = parseInt(outline[i++]) * scale + offsetX;
+          y = parseInt(outline[i++]) * scale + offsetY;
 
           path.lineTo(x, y);
 
           break;
 
         case "q": // quadraticCurveTo
-          cpx = outline[i++] * scale + offsetX;
-          cpy = outline[i++] * scale + offsetY;
-          cpx1 = outline[i++] * scale + offsetX;
-          cpy1 = outline[i++] * scale + offsetY;
+          cpx = parseInt(outline[i++]) * scale + offsetX;
+          cpy = parseInt(outline[i++]) * scale + offsetY;
+          cpx1 = parseInt(outline[i++]) * scale + offsetX;
+          cpy1 = parseInt(outline[i++]) * scale + offsetY;
 
           path.quadraticCurveTo(cpx1, cpy1, cpx, cpy);
 
           break;
 
         case "b": // bezierCurveTo
-          cpx = outline[i++] * scale + offsetX;
-          cpy = outline[i++] * scale + offsetY;
-          cpx1 = outline[i++] * scale + offsetX;
-          cpy1 = outline[i++] * scale + offsetY;
-          cpx2 = outline[i++] * scale + offsetX;
-          cpy2 = outline[i++] * scale + offsetY;
+          cpx = parseInt(outline[i++]) * scale + offsetX;
+          cpy = parseInt(outline[i++]) * scale + offsetY;
+          cpx1 = parseInt(outline[i++]) * scale + offsetX;
+          cpy1 = parseInt(outline[i++]) * scale + offsetY;
+          cpx2 = parseInt(outline[i++]) * scale + offsetX;
+          cpy2 = parseInt(outline[i++]) * scale + offsetY;
 
           path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, cpx, cpy);
 
@@ -238,7 +253,7 @@ function createPath(char, scale, offsetX, offsetY, data) {
     }
   }
 
-  return { offsetX: glyph.ha * scale, path: path };
+  return { offsetX: glyph.ha * scale, path };
 }
 
 /**
@@ -383,12 +398,17 @@ AFRAME.registerComponent("text-3d", {
 
     // Center the geometry
     this.geometry.computeBoundingBox();
-    const textWidth =
-      this.geometry.boundingBox.max.x - this.geometry.boundingBox.min.x;
-    const textHeight =
-      this.geometry.boundingBox.max.y - this.geometry.boundingBox.min.y;
-    // Note: Centering might need adjustment based on desired alignment (e.g., center, left)
-    this.geometry.translate(-textWidth / 2, -textHeight / 2, -data.height / 2);
+
+    const box = this.geometry.boundingBox;
+
+    if (box) {
+      const center = box.getCenter(new THREE.Vector3());
+      // Calculate the offset needed to move the center to the origin
+      const offset = center.clone().negate();
+
+      // Apply the offset to the geometry
+      this.geometry.translate(offset.x, offset.y, offset.z);
+    }
 
     // Material handling
     let materialComponent = null;

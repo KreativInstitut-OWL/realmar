@@ -5,25 +5,26 @@ import {
   Entity,
   EntityWithAsset,
   EntityWithoutAsset,
+  isEntityText,
   isEntityWithAsset,
   Item,
   useStore,
 } from "@/store";
 import * as FileStore from "@/store/file-store";
+import { getProjectSlugWithDateTime } from "@/store/save";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import saveAs from "file-saver";
 import JSZip from "jszip";
 import React from "react";
 import { ArExperience } from "./ArExperience";
-import { getItemFolderName, autoPadStart } from "./item";
+import { autoPadStart, getItemFolderName } from "./item";
+import { prettifyHtml } from "./prettier";
 import {
   createSquareImageFileFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
 } from "./render";
-import { prettifyHtml } from "./prettier";
 import compileImageTargets from "./uploadAndCompile";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getProjectSlugWithDateTime } from "@/store/save";
 
 export const getFileName = ({
   name,
@@ -184,6 +185,8 @@ export async function compileArtifacts(
 
     const exportItems: ExportItem[] = [];
 
+    const fonts = new Set<string>();
+
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
       const itemFolderName = getItemFolderName(item, index, items.length);
@@ -212,6 +215,13 @@ export async function compileArtifacts(
         entityIndex++
       ) {
         const entity = item.entities[entityIndex];
+
+        if (isEntityText(entity)) {
+          if (entity.font) {
+            fonts.add(entity.font.path);
+          }
+        }
+
         if (!isEntityWithAsset(entity)) {
           exportItem.entities.push(entity);
           continue;
@@ -253,6 +263,12 @@ export async function compileArtifacts(
       }
 
       exportItems.push(exportItem);
+    }
+
+    // download fonts
+    for (const fontPath of fonts) {
+      const fontFile = await fetchAsBlob(fontPath);
+      artifacts.set(fontPath, fontFile);
     }
 
     const exportState: ExportAppState = {

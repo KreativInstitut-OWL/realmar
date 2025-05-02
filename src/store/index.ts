@@ -235,14 +235,59 @@ export type FontDef = {
 
 export const systemFonts = [
   {
-    family: "Open Sans",
+    family: "Gentilis",
     style: "Regular",
-    path: "/Open_Sans_Regular.json",
+    path: "/fonts/gentilis_regular.typeface.json",
   },
   {
-    family: "Open Sans",
+    family: "Gentilis",
     style: "Bold",
-    path: "/Open_Sans_Bold.json",
+    path: "/fonts/gentilis_bold.typeface.json",
+  },
+  {
+    family: "Helvetiker",
+    style: "Regular",
+    path: "/fonts/helvetiker_regular.typeface.json",
+  },
+  {
+    family: "Helvetiker",
+    style: "Bold",
+    path: "/fonts/helvetiker_bold.typeface.json",
+  },
+  {
+    family: "Optimer",
+    style: "Regular",
+    path: "/fonts/optimer_regular.typeface.json",
+  },
+  {
+    family: "Optimer",
+    style: "Bold",
+    path: "/fonts/optimer_bold.typeface.json",
+  },
+  {
+    family: "Droid Sans",
+    style: "Regular",
+    path: "/fonts/droid/droid_sans_regular.typeface.json",
+  },
+  {
+    family: "Droid Sans",
+    style: "Bold",
+    path: "/fonts/droid/droid_sans_bold.typeface.json",
+  },
+  {
+    family: "Droid Serif",
+    style: "Regular",
+    path: "/fonts/droid/droid_serif_regular.typeface.json",
+  },
+  {
+    family: "Droid Serif",
+    style: "Bold",
+    path: "/fonts/droid/droid_serif_bold.typeface.json",
+  },
+  {
+    family: "Droid Sans Mono",
+    style: "Regular",
+    path: "/fonts/droid/droid_sans_mono_regular.typeface.json",
   },
 ] as const satisfies FontDef[];
 
