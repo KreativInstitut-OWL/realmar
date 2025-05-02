@@ -41,8 +41,6 @@ export async function getAll(): Promise<Map<string, File>> {
 }
 
 export async function del(id: string) {
-  const file = await get(id);
-  if (!file) return;
   await idb.del(id, fileStore);
 }
 

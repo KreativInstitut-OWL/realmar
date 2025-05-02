@@ -930,7 +930,7 @@ export const useStore = create<AppState>()(
           const assets =
             get().assets.filter((asset) => assetIds.includes(asset.id)) ?? [];
 
-          await Promise.all(assets.map((asset) => FileStore.del(asset.id)));
+          await Promise.all(assets.map((asset) => FileStore.del(asset.fileId)));
 
           set((state) => {
             // TODO: This could be optimized by noting the path to be deleted/nulled the first time we loop through items and entities
