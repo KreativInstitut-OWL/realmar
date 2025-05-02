@@ -18,9 +18,11 @@ import {
 } from "@/components/ui/sidebar";
 import { EditorView, editorView, editorViewIcon } from "@/const/editorView";
 import { useStore } from "@/store";
-import { loadFromFile, save } from "@/store/save";
+import { loadFromFile } from "@/store/save";
 import ExportDialog from "./ExportDialog";
 import { ItemListList } from "./ItemList";
+import { SaveDialog } from "./SaveDialog";
+import { EditableText } from "./ui/editable-text";
 import { Separator } from "./ui/separator";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -33,8 +35,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-3">
             <img src="/logo.svg" alt="BatchAR" className="size-8 max-w-none" />
-            <div className="flex-1 text-left truncate translate-y-0.5 text-base font-[Inter] font-normal">
-              {projectName}
+            <div className="flex-1 translate-y-0.5 text-base font-[Inter] font-normal">
+              <EditableText
+                value={projectName}
+                onChange={(value) => {
+                  useStore.getState().setProjectName(value || null);
+                }}
+                placeholder="Untitled Project"
+              />
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -61,16 +69,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </ExportDialog>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip={{ children: "Save" }}
-              className="px-2.5 md:px-2"
-              onClick={() => {
-                save();
-              }}
-            >
-              <Save />
-              Save
-            </SidebarMenuButton>
+            <SaveDialog>
+              <SidebarMenuButton
+                tooltip={{ children: "Save" }}
+                className="px-2.5 md:px-2"
+              >
+                <Save />
+                Save
+              </SidebarMenuButton>
+            </SaveDialog>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton

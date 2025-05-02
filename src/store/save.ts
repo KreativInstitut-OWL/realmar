@@ -7,10 +7,31 @@ import * as FileStore from "./file-store";
 
 const FILE_ID_NAME_DELIMITER = "___";
 
-export async function save() {
-  const projectName =
-    useStore.getState().projectName ?? "Untitled Batchar Project";
+export function getProjectSlugWithDateTime() {
+  const projectName = useStore.getState().projectName ?? "Untitled Project";
   const projectNameSlug = slugify(projectName, { lower: true });
+  const saveDateTime = slugify(
+    // Canadian English uses YYYY-MM-DD format
+    new Date().toLocaleString("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }),
+    {
+      lower: true,
+      strict: true,
+    }
+  );
+  return `${projectNameSlug}-${saveDateTime}`;
+}
+
+export async function save(onProgress?: (progress: number) => void) {
+  const projectSlugWithDateTime = getProjectSlugWithDateTime();
+  const saveFileName = `${projectSlugWithDateTime}.batchar`;
 
   const appStateString = await get<string>(
     APP_STATE_STORAGE_NAME,
@@ -21,7 +42,7 @@ export async function save() {
 
   const zip = new JSZip();
 
-  zip.file("BATCHAR", `batchar@2\n\n${projectNameSlug}`);
+  zip.file("BATCHAR", `batchar@2\n\n${projectSlugWithDateTime}`);
 
   zip.file("state.json", appStateString);
 
@@ -33,11 +54,15 @@ export async function save() {
   const content = await zip.generateAsync(
     { type: "blob", comment: "batchar" },
     (meta) => {
-      console.log(meta.percent.toFixed(2) + "%");
-      console.log(meta);
+      if (onProgress) {
+        const progress = meta.percent / 100;
+        onProgress(progress);
+      }
     }
   );
-  saveAs(content, `${projectNameSlug}.batchar`);
+  saveAs(content, saveFileName);
+
+  return saveFileName;
 }
 
 export function load(file: File) {

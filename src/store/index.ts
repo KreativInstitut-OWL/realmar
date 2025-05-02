@@ -497,7 +497,7 @@ export interface BaseAppState {
 }
 
 interface AppState extends BaseAppState {
-  setProjectName: (name: string) => void;
+  setProjectName: (name: string | null) => void;
 
   setEditorCurrentView: (tab: EditorView) => void;
 

@@ -23,6 +23,7 @@ import {
 import { prettifyHtml } from "./prettier";
 import compileImageTargets from "./uploadAndCompile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getProjectSlugWithDateTime } from "@/store/save";
 
 export const getFileName = ({
   name,
@@ -276,7 +277,7 @@ export async function compileArtifacts(
       }
     }
 
-    console.log("HTML: ", await prettifyHtml(html));
+    // console.log("HTML: ", await prettifyHtml(html));
 
     artifacts.set(
       "index.html",
@@ -399,8 +400,12 @@ export async function createExport(
       handleProgress("bundle", progress, currentFile)
     );
 
+    const projectSlugWithDateTime = getProjectSlugWithDateTime();
+
     // Step 3: Save the zip
-    saveAs(bundle, "batchar-export.zip");
+    saveAs(bundle, `${projectSlugWithDateTime}.batchar-export.zip`);
+
+    return `${projectSlugWithDateTime}.batchar-export.zip`;
   } catch (error) {
     console.error("Error bundling files: ", error);
   }

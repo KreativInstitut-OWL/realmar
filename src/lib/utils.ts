@@ -28,3 +28,7 @@ export function uppercaseFirstLetter(string?: string) {
 export function isMouseEvent(event: Event): event is MouseEvent {
   return event instanceof MouseEvent;
 }
+
+export function selectAll(element: HTMLInputElement | null) {
+  element?.setSelectionRange(0, element?.value.length);
+}
