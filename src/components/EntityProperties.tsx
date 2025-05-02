@@ -348,10 +348,11 @@ export function EntityProperties({
                 }}
                 value={entity.bevelSize}
                 onChange={(bevelSize) =>
-                  typeof bevelSize === "number" && updateEntity({ bevelSize })
+                  typeof bevelSize === "number" &&
+                  updateEntity({ bevelSize, bevelThickness: bevelSize })
                 }
               />
-              <FormControlNumber
+              {/* <FormControlNumber
                 description="Bevel Thickness"
                 label={<SeparatorHorizontal />}
                 step={0.001}
@@ -366,7 +367,7 @@ export function EntityProperties({
                   typeof bevelThickness === "number" &&
                   updateEntity({ bevelThickness })
                 }
-              />
+              /> */}
             </ControlRow>
             <ControlRow>
               <ColorPicker
