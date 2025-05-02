@@ -251,19 +251,15 @@ const EntityTextComponent = forwardRef<
 
   const [boundingGeometry, setBoundingGeometry] =
     useState<THREE.BufferGeometry>();
-  // State to hold the calculated center offset
   const [centerOffset, setCenterOffset] = useState<THREE.Vector3>(
     () => new THREE.Vector3(0, 0, 0)
   );
-
   const meshRef = useRef<THREE.Mesh>(null);
+  const textRef = useRef<THREE.Mesh>();
+  const [fontLoaded, setFontLoaded] = useState(false);
 
-  useEffect(() => {
-    // This effect calculates the center of the Text3D geometry
-    // and updates the state to apply an offset, centering the text.
-    const mesh = meshRef.current;
-    // Access the Text3D mesh directly (assuming it's the first child)
-    const textMesh = mesh?.children[0] as THREE.Mesh;
+  const calculateCentering = () => {
+    const textMesh = textRef.current;
 
     if (textMesh?.geometry) {
       // Ensure the geometry's bounding box is computed
@@ -276,32 +272,41 @@ const EntityTextComponent = forwardRef<
         const offset = center.clone().negate();
         setCenterOffset(offset);
 
-        // Create a bounding box geometry centered at the origin
-        // for the Edges component.
+        // Create a bounding box geometry for the Edges component
         const size = box.getSize(new THREE.Vector3());
         const geom = new THREE.BoxGeometry(size.x, size.y, size.z);
-        // No translation needed here as the BoxGeometry is already centered
-        // and will be placed relative to the parent mesh's origin.
         setBoundingGeometry(geom);
-      } else {
-        // Reset if bounding box calculation fails
-        setCenterOffset(new THREE.Vector3(0, 0, 0));
-        setBoundingGeometry(undefined);
       }
-    } else {
-      // Reset if geometry is not available
-      setCenterOffset(new THREE.Vector3(0, 0, 0));
-      setBoundingGeometry(undefined);
     }
-    // Re-run the effect if the entity properties affecting the text change
-  }, [entity]);
+  };
+
+  // Handle font loading completion
+  useEffect(() => {
+    if (fontLoaded && textRef.current) {
+      calculateCentering();
+    }
+  }, [
+    fontLoaded,
+    text,
+    fontSize,
+    height,
+    lineHeight,
+    letterSpacing,
+    bevelSize,
+    bevelThickness,
+    curveSegments,
+  ]);
 
   return (
     <Suspense fallback={null}>
-      {/* The outer mesh remains the pivot point */}
       <mesh ref={composeRefs(ref, meshRef)}>
-        {/* Apply the calculated position offset to center the Text3D */}
         <Text3D
+          ref={(mesh) => {
+            if (mesh) {
+              textRef.current = mesh;
+              setFontLoaded(true);
+            }
+          }}
           font="Open_Sans_Regular.json"
           bevelEnabled
           lineHeight={lineHeight}
@@ -311,12 +316,16 @@ const EntityTextComponent = forwardRef<
           curveSegments={curveSegments}
           bevelSize={bevelSize}
           bevelThickness={bevelThickness}
-          position={centerOffset} // Apply the centering offset here
+          position={centerOffset}
+          onAfterRender={() => {
+            if (textRef.current && !fontLoaded) {
+              setFontLoaded(true);
+            }
+          }}
         >
           {text}
           <meshLambertMaterial color={color} />
         </Text3D>
-        {/* The Edges component uses the centered boundingGeometry */}
         {boundingGeometry && isValidElement<EdgesProps>(children)
           ? cloneElement(children, { geometry: boundingGeometry })
           : null}

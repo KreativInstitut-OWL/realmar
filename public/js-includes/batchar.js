@@ -85,7 +85,7 @@ class TextGeometry extends THREE.ExtrudeGeometry {
         bevelEnabled,
         bevelSize,
         bevelThickness,
-        height: height,
+        depth: height,
       });
     }
     this.type = "TextGeometry";
@@ -98,16 +98,14 @@ class FontLoader extends THREE.Loader {
   }
 
   load(url, onLoad, onProgress, onError) {
-    const scope = this;
-
     const loader = new THREE.FileLoader(this.manager);
     loader.setPath(this.path);
     loader.setRequestHeader(this.requestHeader);
     loader.setWithCredentials(this.withCredentials);
     loader.load(
       url,
-      function (text) {
-        const font = scope.parse(JSON.parse(text));
+      (text) => {
+        const font = this.parse(JSON.parse(text));
 
         if (onLoad) onLoad(font);
       },
@@ -383,8 +381,6 @@ AFRAME.registerComponent("text-3d", {
       letterSpacing: data.letterSpacing,
     });
 
-    console.log("Text geometry created:", this.geometry);
-
     // Center the geometry
     this.geometry.computeBoundingBox();
     const textWidth =
@@ -408,8 +404,8 @@ AFRAME.registerComponent("text-3d", {
       if (this.mesh && this.mesh.material && !this.mesh.material.isShared) {
         this.mesh.material.dispose();
       }
-      // Create new basic material if no external one is provided
-      this.material = new THREE.MeshBasicMaterial({ color: data.color });
+      // Create new lambert material if no external one is provided
+      this.material = new THREE.MeshLambertMaterial({ color: data.color });
       this.material.isShared = false; // Mark as not shared
     }
 

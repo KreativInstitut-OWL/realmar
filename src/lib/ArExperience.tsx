@@ -125,8 +125,6 @@ function ArExperienceEntity(
     throw new Error(`Unknown entity type: ${props.entity.type}`);
   }
 
-  console.log("Entity: ", props.entity.type, props.entity);
-
   const { position, scale, quaternion } = decomposeMatrix4(
     props.entity.transform
   );

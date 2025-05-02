@@ -1,6 +1,14 @@
 "use client";
 
-import { ArrowRightToLine, FolderOpen, Plus, Save, Trash2 } from "lucide-react";
+import {
+  ArrowRightToLine,
+  FolderOpen,
+  MoonStar,
+  Plus,
+  Save,
+  Sun,
+  Trash2,
+} from "lucide-react";
 import * as React from "react";
 
 import {
@@ -24,6 +32,7 @@ import { ItemListList } from "./ItemList";
 import { SaveDialog } from "./SaveDialog";
 import { EditableText } from "./ui/editable-text";
 import { Separator } from "./ui/separator";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // const { setOpen } = useSidebar();
@@ -93,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={{ children: "Load" }}
+              tooltip={{ children: "Reset" }}
               className="px-2.5 md:px-2"
               onClick={() => {
                 if (
@@ -104,12 +113,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               }}
             >
               <Trash2 />
-              Zurücksetzen
+              Reset
             </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <ColorSchemeMenuButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ColorSchemeMenuButton() {
+  const [colorScheme, setColorScheme] = useColorScheme();
+
+  return (
+    <SidebarMenuButton
+      tooltip={{ children: "Color Scheme" }}
+      className="px-2.5 md:px-2"
+      onClick={() => {
+        setColorScheme(colorScheme === "dark" ? "light" : "dark");
+      }}
+    >
+      {colorScheme === "dark" ? <MoonStar /> : <Sun />}
+      <span>Switch Color Scheme</span>
+    </SidebarMenuButton>
   );
 }
 
