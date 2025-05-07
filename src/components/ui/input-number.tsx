@@ -94,7 +94,9 @@ const InputNumber = forwardRef<HTMLInputElement, InputNumberProps>(
         onBlur={handleBlur}
         value={stringValue}
       >
-        <NumberInputPrimitive.Input className={cn(inputVariants(), "w-full")} />
+        <NumberInputPrimitive.Input
+          className={cn(inputVariants(), "w-full tabular-nums")}
+        />
         {children}
         {/* <NumberInputPrimitive.Scrubber className="absolute h-2 bottom-0 w-full bg-gray-3 hover:bg-gray-4" /> */}
       </NumberInputPrimitive.Root>

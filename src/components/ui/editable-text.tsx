@@ -1,5 +1,5 @@
 import { cva } from "class-variance-authority";
-import { forwardRef, useEffect, useRef, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { selectAll } from "@/lib/utils";
 
@@ -22,10 +22,14 @@ interface EditableTextProps {
   value: string | null;
   onChange?: (newValue: string) => void;
   placeholder?: string;
+  tooltip?: React.ReactNode;
 }
 
 export const EditableText = forwardRef<HTMLButtonElement, EditableTextProps>(
-  function EditableText({ value, onChange, placeholder }, ref) {
+  function EditableText(
+    { value, onChange, placeholder, tooltip = "Click to edit" },
+    ref
+  ) {
     const [isEditing, setIsEditing] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +82,7 @@ export const EditableText = forwardRef<HTMLButtonElement, EditableTextProps>(
             {value ?? placeholder}
           </button>
         </TooltipTrigger>
-        <TooltipContent>Click to edit</TooltipContent>
+        <TooltipContent>{tooltip}</TooltipContent>
       </Tooltip>
     );
   }

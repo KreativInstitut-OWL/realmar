@@ -52,7 +52,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
       mindar-image={toAttrs({
         imageTargetSrc: "targets.mind",
         filterMinCF: 0.0001,
-        filterBeta: 0.001,
+        filterBeta: 0.01,
       })}
       vr-mode-ui={toAttrs({ enabled: false })}
       device-orientation-permission-ui={toAttrs({ enabled: false })}
@@ -131,7 +131,7 @@ function ArExperienceEntity(
   const lookAtCamera = getComponent(props.entity, "look-at-camera");
   const float = getComponent(props.entity, "float");
 
-  return (
+  const element = (
     <Component
       position={toVec3(position)}
       quaternion={toVec4(quaternion)}
@@ -139,20 +139,25 @@ function ArExperienceEntity(
       id={props.entity.id}
       data-entity-id={props.entity.id}
       look-at={lookAtCamera?.enabled ? "camera" : undefined}
-      float={
-        float?.enabled
-          ? toAttrs({
-              enabled: float.enabled,
-              speed: float.speed,
-              intensity: float.intensity,
-              rotationIntensity: float.rotationIntensity,
-              floatingRangeMin: float.floatingRange?.[0],
-              floatingRangeMax: float.floatingRange?.[1],
-            })
-          : undefined
-      }
       {...props}
     />
+  );
+
+  return float?.enabled ? (
+    <a-entity
+      float={toAttrs({
+        enabled: float.enabled,
+        speed: float.speed,
+        intensity: float.intensity,
+        rotationIntensity: float.rotationIntensity,
+        floatingRangeMin: float.floatingRange?.[0],
+        floatingRangeMax: float.floatingRange?.[1],
+      })}
+    >
+      {element}
+    </a-entity>
+  ) : (
+    element
   );
 }
 

@@ -10,7 +10,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { getItemName } from "@/lib/item";
-import { Entity, Item, useStore } from "@/store";
+import { createEntity, Entity, Item, useStore } from "@/store";
 import {
   ArrowDown,
   ArrowDownToLine,
@@ -32,6 +32,7 @@ export const ItemEntityContextMenu = forwardRef<
   const removeItemEntities = useStore((state) => state.removeItemEntities);
   const moveItemEntity = useStore((state) => state.moveItemEntity);
   const setItemEntity = useStore((state) => state.setItemEntity);
+  const addItemEntity = useStore((state) => state.addItemEntity);
   const sendItemEntitiesToItem = useStore(
     (state) => state.sendItemEntitiesToItem
   );
@@ -61,6 +62,23 @@ export const ItemEntityContextMenu = forwardRef<
             ? `Remove ${selectedEntityIds.length} entities`
             : "Remove"}
         </ContextMenuItem>
+        {!isMultipleSelected && (
+          <ContextMenuItem
+            disabled={isMultipleSelected}
+            onSelect={() => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { id, name, ...rest } = entity;
+              const duplicateEntity = createEntity({
+                name: `${name} (copy)`,
+                ...rest,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              } as any);
+              addItemEntity(item.id, duplicateEntity);
+            }}
+          >
+            Duplicate
+          </ContextMenuItem>
+        )}
         {!isMultipleSelected && (
           <ContextMenuItem
             disabled={isMultipleSelected}

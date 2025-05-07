@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 declare module "mind-ar/src/image-target/compiler-base" {
   export class CompilerBase {
     constructor();

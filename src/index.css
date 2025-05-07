@@ -7,10 +7,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: var(--font-name-sans);
-  --font-sans--font-feature-settings: "ss01", "cv08";
+  --font-sans: "Geist", system-ui;
+  --font-sans--font-feature-settings: "ss01", "ss03", "ss04";
 
-  --font-mono: T-StarTW, monospace;
+  --font-mono: "Geist Mono", monospace;
 
   --color-*: initial;
 
@@ -155,13 +155,17 @@
   }
 
   @font-face {
-    font-family: "T-StarTW";
-    src: url("/T-StarTW-Medium.woff2") format("woff2");
-    font-weight: 500;
+    font-family: "Geist";
+    src: url("/geist/Geist[wght].woff2") format("woff2");
+  }
+
+  @font-face {
+    font-family: "Geist Mono";
+    src: url("/geist/GeistMono[wght].woff2") format("woff2");
   }
 
   body {
-    @apply font-mono bg-gray-1 text-gray-12 antialiased text-pretty;
+    @apply font-sans bg-gray-1 text-gray-12 antialiased text-pretty;
     overscroll-behavior: none;
   }
 
@@ -207,76 +211,3 @@
   .react-colorful__pointer.react-colorful__pointer {
   @apply ring ring-offset-0;
 }
-
-/* 
-@utility text-heading-72 {
-  @apply text-7xl font-mono;
-}
-
-@utility text-heading-36 {
-  @apply text-4xl font-mono;
-}
-
-@utility text-heading-24 {
-  @apply text-2xl font-mono;
-}
-
-@utility text-heading-20 {
-  @apply text-xl font-mono;
-}
-
-@utility text-body-20 {
-  @apply text-xl font-sans;
-}
-
-@utility text-body-18 {
-  @apply text-lg font-sans;
-}
-
-@utility text-body-16 {
-  @apply text-base font-sans;
-}
-
-@utility text-body-14 {
-  @apply text-sm font-sans;
-}
-
-@utility text-body-12 {
-  @apply text-xs font-sans;
-} */
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-/* @layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-}
-
-@layer base {
-
-
-  body {
-    @apply font-sans bg-gray-100 min-h-[100lvh] min-w-[100vw] bg-cover bg-center bg-fixed overscroll-none;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
-
-  * {
-    @apply ring-black dark:ring-gray-50;
-  }
-
-
-
-
-} */

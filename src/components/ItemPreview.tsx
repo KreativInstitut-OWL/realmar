@@ -20,7 +20,7 @@ export function ItemPreview({
         assetId={item.targetAssetId}
         className="size-4"
       />
-      <span className={cn({ italic: !item.name })}>
+      <span className={cn({ "": !item.name })}>
         {getItemName(item, item?.index)}
       </span>
       {children}
