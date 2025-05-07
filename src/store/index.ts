@@ -11,9 +11,9 @@ import { create } from "zustand";
 import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 
-export const appStateStore = idb.createStore("batchar-state", "state");
+export const appStateStore = idb.createStore("realmar-state", "state");
 
-export const APP_STATE_STORAGE_NAME = "batchar-state";
+export const APP_STATE_STORAGE_NAME = "realmar-state";
 
 const storage: StateStorage = {
   getItem: async (name: string): Promise<string | null> =>
@@ -187,7 +187,7 @@ export type EntityBase = {
   name: string;
   transform: THREE.Matrix4Tuple;
 
-  // batchar aframe components
+  // realmar aframe components
   components: ComponentMap;
 
   // editor state (these have no effect for the export)

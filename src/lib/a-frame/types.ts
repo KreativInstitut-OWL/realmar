@@ -76,7 +76,7 @@ export interface CustomComponent {
   float?: AFrameMap;
   "mindar-image-target"?: string;
   "mindar-image"?: string;
-  "batchar-display-mode"?: string;
+  "realmar-display-mode"?: string;
 }
 
 export type AFrameEntityProps = React.DetailedHTMLProps<

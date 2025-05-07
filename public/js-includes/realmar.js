@@ -559,10 +559,10 @@ AFRAME.registerComponent("float", {
 
 // #endregion float
 
-// #region batchar-gallery
+// #region realmar-gallery
 
-// batchar-gallery component manages gallery state and navigation
-AFRAME.registerComponent("batchar-gallery", {
+// realmar-gallery component manages gallery state and navigation
+AFRAME.registerComponent("realmar-gallery", {
   schema: {
     startIndex: { type: "number", default: 0 },
   },
@@ -590,7 +590,7 @@ AFRAME.registerComponent("batchar-gallery", {
   getGalleryItems: function () {
     if (!this._galleryItems) {
       this._galleryItems = Array.from(
-        this.el.querySelectorAll("[batchar-gallery-item]")
+        this.el.querySelectorAll("[realmar-gallery-item]")
       );
     }
     return this._galleryItems;
@@ -638,16 +638,16 @@ AFRAME.registerComponent("batchar-gallery", {
   },
 });
 
-// #region batchar-gallery-item
+// #region realmar-gallery-item
 
-// batchar-gallery-item component listens for index changes and updates its visibility
-AFRAME.registerComponent("batchar-gallery-item", {
+// realmar-gallery-item component listens for index changes and updates its visibility
+AFRAME.registerComponent("realmar-gallery-item", {
   schema: {
     index: { type: "number", default: 0 },
   },
 
   init: function () {
-    this.gallery = this.el.closest("[batchar-gallery]");
+    this.gallery = this.el.closest("[realmar-gallery]");
 
     if (!this.gallery) {
       console.warn("Gallery item could not find a parent gallery component");
@@ -659,9 +659,9 @@ AFRAME.registerComponent("batchar-gallery-item", {
     this.gallery.addEventListener("gallery-index-changed", this.onIndexChanged);
 
     // Set initial visibility (safely)
-    if (this.gallery.components["batchar-gallery"]) {
+    if (this.gallery.components["realmar-gallery"]) {
       this.updateVisibility(
-        this.gallery.components["batchar-gallery"].currentItemIndex
+        this.gallery.components["realmar-gallery"].currentItemIndex
       );
     }
   },
@@ -689,9 +689,9 @@ AFRAME.registerComponent("batchar-gallery-item", {
   },
 });
 
-// #region batchar-depends-on
+// #region realmar-depends-on
 
-AFRAME.registerComponent("batchar-depends-on", {
+AFRAME.registerComponent("realmar-depends-on", {
   schema: { type: "selector" },
 
   init: function () {
@@ -703,7 +703,7 @@ AFRAME.registerComponent("batchar-depends-on", {
 
     if (this.mindArImageTargetIndex === undefined) {
       console.warn(
-        "batchar-depends-on component requires a mindar-image-target component with a targetIndex"
+        "realmar-depends-on component requires a mindar-image-target component with a targetIndex"
       );
       return;
     }
@@ -753,7 +753,7 @@ function initGalleryControls(scene) {
   // Show/hide gallery buttons based on marker visibility
   scene.addEventListener("targetFound", (event) => {
     const targetEl = event.target;
-    const gallery = targetEl.components["batchar-gallery"];
+    const gallery = targetEl.components["realmar-gallery"];
 
     if (gallery) {
       activeGallery = targetEl;

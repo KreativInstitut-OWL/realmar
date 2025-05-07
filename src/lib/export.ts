@@ -120,7 +120,7 @@ export async function compileArtifacts(
     //   "mindar-image-aframe.prod.js",
     //   await fetchAsBlob("/js/mindar-image-aframe.prod.js")
     // );
-    artifacts.set("batchar.js", await fetchAsBlob("/js-includes/batchar.js"));
+    artifacts.set("realmar.js", await fetchAsBlob("/js-includes/realmar.js"));
     artifacts.set("style.css", await fetchAsBlob("/js-includes/style.css"));
     artifacts.set("LICENSE", await fetchAsBlob("/LICENSE"));
 
@@ -419,9 +419,9 @@ export async function createExport(
     const projectSlugWithDateTime = getProjectSlugWithDateTime();
 
     // Step 3: Save the zip
-    saveAs(bundle, `${projectSlugWithDateTime}.batchar-export.zip`);
+    saveAs(bundle, `${projectSlugWithDateTime}.realmar-export.zip`);
 
-    return `${projectSlugWithDateTime}.batchar-export.zip`;
+    return `${projectSlugWithDateTime}.realmar-export.zip`;
   } catch (error) {
     console.error("Error bundling files: ", error);
   }

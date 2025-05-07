@@ -31,7 +31,7 @@ export function getProjectSlugWithDateTime() {
 
 export async function save(onProgress?: (progress: number) => void) {
   const projectSlugWithDateTime = getProjectSlugWithDateTime();
-  const saveFileName = `${projectSlugWithDateTime}.batchar`;
+  const saveFileName = `${projectSlugWithDateTime}.realmar`;
 
   const appStateString = await get<string>(
     APP_STATE_STORAGE_NAME,
@@ -42,7 +42,7 @@ export async function save(onProgress?: (progress: number) => void) {
 
   const zip = new JSZip();
 
-  zip.file("BATCHAR", `batchar@2\n\n${projectSlugWithDateTime}`);
+  zip.file("REALMAR", `realmar@2\n\n${projectSlugWithDateTime}`);
 
   zip.file("state.json", appStateString);
 
@@ -52,7 +52,7 @@ export async function save(onProgress?: (progress: number) => void) {
   }
 
   const content = await zip.generateAsync(
-    { type: "blob", comment: "batchar" },
+    { type: "blob", comment: "realmar" },
     (meta) => {
       if (onProgress) {
         const progress = meta.percent / 100;
@@ -71,9 +71,9 @@ export function load(file: File) {
   reader.onload = async () => {
     const zip = await JSZip.loadAsync(reader.result as ArrayBuffer);
 
-    const batchar = await zip.file("BATCHAR")?.async("text");
+    const realmar = await zip.file("REALMAR")?.async("text");
 
-    if (!batchar?.startsWith("batchar@2")) {
+    if (!realmar?.startsWith("realmar@2")) {
       throw new Error("Invalid file format");
     }
 
@@ -120,7 +120,7 @@ export function loadFromFile() {
   // ask for file
   const input = document.createElement("input");
   input.type = "file";
-  input.accept = ".batchar";
+  input.accept = ".realmar";
   input.onchange = () => {
     const files = input.files;
     if (files && files.length > 0) {

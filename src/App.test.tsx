@@ -8,9 +8,9 @@ describe("App", () => {
     render(
       <LanguageProvider>
         <App />
-      </LanguageProvider>,
+      </LanguageProvider>
     );
-    const appText = screen.getByText("BatchAR");
+    const appText = screen.getByText("realm AR");
     expect(appText).not.toBeNull();
   });
 });

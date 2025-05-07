@@ -1,4 +1,4 @@
-# BatchAR
+# realm AR
 
 ## Install
 

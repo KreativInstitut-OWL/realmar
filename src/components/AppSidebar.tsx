@@ -43,7 +43,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-3">
-            <img src="/logo.svg" alt="BatchAR" className="size-8 max-w-none" />
+            <img src="/logo.svg" alt="" className="size-8 max-w-none" />
             <div className="flex-1 translate-y-0.5 text-base font-[Inter] font-normal">
               <EditableText
                 value={projectName}

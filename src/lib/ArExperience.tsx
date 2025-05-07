@@ -20,7 +20,7 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <title>{projectName}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="style.css" rel="stylesheet" />
-        <script src="batchar.js" type="module" />
+        <script src="realmar.js" type="module" />
       </head>
       <body>
         <ArExperienceScene items={items} />
@@ -81,10 +81,10 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
           mindar-image-target={toAttrs({ targetIndex: itemIndex })}
           id={item.id}
           {...(item.displayMode === "gallery"
-            ? { "batchar-gallery": toAttrs({ startIndex: 0 }) }
+            ? { "realmar-gallery": toAttrs({ startIndex: 0 }) }
             : {})}
           {...(item.itemDependencyId !== null
-            ? { "batchar-depends-on": `#${item.itemDependencyId}` }
+            ? { "realmar-depends-on": `#${item.itemDependencyId}` }
             : {})}
         >
           {item.entities.map((entity, entityIndex) => (
@@ -92,7 +92,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
               entity={entity}
               key={entity.id}
               {...(item.displayMode === "gallery"
-                ? { "batchar-gallery-item": toAttrs({ index: entityIndex }) }
+                ? { "realmar-gallery-item": toAttrs({ index: entityIndex }) }
                 : {})}
             />
           ))}

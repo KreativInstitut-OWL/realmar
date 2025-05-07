@@ -1,6 +1,6 @@
 import * as idb from "idb-keyval";
 
-export const fileStore = idb.createStore("batchar-files", "files");
+export const fileStore = idb.createStore("realmar-files", "files");
 
 export async function add(id: string, file: File) {
   // const blob = new Blob([await file.arrayBuffer()], { type: file.type });
