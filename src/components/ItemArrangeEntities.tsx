@@ -109,7 +109,7 @@ export function ItemEntities() {
                 />
               ),
             }))}
-            onItemMove={(oldIndex, newIndex) => {
+            onItemMove={(_oldIndex, newIndex) => {
               moveItemEntities(item.id, selectedEntityIds, newIndex);
             }}
             onDragStart={(event) => {

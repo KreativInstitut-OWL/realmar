@@ -10,7 +10,6 @@ import { MainViewAssets } from "./MainViewAssets";
 const components = {
   items: ItemListSelectedItemContent,
   assets: MainViewAssets,
-  settings: () => <div>Settings</div>,
   preview: PreviewArExperience,
 } as const satisfies Record<EditorView, React.ComponentType<any>>;
 
