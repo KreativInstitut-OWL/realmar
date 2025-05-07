@@ -43,6 +43,7 @@ export function ItemTarget() {
         <Button
           size="sm"
           className="mt-2"
+          variant="secondary"
           onClick={() => {
             removeItemTarget(item.id);
           }}

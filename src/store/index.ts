@@ -957,9 +957,17 @@ export const useStore = create<AppState>()(
         deleteAssets: async (assetIds, mode = "restrict") => {
           // loop through all item entities and handle the reference delete mode
           for (const item of get().items) {
+            if (item.targetAssetId && assetIds.includes(item.targetAssetId)) {
+              if (mode === "restrict") {
+                throw new DeleteReferenceError(
+                  `Cannot delete asset ${item.targetAssetId} because it is used as target in item ${item.id}`
+                );
+              }
+            }
+
             for (const entity of item.entities) {
-              if (!isEntityWithAsset(entity)) continue;
               if (
+                isEntityWithAsset(entity) &&
                 entity.assetId !== null &&
                 assetIds.includes(entity.assetId)
               ) {

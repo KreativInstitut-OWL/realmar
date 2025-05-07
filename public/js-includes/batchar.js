@@ -76,13 +76,6 @@ class TextGeometry extends THREE.ExtrudeGeometry {
     if (font === void 0) {
       super();
     } else {
-      console.log("TextGeometry:", {
-        font,
-        text,
-        size,
-        lineHeight,
-        letterSpacing,
-      });
       const shapes = font.generateShapes(text, size, {
         lineHeight,
         letterSpacing,
