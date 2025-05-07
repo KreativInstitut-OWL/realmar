@@ -10,6 +10,9 @@
     "preview": "vite preview",
     "test": "vitest"
   },
+  "engines": {
+    "node": "18"
+  },
   "dependencies": {
     "@ark-ui/react": "^4.4.4",
     "@atlaskit/pragmatic-drag-and-drop": "^1.1.7",
