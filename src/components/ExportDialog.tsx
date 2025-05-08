@@ -6,9 +6,11 @@ import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Progress } from "./ui/progress";
+import { useStore } from "@/store";
 
 function ExportDialog({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<ProgressUpdate>(defaultProgress);
+  const hasItems = useStore((state) => state.items.length > 0);
 
   const mutation = useMutation({
     mutationKey: ["export"],
@@ -31,7 +33,11 @@ function ExportDialog({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={mutation.isPending}>
       <Slot
-        {...{ onClick: handleExport, disabled: mutation.isPending, children }}
+        {...{
+          onClick: handleExport,
+          disabled: mutation.isPending || !hasItems,
+          children,
+        }}
       />
       <DialogContent>
         <DialogHeader>

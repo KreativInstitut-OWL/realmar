@@ -1,21 +1,18 @@
 import { cn } from "@/lib/utils";
-import { createEntity, useAsset, useCurrentItem, useStore } from "@/store";
-import { FileStack, Images, Plus, Scan, Text } from "lucide-react";
+import { useAsset, useCurrentItem, useStore } from "@/store";
+import { Images, Plus, Scan } from "lucide-react";
 import { forwardRef, HTMLAttributes } from "react";
+import { AppBreadcrumbPortal } from "./AppBreadcrumb";
 import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
-import ItemAddAssetEntitiesDialog from "./ItemAddAssetEntitiesDialog";
+import { ItemAddEntityDropdownMenu } from "./ItemAddEntityDropdownMenu";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
+import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
 import { ItemEntityList } from "./ItemEntityList";
 import { ItemMarker } from "./ItemMarker";
+import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
 import { Button } from "./ui/button";
 import { ControlGroup, ControlLabel } from "./ui/control";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import { Separator } from "./ui/separator";
 import {
   Sidebar,
@@ -26,9 +23,6 @@ import {
   SidebarProvider,
 } from "./ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { AppBreadcrumbPortal } from "./AppBreadcrumb";
-import { ItemComboboxEditorCurrentItem } from "./ItemCombobox";
-import { BreadcrumbSeparator, BreadcrumbItem } from "./ui/breadcrumb";
 
 export const ItemArrange = forwardRef<
   HTMLDivElement,
@@ -36,7 +30,6 @@ export const ItemArrange = forwardRef<
 >(({ className, style, ...props }, ref) => {
   const setItem = useStore((state) => state.setItem);
   const setItemEntity = useStore((state) => state.setItemEntity);
-  const addItemEntity = useStore((state) => state.addItemEntity);
 
   const item = useCurrentItem();
   const currentEntity = item?.entityNavigation?.current;
@@ -110,52 +103,16 @@ export const ItemArrange = forwardRef<
                   <ControlGroup>
                     <ControlLabel
                       end={
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon-sm"
-                              tooltip="Add entity"
-                            >
-                              <Plus />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <ItemAddAssetEntitiesDialog item={item}>
-                              <DropdownMenuItem
-                                onSelect={(event) => {
-                                  event.preventDefault();
-                                }}
-                              >
-                                <FileStack />
-                                Asset(s)
-                              </DropdownMenuItem>
-                            </ItemAddAssetEntitiesDialog>
-                            <DropdownMenuItem
-                              onClick={() => {
-                                addItemEntity(
-                                  item.id,
-                                  createEntity({ type: "text" })
-                                );
-                              }}
-                            >
-                              <Text />
-                              Text
-                            </DropdownMenuItem>
-                            {/* <DropdownMenuItem
-                          onClick={() => {
-                            addItemEntity(
-                              item.id,
-                              createEntity({ type: "null" })
-                            );
-                          }}
-                        >
-                          <Parentheses />
-                          Null
-                        </DropdownMenuItem> */}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <ItemAddEntityDropdownMenu item={item}>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-sm"
+                            tooltip="Add entity"
+                          >
+                            <Plus />
+                          </Button>
+                        </ItemAddEntityDropdownMenu>
                       }
                     >
                       Entities ({item.entities.length})
@@ -176,21 +133,25 @@ export const ItemArrange = forwardRef<
                     />
                   </ControlGroup>
                 </SidebarGroupContent>
-                <Separator className="my-2" />
-                <SidebarGroupContent>
-                  <ControlGroup>
-                    <ControlLabel
-                      end={
-                        currentEntity ? (
-                          <EntityIcon entity={currentEntity} />
-                        ) : null
-                      }
-                    >
-                      Entity: {currentEntity?.name ?? "None"}
-                    </ControlLabel>
-                    <EntityProperties item={item} entity={currentEntity} />
-                  </ControlGroup>
-                </SidebarGroupContent>
+                {currentEntity ? (
+                  <>
+                    <Separator className="my-2" />
+                    <SidebarGroupContent>
+                      <ControlGroup>
+                        <ControlLabel
+                          end={
+                            currentEntity ? (
+                              <EntityIcon entity={currentEntity} />
+                            ) : null
+                          }
+                        >
+                          Entity: {currentEntity.name}
+                        </ControlLabel>
+                        <EntityProperties item={item} entity={currentEntity} />
+                      </ControlGroup>
+                    </SidebarGroupContent>
+                  </>
+                ) : null}
               </SidebarGroup>
             </TabsContent>
             <TabsContent value="target">

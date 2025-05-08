@@ -607,9 +607,8 @@ interface AppState extends BaseAppState {
 export const useStore = create<AppState>()(
   persist(
     immer((set, get) => {
-      const initialItem = createItem();
       return {
-        items: [initialItem],
+        items: [],
         assets: [],
 
         projectName: null,
@@ -628,7 +627,7 @@ export const useStore = create<AppState>()(
           });
         },
 
-        editorCurrentItemId: initialItem.id,
+        editorCurrentItemId: null,
 
         setEditorCurrentItemId: (id) => {
           set((state) => {
@@ -1009,12 +1008,11 @@ export const useStore = create<AppState>()(
         },
 
         reset: async () => {
-          const initialItem = createItem();
           set(() => ({
-            items: [initialItem],
+            items: [],
             assets: [],
             projectName: null,
-            editorCurrentItemId: initialItem.id,
+            editorCurrentItemId: null,
             editorCurrentView: "items",
           }));
           await FileStore.clear();

@@ -6,8 +6,8 @@ export function MainViewAssets() {
   const addAssetsFromFiles = useStore((state) => state.addAssetsFromFiles);
 
   return (
-    <div className="grid gap-12">
-      <div className="pt-8 px-12">
+    <div className="grid gap-12 mt-6 px-12">
+      <div className="pt-8 justify-self-stretch">
         <AssetDropzone
           className="h-48"
           onFiles={async (files) => {

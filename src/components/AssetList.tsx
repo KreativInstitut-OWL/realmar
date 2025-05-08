@@ -1,10 +1,10 @@
 import { useOutsideClick } from "@/hooks/useOutsideClick";
 import { isMouseEvent } from "@/lib/utils";
 import { useStore } from "@/store";
+import { useControllableState } from "@radix-ui/react-use-controllable-state";
 import * as React from "react";
 import { AssetListItem, AssetListItemDragOverlay } from "./AssetListItem";
 import { Sortable } from "./ui/sortable";
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
 
 export function AssetList({
   selectedIds: selectedIdsProp,
@@ -108,7 +108,12 @@ export function AssetList({
           />
         </div>
       ) : (
-        <div className="text-gray-11 text-sm">Add one or more entities…</div>
+        <div className="w-full">
+          <div className="text-gray-11 text-sm text-center">
+            Add assets to your project by dragging them to the dropzone above or
+            by clicking it to select files.
+          </div>
+        </div>
       )}
     </>
   );

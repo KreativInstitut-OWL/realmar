@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
 import { useItem, useStore } from "@/store";
-import { GripHorizontal } from "lucide-react";
+import { GripHorizontal, Plus } from "lucide-react";
 import * as React from "react";
 import { ItemContextMenu } from "./ItemContextMenu";
 import { ItemPreview } from "./ItemPreview";
 import { ItemView } from "./ItemView";
+import { SplashScreen } from "./SplashScreen";
 import { Button } from "./ui/button";
 import {
   SidebarMenuSub,
@@ -89,11 +90,29 @@ const ItemListTabsTrigger = React.forwardRef<
 
 export const ItemListSelectedItemContent = () => {
   const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
+  const itemCount = useStore((state) => state.items.length);
+
+  if (itemCount === 0) {
+    return (
+      <SplashScreen>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            useStore.getState().addItem(true);
+          }}
+        >
+          <Plus /> Add your first marker
+        </Button>
+      </SplashScreen>
+    );
+  }
 
   if (!editorCurrentItemId) {
     return (
-      <div>
-        <div className="text-gray-11 text-sm">
+      <div className="h-full w-full grid place-items-center">
+        <div className="text-gray-11 text-center">
+          No item selected.
+          <br />
           Select an item from the list to view and edit its properties.
         </div>
       </div>

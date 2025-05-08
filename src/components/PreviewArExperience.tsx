@@ -1,11 +1,34 @@
 import { useCompiledPreviewArtifacts } from "@/lib/export";
 import { cn } from "@/lib/utils";
-import { Blocks, FlipHorizontal2, Loader2, RotateCw } from "lucide-react";
+import { Blocks, FlipHorizontal2, Loader2, Plus, RotateCw } from "lucide-react";
 import { useRef, useState } from "react";
 import { AppBreadcrumbPortal } from "./AppBreadcrumb";
 import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
 import { Button } from "./ui/button";
 import { Progress } from "./ui/progress";
+import { SplashScreen } from "./SplashScreen";
+import { useStore } from "@/store";
+
+export function PreviewArExperienceWrapper() {
+  const itemCount = useStore((state) => state.items.length);
+
+  if (itemCount === 0) {
+    return (
+      <SplashScreen>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            useStore.getState().addItem(true);
+          }}
+        >
+          <Plus /> Add your first marker, to preview the experience
+        </Button>
+      </SplashScreen>
+    );
+  }
+
+  return <PreviewArExperience />;
+}
 
 export function PreviewArExperience() {
   const { progress, data, isFetching, invalidate } =

@@ -1,13 +1,16 @@
-import { useCurrentItem, useStore } from "@/store";
-import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import * as React from "react";
-import { ItemEntity, ItemEntityDragOverlay } from "./ItemEntity";
-import { Sortable } from "./ui/sortable";
 import { cn } from "@/lib/utils";
+import { useCurrentItem, useStore } from "@/store";
 import {
   RovingFocusGroup,
   RovingFocusGroupItem,
 } from "@radix-ui/react-roving-focus";
+import { useControllableState } from "@radix-ui/react-use-controllable-state";
+import * as React from "react";
+import { ItemEntity, ItemEntityDragOverlay } from "./ItemEntity";
+import { Sortable } from "./ui/sortable";
+import { ItemAddEntityDropdownMenu } from "./ItemAddEntityDropdownMenu";
+import { Button } from "./ui/button";
+import { Plus } from "lucide-react";
 
 export function ItemEntityList({
   selectedEntityIds: selectedEntityIdsProp,
@@ -135,10 +138,14 @@ export function ItemEntityList({
       </div>
     </RovingFocusGroup>
   ) : (
-    <div>
-      <div className="text-gray-11 text-sm">
-        Add one or more entities to this marker.
-      </div>
+    <div className="flex flex-col gap-4 items-start">
+      <div className="text-gray-11">This marker has no entities.</div>
+      <ItemAddEntityDropdownMenu item={item}>
+        <Button type="button" variant="secondary" size="sm">
+          <Plus />
+          Add entity
+        </Button>
+      </ItemAddEntityDropdownMenu>
     </div>
   );
 }
