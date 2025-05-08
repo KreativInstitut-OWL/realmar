@@ -226,7 +226,7 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>Text</ControlLabel>
+            <ControlLabel level={2}>Text Properties</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
                 <FormLabel>Text</FormLabel>
@@ -386,7 +386,7 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>3D Model</ControlLabel>
+            <ControlLabel level={2}>GLB Model Properties</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
                 <FormLabel className="col-span-2">Play animation</FormLabel>
@@ -408,7 +408,7 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>Video</ControlLabel>
+            <ControlLabel level={2}>Video Properties</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
                 <FormLabel className="col-span-2">Autoplay</FormLabel>

@@ -402,7 +402,7 @@ const SidebarGroupLabel = React.forwardRef<
       ref={ref}
       data-sidebar="group-label"
       className={cn(
-        "duration-200 flex h-8 shrink-0 items-center rounded-md text-xs font-medium text-gray-11 outline-hidden transition-[margin,opa] ease-linear- focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+        "duration-200 flex h-8 shrink-0 items-center rounded-md text-sm font-medium text-gray-11 outline-hidden transition-[margin,opa] ease-linear- focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className
       )}
@@ -488,7 +488,7 @@ const sidebarMenuButtonVariants = cva(
       },
       size: {
         default: "h-8 text-sm",
-        sm: "h-7 text-xs",
+        sm: "h-7 text-sm",
         lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
       },
     },
@@ -597,7 +597,7 @@ const SidebarMenuBadge = React.forwardRef<
     ref={ref}
     data-sidebar="menu-badge"
     className={cn(
-      "absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-xs font-medium tabular-nums text-gray-12 select-none pointer-events-none",
+      "absolute right-1 flex h-5 min-w-5 items-center justify-center rounded-md px-1 text-sm font-medium tabular-nums text-gray-12 select-none pointer-events-none",
       "peer-hover/menu-button:text-gray-12 peer-data-[active=true]/menu-button:text-gray-12",
       "peer-data-[size=sm]/menu-button:top-1",
       "peer-data-[size=default]/menu-button:top-1.5",
@@ -691,7 +691,7 @@ const SidebarMenuSubButton = React.forwardRef<
         "flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-md px-2 text-gray-12 outline-hidden focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-gray-12",
         "hover:bg-gray-4 hover:text-gray-12 active:bg-gray-4 active:text-gray-12",
         "data-[active=true]:bg-azure-4 hover:data-[active=true]:bg-azure-5 data-[active=true]:text-gray-12",
-        size === "sm" && "text-xs",
+        size === "sm" && "text-sm",
         size === "md" && "text-sm",
         "group-data-[collapsible=icon]:hidden",
         className

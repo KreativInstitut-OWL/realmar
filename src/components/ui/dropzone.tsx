@@ -114,7 +114,7 @@ const DropzoneContent = ({
         <UploadIcon className="mr-2 h-4 w-4" /> Upload files
       </div>
       {dropzoneProps.maxSize && (
-        <div className="text-xs text-gray-11 font-medium">
+        <div className="text-sm text-gray-11 font-medium">
           Max. file size: {(dropzoneProps.maxSize / (1024 * 1024)).toFixed(2)}{" "}
           MB
         </div>

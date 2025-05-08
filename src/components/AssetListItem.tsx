@@ -42,7 +42,7 @@ export const AssetListItem = forwardRef<
           type="button"
           aria-selected={isSelected ? "true" : undefined}
           className={cn(
-            "group/asset flex w-full text-left text-xs gap-4 items-center h-11 px-4 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
+            "group/asset flex w-full text-left text-sm gap-4 items-center h-11 px-4 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
             // using where to make sure the even style has no special specificity
             "bg-gray-1 [&:where(:nth-child(even))]:bg-gray-2",
             "hover:bg-gray-4",
@@ -115,7 +115,7 @@ export const AssetListItemDragOverlay = forwardRef<
     <div
       aria-selected="true"
       className={cn(
-        "group/asset flex gap-4 items-center text-xs h-11 w-full bg-azure-5 px-4 cursor-grabbing",
+        "group/asset flex gap-4 items-center text-sm h-11 w-full bg-azure-5 px-4 cursor-grabbing",
         className
       )}
       ref={ref}
