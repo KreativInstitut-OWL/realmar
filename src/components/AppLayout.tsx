@@ -15,13 +15,12 @@ import { cn } from "@/lib/utils";
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
 
 function AppLayout() {
-  // const editorCurrentView = useStore((state) => state.editorCurrentView);
-
   return (
     <AppBreadcrumbProvider>
       <SidebarProvider
         style={{ "--sidebar-width": "320px" } as React.CSSProperties}
         className="[--header-height:40px]"
+        defaultOpen={false}
       >
         <Header />
         <AppSidebar />
