@@ -4,6 +4,7 @@ import JSZip from "jszip";
 import slugify from "slugify";
 import { APP_STATE_STORAGE_NAME, appStateStore, useStore } from ".";
 import * as FileStore from "./file-store";
+import { toast } from "sonner";
 
 const FILE_ID_NAME_DELIMITER = "___";
 
@@ -83,7 +84,7 @@ export function load(file: File) {
       throw new Error("Invalid file format");
     }
 
-    FileStore.clear();
+    await FileStore.clear();
 
     const filesFolder = zip.folder("files");
     if (filesFolder) {
@@ -111,6 +112,8 @@ export function load(file: File) {
     }
 
     useStore.setState(JSON.parse(state).state);
+
+    toast.success(`Project ${file.name} loaded successfully`);
   };
 
   reader.readAsArrayBuffer(file);
