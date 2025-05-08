@@ -2,6 +2,7 @@ import { Heart } from "lucide-react";
 import * as React from "react";
 import { RealmArLogo } from "./RealmArLogo";
 import { cn } from "@/lib/utils";
+import { Badge } from "./ui/badge";
 
 export const SplashScreen = ({
   children,
@@ -12,14 +13,21 @@ export const SplashScreen = ({
 }) => {
   return (
     <div className={cn("h-full w-full grid place-items-center", className)}>
-      <div className="flex flex-col items-center gap-10">
-        <RealmArLogo className="max-w-64 text-gray-11" />
-        {children}
-        <div className="flex flex-col gap-4">
-          <p className="text-sm text-gray-11 text-center">
+      <div className="flex flex-col items-center gap-8">
+        <div className="flex flex-col gap-6 items-center">
+          <div className="relative max-w-64">
+            <RealmArLogo className="w-full text-gray-11" />
+            <Badge size="sm" className="absolute -right-14 top-0">
+              Beta
+            </Badge>
+          </div>
+          <p className="text-lg text-gray-11 text-center">
             Create Augmented and Extended Reality experiences with{" "}
             <span className="font-semibold">realm AR</span>.
           </p>
+        </div>
+        {children}
+        <div className="flex flex-col gap-4 mt-16">
           <p className="text-sm text-gray-11 text-center">
             All data stays local in your browser and can be saved at any time:
             nothing is stored on our servers.
