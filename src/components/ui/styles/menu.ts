@@ -38,7 +38,7 @@ export const checkboxItemIndicatorVariants = cva(
   }
 );
 export const itemVariants = cva(
-  "relative flex gap-2 cursor-default select-none items-center text-gray-12 rounded-xs px-2 py-1.5 text-sm outline-hidden focus:bg-azure-4 data-[selected=true]:bg-azure-4 focus:text-azure-12 data-[selected=true]:text-azure-12 data-disabled:not-[[data-disabled=false]]:pointer-events-none data-disabled:not-[[data-disabled=false]]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+  "relative h-9 flex gap-2 cursor-default select-none items-center text-gray-12 rounded-xs px-2 text-sm outline-hidden focus:bg-azure-4 data-[selected=true]:bg-azure-4 focus:text-azure-12 data-[selected=true]:text-azure-12 data-disabled:not-[[data-disabled=false]]:pointer-events-none data-disabled:not-[[data-disabled=false]]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       inset: {

@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent } from "./tooltip";
 
 const buttonVariants = cva(
   [
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium cursor-pointer",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm cursor-pointer",
     "transition-colors outline-hidden focus-visible:ring-2",
     "disabled:pointer-events-none disabled:opacity-50",
     "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -18,7 +18,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-lime-9 text-black hover:bg-lime-10 active:bg-lime-9",
+        default: "bg-azure-9 text-black hover:bg-azure-10 active:bg-azure-9",
         secondary: "bg-gray-9 text-gray-1 hover:bg-gray-10 active:bg-gray-9",
         ghost: [
           "bg-transparent text-gray-12",

@@ -61,8 +61,8 @@ export const ControlLabel = React.forwardRef<
       className={cn(
         "flex gap-4 h-7 items-center text-sm pe-9 relative",
         {
-          "text-gray-12 font-semibold": level === 1,
-          "text-gray-11 font-medium": level === 2,
+          "text-gray-12 font-bold": level === 1,
+          "text-gray-11 font-semibold": level === 2,
         },
         className
       )}

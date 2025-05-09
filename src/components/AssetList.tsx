@@ -108,7 +108,7 @@ export function AssetList({
           />
         </div>
       ) : (
-        <div className="w-full">
+        <div className="w-full bg-gray-1 h-9 flex items-center justify-center">
           <div className="text-gray-11 text-sm text-center">
             Add assets to your project by dragging them to the dropzone above or
             by clicking it to select files.

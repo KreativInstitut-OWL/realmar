@@ -49,7 +49,7 @@ export function ItemTarget() {
           }}
         >
           <XIcon className="size-4" />
-          Remove custom target
+          Remove {asset.originalBasename}.{asset.originalExtension} as marker
         </Button>
       ) : null}
     </div>

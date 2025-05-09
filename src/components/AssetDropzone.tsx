@@ -29,9 +29,9 @@ export function AssetDropzone({
         onFiles(files);
       }}
     >
-      <Dropzone className={cn("group p-8", className)} {...props}>
-        <DropzoneContent>
-          <ImagePlusIcon className="size-5 mb-4" />
+      <Dropzone className={cn("group p-6", className)} {...props}>
+        <DropzoneContent className="text-sm">
+          <ImagePlusIcon className="size-4 mb-4" />
           <div>
             Add one or more assets by dropping them here or click to select
             files.

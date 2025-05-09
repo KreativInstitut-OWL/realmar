@@ -63,7 +63,7 @@ const Dropzone = ({
     <div
       {...dropzoneState.getRootProps({
         className: cn(
-          "flex justify-center items-center w-full min-h-32 border-2 border-dashed border-azure-6 rounded-lg bg-clip-padding bg-gray-3 hover:bg-gray-4 hover:border-azure-7 transition-all select-none cursor-pointer",
+          "flex justify-center items-center w-full min-h-32 border-2 border-dashed border-azure-6 rounded-lg bg-clip-padding bg-gray-3 hover:bg-gray-4 hover:border-azure-7 transition-all select-none cursor-pointer outline-none focus-visible:ring-2",
           { "border-lime-7 bg-gray-2": dropzoneState.isDragAccept },
           className
         ),

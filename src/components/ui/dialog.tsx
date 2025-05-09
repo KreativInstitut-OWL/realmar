@@ -3,6 +3,8 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { contentVariants } from "./styles/menu";
+import { X } from "lucide-react";
+import { buttonVariants } from "./button";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -104,9 +106,29 @@ const DialogDescription = React.forwardRef<
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
+const DialogCloseX = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Close>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Close
+    ref={ref}
+    className={cn(
+      "absolute top-4 right-4",
+      buttonVariants({ variant: "ghost", size: "icon-sm" }),
+      className
+    )}
+    aria-label="Close"
+    {...props}
+  >
+    <X />
+  </DialogPrimitive.Close>
+));
+DialogCloseX.displayName = DialogPrimitive.Close.displayName;
+
 export {
   Dialog,
   DialogClose,
+  DialogCloseX,
   DialogContent,
   DialogDescription,
   DialogFooter,

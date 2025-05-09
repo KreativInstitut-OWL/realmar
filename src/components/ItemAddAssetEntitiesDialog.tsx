@@ -1,6 +1,7 @@
 import {
   Dialog,
   DialogClose,
+  DialogCloseX,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -35,16 +36,23 @@ export default function ItemAddAssetEntitiesDialog({
         <DialogHeader>
           <DialogTitle>Add Asset Entities to Marker</DialogTitle>
           <DialogDescription></DialogDescription>
+          <DialogCloseX />
         </DialogHeader>
         <div className="grid gap-12">
           <div className="pt-8 px-12">
             <AssetDropzone
-              className="h-48"
+              className="h-36"
               onFiles={async (files) => {
                 await addAssetsFromFiles(files);
               }}
             />
           </div>
+          <p className="text-sm text-gray-11 -mb-6 max-w-prose">
+            Select the assets you want to add to the marker and then click "Add
+            assets" to add them to the marker as entities. You can select
+            multiple assets by holding the Ctrl (Windows) or Command (Mac) key
+            while clicking on them.
+          </p>
           <AssetList
             selectedIds={selectedIds}
             onSelectedIdsChange={setSelectedIds}
@@ -52,7 +60,7 @@ export default function ItemAddAssetEntitiesDialog({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" variant="secondary">
+            <Button type="button" variant="ghost">
               Cancel
             </Button>
           </DialogClose>
@@ -70,8 +78,14 @@ export default function ItemAddAssetEntitiesDialog({
                 addItemEntitiesFromAssetIds(item.id, selectedIds);
               }}
             >
-              Add {selectedIds.length}{" "}
-              {selectedIds.length === 1 ? "Entity" : "Entities"}
+              {selectedIds.length > 0 ? (
+                <>
+                  Add {selectedIds.length}{" "}
+                  {selectedIds.length === 1 ? "asset" : "assets"}
+                </>
+              ) : (
+                <>Select asset(s) to add</>
+              )}
             </Button>
           </DialogClose>
         </DialogFooter>
