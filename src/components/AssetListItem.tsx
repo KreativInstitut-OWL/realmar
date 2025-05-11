@@ -15,7 +15,8 @@ export const AssetListItem = forwardRef<
     assetIndex: number;
     isSelected: boolean;
     selectedIds: string[];
-    isDragging: boolean;
+    isDragging?: boolean;
+    isDraggable?: boolean;
   } & React.HTMLAttributes<HTMLButtonElement>
 >(
   (
@@ -27,6 +28,7 @@ export const AssetListItem = forwardRef<
       isSelected,
       selectedIds,
       isDragging,
+      isDraggable = true,
       ...rest
     },
     ref
@@ -83,21 +85,23 @@ export const AssetListItem = forwardRef<
               {dateFormatter.format(new Date(asset.updatedAt))}
             </div>
           ) : null}
-          <DragHandle>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Drag asset"
-              className="shrink-0"
-              tabIndex={-1}
-              asChild
-              role="button"
-            >
-              <span>
-                <GripHorizontal />
-              </span>
-            </Button>
-          </DragHandle>
+          {isDraggable ? (
+            <DragHandle>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label="Drag asset"
+                className="shrink-0"
+                tabIndex={-1}
+                asChild
+                role="button"
+              >
+                <span>
+                  <GripHorizontal />
+                </span>
+              </Button>
+            </DragHandle>
+          ) : null}
         </button>
       </AssetContextMenu>
     );

@@ -56,6 +56,7 @@ export default function ItemAddAssetEntitiesDialog({
           <AssetList
             selectedIds={selectedIds}
             onSelectedIdsChange={setSelectedIds}
+            className="h-96 overflow-y-scroll"
           />
         </div>
         <DialogFooter>
