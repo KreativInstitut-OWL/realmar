@@ -216,6 +216,7 @@ function ArExperienceEntityPlane({
       width={toNumber(entity.asset.width!)}
       height={toNumber(entity.asset.height!)}
       color="#ffffff"
+      alpha-test={0.5}
     />
   );
 }

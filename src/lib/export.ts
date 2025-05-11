@@ -276,11 +276,6 @@ export async function compileArtifacts(
       items: exportItems,
     };
 
-    const urlMap = new Map<string, string>();
-    for (const [key, value] of artifacts.entries()) {
-      urlMap.set(key, URL.createObjectURL(value));
-    }
-
     let html = `<!DOCTYPE html>${reactRenderToString(
       React.createElement(ArExperience, {
         state: exportState,
@@ -288,12 +283,14 @@ export async function compileArtifacts(
     )}`;
 
     if (isPreview) {
-      for (const [key, url] of urlMap.entries()) {
+      for (const [key, value] of artifacts.entries()) {
+        // TODO: add cleanup for the URL.createObjectURL
+        const url = URL.createObjectURL(value);
         html = html.replaceAll(key, url);
       }
     }
 
-    // console.log("HTML: ", await prettifyHtml(html));
+    console.log("HTML: ", await prettifyHtml(html));
 
     artifacts.set(
       "index.html",

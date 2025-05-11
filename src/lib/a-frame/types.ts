@@ -68,6 +68,7 @@ export interface AFrameComponent {
   webxr?: string;
   "windows-motion-controls"?: string;
   "xr-mode-ui"?: string;
+  transparent?: boolean; //Or string
 }
 
 export interface CustomComponent {
