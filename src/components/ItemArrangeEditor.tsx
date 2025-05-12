@@ -53,6 +53,7 @@ import { Button } from "./ui/button";
 import { cn } from "@/lib/utils";
 import { contentVariants } from "./ui/styles/menu";
 import { Eye } from "lucide-react";
+import { useWebGlContextLoss } from "@/hooks/useWebGlContextLoss";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
@@ -548,31 +549,7 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [canvasKey, setCanvasKey] = useState(0);
-
-  // Set up context loss handler manually
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const handleContextLost = (event: Event) => {
-      console.error("WebGL context lost:", event);
-      event.preventDefault();
-      setCanvasKey((prevKey) => prevKey + 1); // Force a re-render of the canvas
-    };
-
-    const handleContextRestored = () => {
-      console.log("WebGL context restored");
-    };
-
-    canvas.addEventListener("webglcontextlost", handleContextLost);
-    canvas.addEventListener("webglcontextrestored", handleContextRestored);
-
-    return () => {
-      canvas.removeEventListener("webglcontextlost", handleContextLost);
-      canvas.removeEventListener("webglcontextrestored", handleContextRestored);
-    };
-  }, []);
+  const canvasKey = useWebGlContextLoss(canvasRef);
 
   const ref = useRef<HTMLDivElement>(null);
 
