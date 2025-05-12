@@ -160,7 +160,11 @@ export const ItemArrange = forwardRef<
                         >
                           Entity: {currentEntity.name}
                         </ControlLabel>
-                        <EntityProperties item={item} entity={currentEntity} />
+                        <EntityProperties
+                          item={item}
+                          entity={currentEntity}
+                          key={currentEntity.id}
+                        />
                       </ControlGroup>
                     </SidebarGroupContent>
                   </>

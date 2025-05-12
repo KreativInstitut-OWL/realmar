@@ -165,7 +165,7 @@ export const ItemEntityDragOverlay = forwardRef<
       <div
         aria-selected="true"
         className={cn(
-          "group/entity flex gap-4 items-center h-14 w-full bg-azure-5 px-4 cursor-grabbing",
+          "group/entity flex gap-4 items-center h-14 w-full bg-azure-5 px-2 cursor-grabbing",
           {
             "h-7 text-sm gap-2": variant === "compact",
           },

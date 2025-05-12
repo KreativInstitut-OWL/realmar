@@ -27,6 +27,7 @@ import {
 import { forwardRef } from "react";
 import { Badge } from "./ui/badge";
 import { generateCopyName } from "@/lib/utils";
+import { ItemPreview } from "./ItemPreview";
 
 export const ItemEntityContextMenu = forwardRef<
   HTMLSpanElement,
@@ -166,29 +167,31 @@ export const ItemEntityContextMenu = forwardRef<
             </ContextMenuSubContent>
           </ContextMenuSub>
         )}
-        <ContextMenuSub>
-          <ContextMenuSubTrigger>
-            <Forward />
-            Send to marker
-          </ContextMenuSubTrigger>
-          <ContextMenuSubContent className="w-48">
-            {items.map((otherItem, itemIndex) => (
-              <ContextMenuItem
-                key={otherItem.id}
-                disabled={otherItem.id === item.id}
-                onSelect={() => {
-                  sendItemEntitiesToItem(
-                    item.id,
-                    selectedEntityIds,
-                    otherItem.id
-                  );
-                }}
-              >
-                {getItemName(otherItem, itemIndex)}
-              </ContextMenuItem>
-            ))}
-          </ContextMenuSubContent>
-        </ContextMenuSub>
+        {items.length > 1 ? (
+          <ContextMenuSub>
+            <ContextMenuSubTrigger>
+              <Forward />
+              Send to marker
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="w-48">
+              {items.map((otherItem) => (
+                <ContextMenuItem
+                  key={otherItem.id}
+                  hidden={otherItem.id === item.id}
+                  onSelect={() => {
+                    sendItemEntitiesToItem(
+                      item.id,
+                      selectedEntityIds,
+                      otherItem.id
+                    );
+                  }}
+                >
+                  <ItemPreview id={otherItem.id} />
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+        ) : null}
       </ContextMenuContent>
     </ContextMenu>
   );
