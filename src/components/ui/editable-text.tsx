@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 import { selectAll } from "@/lib/utils";
 
 const inputVariants = cva(
-  "font-inherit appearance-none border-none outline-none px-2 py-1 rounded-md -mx-2 -my-1 bg-transparent text-left w-full focus-visible:ring-2 hover:bg-gray-4",
+  "font-inherit appearance-none border-none outline-none px-2 py-1 rounded-md -my-1 bg-transparent text-left w-full focus-visible:ring-2 hover:bg-gray-4",
   {
     variants: {
       variant: {

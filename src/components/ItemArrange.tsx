@@ -3,6 +3,7 @@ import { useAsset, useCurrentItem, useStore } from "@/store";
 import { Eye, EyeOff, Images, Plus, Scan } from "lucide-react";
 import { forwardRef, HTMLAttributes } from "react";
 import { AppBreadcrumbPortal } from "./AppBreadcrumb";
+import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
 import { ItemAddEntityDropdownMenu } from "./ItemAddEntityDropdownMenu";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
@@ -12,6 +13,7 @@ import { ItemMarker } from "./ItemMarker";
 import { BreadcrumbItem, BreadcrumbSeparator } from "./ui/breadcrumb";
 import { Button } from "./ui/button";
 import { ControlGroup, ControlLabel } from "./ui/control";
+import { EditableText } from "./ui/editable-text";
 import { Separator } from "./ui/separator";
 import {
   Sidebar,
@@ -157,8 +159,22 @@ export const ItemArrange = forwardRef<
                               </Toggle>
                             ) : null
                           }
+                          className="gap-1 ps-1"
                         >
-                          Entity: {currentEntity.name}
+                          <EntityIcon
+                            entity={currentEntity}
+                            showHiddenIcon={false}
+                          />
+                          <EditableText
+                            value={currentEntity.name}
+                            onChange={(name) => {
+                              setItemEntity(item.id, currentEntity.id, {
+                                name,
+                              });
+                            }}
+                            placeholder="Entity name"
+                            tooltip="Click to edit entity name"
+                          />
                         </ControlLabel>
                         <EntityProperties
                           item={item}

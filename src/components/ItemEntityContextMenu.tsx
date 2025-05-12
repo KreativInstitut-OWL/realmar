@@ -9,7 +9,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { getItemName } from "@/lib/item";
+import { generateCopyName } from "@/lib/utils";
 import { createEntity, Entity, Item, useStore } from "@/store";
 import {
   ArrowDown,
@@ -25,9 +25,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { forwardRef } from "react";
-import { Badge } from "./ui/badge";
-import { generateCopyName } from "@/lib/utils";
 import { ItemPreview } from "./ItemPreview";
+import { Badge } from "./ui/badge";
 
 export const ItemEntityContextMenu = forwardRef<
   HTMLSpanElement,

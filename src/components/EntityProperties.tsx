@@ -6,7 +6,6 @@ import {
   useDecomposeMatrix4,
   Vector3Component,
 } from "@/lib/three";
-import { uppercaseFirstLetter } from "@/lib/utils";
 import {
   Entity,
   getComponent,
@@ -38,7 +37,7 @@ import { FormControlNumber } from "./FormControlNumber";
 import { ColorPicker } from "./ui/color-picker";
 import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
 import { FormControl, FormItem, FormLabel } from "./ui/form";
-import { Input, Textarea } from "./ui/input";
+import { Textarea } from "./ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
@@ -89,26 +88,6 @@ export function EntityProperties({
 
   return (
     <div className="grid gap-4">
-      <ControlGroup>
-        <ControlLabel level={2}>
-          {uppercaseFirstLetter(entity.type)}
-        </ControlLabel>
-        <FormItem asChild>
-          <ControlRow columns={3}>
-            <FormLabel>Name</FormLabel>
-            <FormControl className="col-span-2">
-              <Input
-                type="text"
-                value={entity.name}
-                onChange={(e) => {
-                  updateEntity({ name: e.target.value });
-                }}
-              />
-            </FormControl>
-          </ControlRow>
-        </FormItem>
-      </ControlGroup>
-
       {/* Position section */}
       <ControlGroup>
         <ControlLabel level={2}>Position</ControlLabel>
@@ -386,7 +365,7 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>GLB Model Properties</ControlLabel>
+            <ControlLabel level={2}>3D Model Properties</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
                 <FormLabel className="col-span-2">Play animation</FormLabel>

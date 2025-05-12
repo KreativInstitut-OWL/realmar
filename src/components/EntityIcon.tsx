@@ -22,18 +22,18 @@ const entityIcon = {
 
 export const EntityIcon = forwardRef<
   SVGSVGElement,
-  { entity: Entity } & LucideProps
->(({ entity, className, ...props }, ref) => {
+  { entity: Entity; showHiddenIcon?: boolean } & LucideProps
+>(({ entity, className, showHiddenIcon = true, ...props }, ref) => {
   const type = entity.type;
   const Icon = entityIcon[type] || FileQuestion;
   const editorHidden = entity.editorHidden;
 
-  if (editorHidden) {
+  if (editorHidden && showHiddenIcon) {
     return (
       <EyeOff
         ref={ref}
         className={cn(
-          "size-4 text-gray-11 aria-selected:text-azure-11",
+          "size-4 text-gray-11 aria-selected:text-azure-11 shrink-0",
           className
         )}
         {...props}
@@ -45,7 +45,7 @@ export const EntityIcon = forwardRef<
     <Icon
       ref={ref}
       className={cn(
-        "size-4 text-gray-11 aria-selected:text-azure-11",
+        "size-4 text-gray-11 aria-selected:text-azure-11 shrink-0",
         className
       )}
       {...props}
