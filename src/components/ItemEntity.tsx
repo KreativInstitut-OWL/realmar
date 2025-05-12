@@ -64,7 +64,7 @@ export const ItemEntity = forwardRef<
           type="button"
           aria-selected={isEntitySelected ? "true" : undefined}
           className={cn(
-            "group/entity flex w-full text-left gap-4 items-center h-14 px-4 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
+            "group/entity flex w-full text-left gap-4 items-center h-14 px-2 transition-colors outline-hidden focus:inset-ring-2 focus:inset-ring-azure-8",
             // using where to make sure the even style has no special specificity
             "bg-gray-1 [&:where(:nth-child(even))]:bg-gray-2",
             "hover:bg-gray-4",

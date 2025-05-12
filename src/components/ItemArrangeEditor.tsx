@@ -18,6 +18,7 @@ import {
   Item,
   useAsset,
   useFile,
+  useStore,
 } from "@/store";
 import { composeRefs } from "@radix-ui/react-compose-refs";
 import {
@@ -48,6 +49,10 @@ import {
 import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedTarget } from "./GeneratedTarget";
+import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
+import { contentVariants } from "./ui/styles/menu";
+import { Eye } from "lucide-react";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
@@ -571,8 +576,39 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
 
   const ref = useRef<HTMLDivElement>(null);
 
+  const selectedEntityHidden = useMemo(() => {
+    return props.entities.find((e) => e.id === props.selectedEntityId)
+      ?.editorHidden;
+  }, [props.entities, props.selectedEntityId]);
+
   return (
-    <div className="w-full h-full overflow-clip bg-gray-2 test" ref={ref}>
+    <div className="w-full h-full overflow-clip bg-gray-2 relative" ref={ref}>
+      {selectedEntityHidden ? (
+        <div
+          className={cn(
+            contentVariants(),
+            "px-2 h-11 flex items-center absolute bottom-4 right-1/2 translate-x-1/2 z-10 gap-2"
+          )}
+        >
+          <p className="text-sm text-gray-11">
+            The currently selected entity is hidden in the editor.{" "}
+          </p>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() =>
+              useStore
+                .getState()
+                .setItemEntity(props.id, props.selectedEntityId!, {
+                  editorHidden: false,
+                })
+            }
+          >
+            <Eye /> Show entity
+          </Button>
+        </div>
+      ) : null}
+
       <Canvas ref={canvasRef} key={canvasKey}>
         <PerspectiveCamera
           ref={cameraRef}
@@ -591,6 +627,10 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
         </Suspense>
 
         {props.entities.map((entity) => {
+          if (entity.editorHidden) {
+            return null;
+          }
+
           if (
             props.displayMode === "gallery" &&
             entity.id !== props.selectedEntityId

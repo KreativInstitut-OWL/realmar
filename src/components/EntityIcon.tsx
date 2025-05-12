@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 import { Entity } from "@/store";
 import {
   Box,
+  EyeOff,
   FileQuestion,
   Image,
   LucideProps,
@@ -25,6 +26,21 @@ export const EntityIcon = forwardRef<
 >(({ entity, className, ...props }, ref) => {
   const type = entity.type;
   const Icon = entityIcon[type] || FileQuestion;
+  const editorHidden = entity.editorHidden;
+
+  if (editorHidden) {
+    return (
+      <EyeOff
+        ref={ref}
+        className={cn(
+          "size-4 text-gray-11 aria-selected:text-azure-11",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+
   return (
     <Icon
       ref={ref}

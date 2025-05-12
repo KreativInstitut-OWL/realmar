@@ -192,6 +192,7 @@ export type EntityBase = {
 
   // editor state (these have no effect for the export)
   editorScaleUniformly: boolean;
+  editorHidden?: boolean;
 };
 
 export function getComponent<TName extends Component["name"]>(
@@ -350,6 +351,7 @@ export function createEntity(props: Partial<Omit<Entity, "id">> = {}): Entity {
     transform: DEFAULT_TRANSFORM,
     components: {},
     editorScaleUniformly: true,
+    editorHidden: false,
   };
 
   switch (type) {
@@ -586,7 +588,11 @@ interface AppState extends BaseAppState {
   setItemTargetFromFile: (itemId: string, file: File) => Promise<void>;
   removeItemTarget: (itemId: string) => void;
 
-  addItemEntity: (itemId: string, entity: Entity) => Promise<void>;
+  addItemEntity: (
+    itemId: string,
+    entity: Entity,
+    afterIndex?: number
+  ) => Promise<void>;
   addItemEntitiesFromFiles: (id: string, files: File[]) => Promise<void>;
   addItemEntitiesFromAssetIds: (id: string, assetIds: string[]) => void;
   removeItemEntities: (itemId: string, entityIds: string[]) => void;
@@ -815,11 +821,20 @@ export const useStore = create<AppState>()(
           // }
         },
 
-        addItemEntity: async (itemId, entity) => {
+        addItemEntity: async (itemId, entity, afterIndex) => {
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
             item.entities.push(entity);
+
+            if (afterIndex !== undefined) {
+              const index = item.entities.findIndex((e) => e.id === entity.id);
+              if (index !== -1) {
+                item.entities.splice(index, 1);
+                // Insert after the specified index by adding 1 to afterIndex
+                item.entities.splice(afterIndex + 1, 0, entity);
+              }
+            }
 
             // select the added entity
             item.editorCurrentEntityId = entity.id;

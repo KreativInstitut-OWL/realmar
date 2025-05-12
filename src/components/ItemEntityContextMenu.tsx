@@ -15,10 +15,18 @@ import {
   ArrowDown,
   ArrowDownToLine,
   ArrowUp,
+  ArrowUpDown,
   ArrowUpToLine,
+  CopyPlus,
+  Eye,
+  EyeOff,
+  Forward,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { forwardRef } from "react";
 import { Badge } from "./ui/badge";
+import { generateCopyName } from "@/lib/utils";
 
 export const ItemEntityContextMenu = forwardRef<
   HTMLSpanElement,
@@ -53,11 +61,24 @@ export const ItemEntityContextMenu = forwardRef<
           ) : null}
         </ContextMenuLabel>
         <ContextMenuSeparator />
+        {!isMultipleSelected ? (
+          <ContextMenuItem
+            onSelect={() => {
+              useStore.getState().setItemEntity(item.id, entity.id, {
+                editorHidden: !entity.editorHidden,
+              });
+            }}
+          >
+            {entity.editorHidden ? <Eye /> : <EyeOff />}
+            {entity.editorHidden ? "Show in editor" : "Hide in editor"}
+          </ContextMenuItem>
+        ) : null}
         <ContextMenuItem
           onSelect={() => {
             removeItemEntities(item.id, selectedEntityIds);
           }}
         >
+          <Trash2 />
           {isMultipleSelected
             ? `Remove ${selectedEntityIds.length} entities`
             : "Remove"}
@@ -69,13 +90,14 @@ export const ItemEntityContextMenu = forwardRef<
               // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { id, name, ...rest } = entity;
               const duplicateEntity = createEntity({
-                name: `${name} (copy)`,
+                name: generateCopyName(name),
                 ...rest,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
               } as any);
-              addItemEntity(item.id, duplicateEntity);
+              addItemEntity(item.id, duplicateEntity, entityIndex);
             }}
           >
+            <CopyPlus />
             Duplicate
           </ContextMenuItem>
         )}
@@ -90,12 +112,16 @@ export const ItemEntityContextMenu = forwardRef<
               }
             }}
           >
+            <Pencil />
             Rename
           </ContextMenuItem>
         )}
         {!isMultipleSelected && (
           <ContextMenuSub>
-            <ContextMenuSubTrigger>Move</ContextMenuSubTrigger>
+            <ContextMenuSubTrigger>
+              <ArrowUpDown />
+              Move
+            </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
               <ContextMenuItem
                 disabled={entityIndex === 0}
@@ -141,7 +167,10 @@ export const ItemEntityContextMenu = forwardRef<
           </ContextMenuSub>
         )}
         <ContextMenuSub>
-          <ContextMenuSubTrigger>Send to marker</ContextMenuSubTrigger>
+          <ContextMenuSubTrigger>
+            <Forward />
+            Send to marker
+          </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             {items.map((otherItem, itemIndex) => (
               <ContextMenuItem

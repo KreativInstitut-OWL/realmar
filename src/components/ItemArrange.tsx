@@ -1,9 +1,8 @@
 import { cn } from "@/lib/utils";
 import { useAsset, useCurrentItem, useStore } from "@/store";
-import { Images, Plus, Scan } from "lucide-react";
+import { Eye, EyeOff, Images, Plus, Scan } from "lucide-react";
 import { forwardRef, HTMLAttributes } from "react";
 import { AppBreadcrumbPortal } from "./AppBreadcrumb";
-import { EntityIcon } from "./EntityIcon";
 import { EntityProperties } from "./EntityProperties";
 import { ItemAddEntityDropdownMenu } from "./ItemAddEntityDropdownMenu";
 import { ItemArrangeEditor } from "./ItemArrangeEditor";
@@ -23,6 +22,7 @@ import {
   SidebarProvider,
 } from "./ui/sidebar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
+import { Toggle } from "./ui/toggle";
 
 export const ItemArrange = forwardRef<
   HTMLDivElement,
@@ -68,21 +68,16 @@ export const ItemArrange = forwardRef<
         displayMode={item.displayMode}
       />
 
-      <Sidebar
-        side="right"
-        // collapsible="none"
-        // variant="floating"
-        className="top-0 bottom-0 h-auto"
+      <Tabs
+        defaultValue="arrange"
+        value={item.editorCurrentTab}
+        onValueChange={(value) =>
+          setItem(item.id, {
+            editorCurrentTab: value as "entities" | "target",
+          })
+        }
       >
-        <Tabs
-          defaultValue="arrange"
-          value={item.editorCurrentTab}
-          onValueChange={(value) =>
-            setItem(item.id, {
-              editorCurrentTab: value as "entities" | "target",
-            })
-          }
-        >
+        <Sidebar side="right">
           <SidebarHeader>
             <TabsList className="w-fit">
               <TabsTrigger value="entities">
@@ -129,7 +124,7 @@ export const ItemArrange = forwardRef<
                       selectedEntityIds={
                         currentEntity ? [currentEntity.id] : []
                       }
-                      className="max-h-96 overflow-y-scroll -mx-2"
+                      className="max-h-72 overflow-y-scroll -mx-2"
                     />
                   </ControlGroup>
                 </SidebarGroupContent>
@@ -141,7 +136,25 @@ export const ItemArrange = forwardRef<
                         <ControlLabel
                           end={
                             currentEntity ? (
-                              <EntityIcon entity={currentEntity} />
+                              <Toggle
+                                aria-label="Hide in editor (no effect on export)"
+                                tooltip="Hide in editor (no effect on export)"
+                                size="icon-sm"
+                                onPressedChange={(pressed) => {
+                                  useStore
+                                    .getState()
+                                    .setItemEntity(item.id, currentEntity.id, {
+                                      editorHidden: pressed,
+                                    });
+                                }}
+                                pressed={currentEntity.editorHidden}
+                              >
+                                {currentEntity.editorHidden ? (
+                                  <EyeOff />
+                                ) : (
+                                  <Eye />
+                                )}
+                              </Toggle>
                             ) : null
                           }
                         >
@@ -159,8 +172,8 @@ export const ItemArrange = forwardRef<
             </TabsContent>
           </SidebarContent>
           {/* <SidebarFooter>footer</SidebarFooter> */}
-        </Tabs>
-      </Sidebar>
+        </Sidebar>
+      </Tabs>
     </SidebarProvider>
   );
 });

@@ -32,3 +32,31 @@ export function isMouseEvent(event: Event): event is MouseEvent {
 export function selectAll(element: HTMLInputElement | null) {
   element?.setSelectionRange(0, element?.value.length);
 }
+
+/**
+ * Generates an intelligent name for a copied entity following standard conventions
+ *
+ * Examples:
+ * - "Layer" → "Layer (copy)"
+ * - "Layer (copy)" → "Layer (copy 2)"
+ * - "Layer (copy 2)" → "Layer (copy 3)"
+ * - "Layer (copy 1)" → "Layer (copy 2)"
+ *
+ * @param originalName - The name of the entity being copied
+ * @returns A new name with appropriate copy numbering
+ */
+export function generateCopyName(originalName: string): string {
+  // Matches both "Name (copy)" and "Name (copy N)" formats
+  const copyPattern = /^(.*) \(copy(?: (\d+))?\)$/;
+  const match = originalName.match(copyPattern);
+
+  if (match) {
+    const baseName = match[1];
+    // If no number was captured (just "copy"), treat as 1
+    const copyNumber = match[2] ? parseInt(match[2], 10) : 1;
+    return `${baseName} (copy ${copyNumber + 1})`;
+  }
+
+  // Default case: first copy
+  return `${originalName} (copy)`;
+}
