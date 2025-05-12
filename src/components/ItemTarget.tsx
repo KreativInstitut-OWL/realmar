@@ -42,14 +42,20 @@ export function ItemTarget() {
       {asset ? (
         <Button
           size="sm"
-          className="mt-2"
+          className="mt-2 max-w-full overflow-clip"
           variant="secondary"
           onClick={() => {
             removeItemTarget(item.id);
           }}
         >
-          <XIcon className="size-4" />
-          Remove {asset.originalBasename}.{asset.originalExtension} as marker
+          <XIcon />
+          <span>
+            Remove{" "}
+            <span className="max-w-12 truncate inline-block align-bottom">
+              {asset.originalBasename}
+            </span>
+            .{asset.originalExtension} as marker
+          </span>
         </Button>
       ) : null}
     </div>
