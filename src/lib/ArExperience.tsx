@@ -174,7 +174,7 @@ function ArExperienceEntityText({
       {...props}
       text-3d={toAttrs({
         text: entity.text,
-        font: entity.font.path,
+        font: entity.font.path.replace(/^\//, ""),
         size: toNumber(entity.fontSize),
         height: toNumber(entity.height),
         curveSegments: toNumber(entity.curveSegments),
