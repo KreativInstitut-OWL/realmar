@@ -30,11 +30,21 @@ export function PreviewArExperienceWrapper() {
   return <PreviewArExperience />;
 }
 
+const checkIsSafariBrowser = () => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  return userAgent.includes("safari") && !userAgent.includes("chrome");
+};
+
+const isSafari = checkIsSafariBrowser();
+
 export function PreviewArExperience() {
   const { progress, data, isFetching, invalidate } =
     useCompiledPreviewArtifacts();
   const ref = useRef<HTMLIFrameElement>(null);
-  const [isFlipped, setIsFlipped] = useState(true);
+  // safari has a bug where the webcam does not work when the iframe is flipped,
+  // which of course makes a lot of sense and did not cause me a full day of trying
+  // to figure out why the webcam was not working
+  const [isFlipped, setIsFlipped] = useState(!isSafari);
 
   if (isFetching || !data?.srcDoc) {
     // console.log("srcDoc", data?.srcDoc);
@@ -59,7 +69,8 @@ export function PreviewArExperience() {
         src="/__preview/index.html"
         srcDoc={data.srcDoc}
         sandbox="allow-scripts allow-same-origin"
-        className={cn("w-full h-full", { "scale-x-[-1]": isFlipped })}
+        allow="camera;gyroscope;accelerometer;magnetometer;xr-spatial-tracking;microphone;"
+        className={cn("w-full h-svh", { "scale-x-[-1]": isFlipped })}
       />
 
       <AppBreadcrumbPortal>
@@ -85,16 +96,18 @@ export function PreviewArExperience() {
           >
             <Blocks /> Recompile
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-label="flip preview"
-            onClick={() => {
-              setIsFlipped((prev) => !prev);
-            }}
-          >
-            <FlipHorizontal2 /> Flip
-          </Button>
+          {!isSafari ? (
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label="flip preview"
+              onClick={() => {
+                setIsFlipped((prev) => !prev);
+              }}
+            >
+              <FlipHorizontal2 /> Flip
+            </Button>
+          ) : null}
         </BreadcrumbItem>
       </AppBreadcrumbPortal>
     </>
