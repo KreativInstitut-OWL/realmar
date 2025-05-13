@@ -18,7 +18,8 @@ AFRAME.registerComponent("look-at", {
   init: function () {},
 
   tick: function () {
-    this.el.object3D.lookAt(this.data.object3D.position);
+    // TODO: fix look-at
+    // this.el.object3D.lookAt(this.data.object3D.position);
   },
 });
 
