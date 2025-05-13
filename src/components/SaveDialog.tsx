@@ -11,6 +11,8 @@ import { useStore } from "@/store";
 export function SaveDialog({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<number>(0);
   const hasItems = useStore((state) => state.items.length > 0);
+  const hasAssets = useStore((state) => state.assets.length > 0);
+  const canSave = hasItems || hasAssets;
 
   const mutation = useMutation({
     mutationKey: ["save"],
@@ -35,7 +37,7 @@ export function SaveDialog({ children }: { children: React.ReactNode }) {
       <Slot
         {...{
           onClick: handleSave,
-          disabled: mutation.isPending || !hasItems,
+          disabled: mutation.isPending || !canSave,
           children,
         }}
       />
