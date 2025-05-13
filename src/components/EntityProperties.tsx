@@ -29,8 +29,6 @@ import {
   SeparatorVertical,
   SquareRoundCorner,
   Unlink2,
-  Video,
-  VideoOff,
 } from "lucide-react";
 import { useCallback } from "react";
 import { FormControlNumber } from "./FormControlNumber";
@@ -50,12 +48,12 @@ export function EntityProperties({
   item: Item;
   entity: Entity | null;
 }) {
-  const lookAtCamera = getComponent(entity, "look-at-camera");
-  const updateLookAtCamera = useUpdateEntityComponent(
-    item?.id,
-    entity?.id,
-    "look-at-camera"
-  );
+  // const lookAtCamera = getComponent(entity, "look-at-camera");
+  // const updateLookAtCamera = useUpdateEntityComponent(
+  //   item?.id,
+  //   entity?.id,
+  //   "look-at-camera"
+  // );
 
   const float = getComponent(entity, "float");
   const updateFloat = useUpdateEntityComponent(item?.id, entity?.id, "float");
@@ -114,19 +112,19 @@ export function EntityProperties({
         <ControlLabel level={2}>Rotation</ControlLabel>
         <ControlRow
           columns={3}
-          end={
-            <Toggle
-              size="icon-sm"
-              pressed={lookAtCamera?.enabled}
-              onPressedChange={(enabled) => {
-                updateLookAtCamera({ enabled });
-              }}
-              aria-label="Look at camera"
-              tooltip="Look at camera"
-            >
-              {lookAtCamera?.enabled ? <Video /> : <VideoOff />}
-            </Toggle>
-          }
+          // end={
+          //   <Toggle
+          //     size="icon-sm"
+          //     pressed={lookAtCamera?.enabled}
+          //     onPressedChange={(enabled) => {
+          //       updateLookAtCamera({ enabled });
+          //     }}
+          //     aria-label="Look at camera"
+          //     tooltip="Look at camera"
+          //   >
+          //     {lookAtCamera?.enabled ? <Video /> : <VideoOff />}
+          //   </Toggle>
+          // }
         >
           {(["x", "y", "z"] as const).map((component) => (
             <FormControlNumber
@@ -144,7 +142,7 @@ export function EntityProperties({
               onChange={(newValue) =>
                 updateEntityTransform(newValue, component, "rotation")
               }
-              disabled={lookAtCamera?.enabled}
+              // disabled={lookAtCamera?.enabled}
             />
           ))}
         </ControlRow>
