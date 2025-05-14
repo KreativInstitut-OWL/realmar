@@ -3,6 +3,7 @@
 import {
   ArrowRightToLine,
   FolderOpen,
+  Merge,
   MoonStar,
   Plus,
   Save,
@@ -27,7 +28,7 @@ import {
 import { EditorView, editorView, editorViewIcon } from "@/const/editorView";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { useStore } from "@/store";
-import { loadFromFile } from "@/store/save";
+import { loadFromFile, mergeFromFile } from "@/store/save";
 import ExportDialog from "./ExportDialog";
 import { ItemListList } from "./ItemList";
 import { SaveDialog } from "./SaveDialog";
@@ -118,6 +119,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <FolderOpen />
               Load
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip={{ children: "Merge Into Project" }}
+              className="px-2.5 md:px-2"
+              onClick={() => {
+                mergeFromFile();
+              }}
+            >
+              <Merge />
+              Merge Into Project
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

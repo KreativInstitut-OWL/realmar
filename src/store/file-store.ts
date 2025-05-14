@@ -20,7 +20,7 @@ export async function get(id: string | null | undefined): Promise<File | null> {
   return file as File;
 }
 
-async function getAllIds(): Promise<string[]> {
+export async function getAllIds(): Promise<string[]> {
   return await idb.keys(fileStore);
 }
 
