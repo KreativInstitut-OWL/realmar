@@ -88,6 +88,10 @@ declare module "react" {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
+      "a-node": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
       "a-entity": AFrameEntityProps;
       "a-scene": AFrameEntityProps;
       "a-assets": AFrameEntityProps;

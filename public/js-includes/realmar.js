@@ -888,8 +888,9 @@ function initVideoControls(scene) {
 
 // Setup gallery controls after scene is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  const scene = document.querySelector("a-scene");
+  initAudioPermission();
 
+  const scene = document.querySelector("a-scene");
   // If scene isn't loaded yet, wait for it
   if (!scene.hasLoaded) {
     scene.addEventListener("loaded", () => initDomControls(scene));
@@ -903,8 +904,11 @@ document.addEventListener("DOMContentLoaded", () => {
 function initAudioPermission() {
   const splashScreen = document.getElementById("splash-screen");
   const startButton = document.getElementById("start-button");
+  const deferSceneLoadNode = document.getElementById("defer-scene-load");
 
-  if (!splashScreen || !startButton) return;
+  if (!splashScreen || !startButton) {
+    deferSceneLoadNode.load();
+  }
 
   // Create audio context - this helps with unlocking audio on iOS
   let audioContext;
@@ -942,6 +946,9 @@ function initAudioPermission() {
 
     // Hide splash screen
     splashScreen.style.display = "none";
+
+    // finish loading the scene
+    deferSceneLoadNode.load();
   }
 
   // Add click event listener
@@ -977,9 +984,3 @@ function initAudioPermission() {
   // Start observing the document with the configured parameters
   observer.observe(document.body, { childList: true, subtree: true });
 }
-
-// Initialize after DOM content is loaded
-document.addEventListener("DOMContentLoaded", () => {
-  initAudioPermission();
-});
-// #endregion

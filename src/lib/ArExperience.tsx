@@ -120,6 +120,8 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
           ))}
         </a-entity>
       ))}
+
+      <a-node id="defer-scene-load"></a-node>
     </a-scene>
   );
 }
