@@ -740,6 +740,7 @@ AFRAME.registerComponent("realmar-depends-on", {
 
 function initDomControls(scene) {
   initGalleryControls(scene);
+  initVideoControls(scene);
 }
 
 function initGalleryControls(scene) {
@@ -786,6 +787,105 @@ function initGalleryControls(scene) {
   });
 }
 
+function getVideoObjectsFromTarget(targetEl) {
+  return [...targetEl.querySelectorAll('a-plane[src^="#"]')]
+    .map((plane) => {
+      const video = document.querySelector(plane.getAttribute("src"));
+      if (video && video.tagName === "VIDEO") {
+        return {
+          plane,
+          video,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean);
+}
+
+function initVideoControls(scene) {
+  // Find video controls
+  const videoButtons = document.getElementById("video-buttons");
+  const playButton = videoButtons.querySelector("#play");
+  const pauseButton = videoButtons.querySelector("#pause");
+  const replayButton = videoButtons.querySelector("#replay");
+
+  // Track currently active video
+  let activeVideoObject = null;
+
+  // Show/hide video buttons based on marker visibility
+  scene.addEventListener("targetFound", (event) => {
+    const targetEl = event.target;
+    // Find video elements in the target
+    const videoObjects = getVideoObjectsFromTarget(targetEl);
+
+    // If there are no videos, do nothing
+    if (videoObjects.length === 0) {
+      return;
+    }
+
+    console.log("Found target with videos:", videoObjects);
+
+    const firstVideoObject = videoObjects[0];
+
+    if (firstVideoObject) {
+      activeVideoObject = firstVideoObject;
+      if (activeVideoObject.video.dataset.autoplay === "true") {
+        activeVideoObject.video.play().catch((e) => {
+          console.log("Video play error:", e);
+        });
+      }
+      videoButtons.classList.remove("invisible");
+    }
+  });
+
+  scene.addEventListener("targetLost", (event) => {
+    const targetEl = event.target;
+
+    const videoObjects = getVideoObjectsFromTarget(targetEl);
+
+    // If there are no videos, do nothing
+    if (videoObjects.length === 0) {
+      return;
+    }
+
+    console.log("Lost target with videos:", videoObjects);
+
+    const firstVideoObject = videoObjects[0];
+
+    // If the lost target was our active video, hide buttons
+    if (firstVideoObject.video === activeVideoObject.video) {
+      firstVideoObject.video.pause();
+
+      activeVideoObject = null;
+      videoButtons.classList.add("invisible");
+    }
+  });
+
+  // Connect button click handlers to video API
+  playButton.addEventListener("click", () => {
+    if (activeVideoObject && activeVideoObject.video) {
+      activeVideoObject.video.play().catch((e) => {
+        console.log("Video play error:", e);
+      });
+    }
+  });
+
+  pauseButton.addEventListener("click", () => {
+    if (activeVideoObject && activeVideoObject.video) {
+      activeVideoObject.video.pause();
+    }
+  });
+
+  replayButton.addEventListener("click", () => {
+    if (activeVideoObject && activeVideoObject.video) {
+      activeVideoObject.video.currentTime = 0;
+      activeVideoObject.video.play().catch((e) => {
+        console.log("Video play error:", e);
+      });
+    }
+  });
+}
+
 // Setup gallery controls after scene is loaded
 document.addEventListener("DOMContentLoaded", () => {
   const scene = document.querySelector("a-scene");
@@ -797,3 +897,89 @@ document.addEventListener("DOMContentLoaded", () => {
     initDomControls(scene);
   }
 });
+// #endregion
+
+// #region audio autoplay permission
+function initAudioPermission() {
+  const splashScreen = document.getElementById("splash-screen");
+  const startButton = document.getElementById("start-button");
+
+  if (!splashScreen || !startButton) return;
+
+  // Create audio context - this helps with unlocking audio on iOS
+  let audioContext;
+
+  // Function to unlock audio
+  function unlockAudio() {
+    // Create audio context if it doesn't exist
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    // Create and play a silent sound to unlock audio
+    if (audioContext.state === "suspended") {
+      const buffer = audioContext.createBuffer(1, 1, 22050);
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      source.start(0);
+    }
+
+    // Find all video elements
+    const videos = document.querySelectorAll("video");
+    videos.forEach((video) => {
+      // Enable audio
+      video.muted = false;
+
+      // If the video should autoplay but was paused due to browser restrictions
+      if (video.hasAttribute("autoplay") && video.paused) {
+        video.play().catch((e) => console.log("Video play error:", e));
+      }
+    });
+
+    // Set global flag for future videos
+    window.audioPermissionGranted = true;
+
+    // Hide splash screen
+    splashScreen.style.display = "none";
+  }
+
+  // Add click event listener
+  startButton.addEventListener("click", unlockAudio);
+
+  // Monitor for new video elements being added to the scene
+  const observer = new MutationObserver((mutations) => {
+    if (window.audioPermissionGranted) {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.tagName === "VIDEO") {
+            node.muted = false;
+            if (node.hasAttribute("autoplay")) {
+              node.play().catch((e) => console.log("Video play error:", e));
+            }
+          }
+
+          // Check for videos in child elements
+          const videos = node.querySelectorAll?.("video");
+          if (videos) {
+            videos.forEach((video) => {
+              video.muted = false;
+              if (video.hasAttribute("autoplay")) {
+                video.play().catch((e) => console.log("Video play error:", e));
+              }
+            });
+          }
+        });
+      });
+    }
+  });
+
+  // Start observing the document with the configured parameters
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+// Initialize after DOM content is loaded
+document.addEventListener("DOMContentLoaded", () => {
+  initAudioPermission();
+});
+// #endregion

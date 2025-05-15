@@ -27,3 +27,7 @@ export function toAttrs(obj: Record<string, unknown>) {
       .join("; ") + ";"
   );
 }
+
+export function toBool(value: unknown) {
+  return value ? "true" : "false";
+}

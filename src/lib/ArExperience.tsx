@@ -9,9 +9,20 @@ import {
   ExportEntity,
 } from "./export";
 import { decomposeMatrix4 } from "./three";
+import { Pause, Play, RotateCcw } from "lucide-react";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items, projectName } = state;
+
+  const containsAutoplayVideoWithAudio = items.some((item) =>
+    item.entities.some((entity) => {
+      if (!("asset" in entity)) return false;
+      if (entity.type !== "video") return false;
+      if (!entity.autoplay) return false;
+      if (entity.muted) return false;
+      return true;
+    })
+  );
 
   return (
     <html lang="en">
@@ -24,20 +35,31 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
       </head>
       <body>
         <ArExperienceScene items={items} />
+        {containsAutoplayVideoWithAudio && (
+          <div id="splash-screen" className="splash-screen">
+            <div className="splash-content">
+              <h2>This experience contains audio</h2>
+              <p>Click the button below to enable sound</p>
+              <button id="start-button" className="splash-button">
+                Start Experience
+              </button>
+            </div>
+          </div>
+        )}
         <div className="button-wrapper">
           <div className="button-container invisible" id="gallery-buttons">
             <button id="prev">Zurück</button>
             <button id="next">Weiter</button>
           </div>
-          <div className="button-container invisible" id="video-controls">
-            <button id="play" className="invisible">
-              Video Abspielen
+          <div className="button-container invisible" id="video-buttons">
+            <button id="play">
+              <Play />
             </button>
-            <button id="play-from-start" className="invisible">
-              Video vom Anfang abspielen
+            <button id="pause">
+              <Pause />
             </button>
-            <button id="pause" className="invisible">
-              Video pausieren
+            <button id="replay">
+              <RotateCcw />
             </button>
           </div>
         </div>
@@ -62,7 +84,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
           return item.entities
             .map((entity) => {
               if (!("asset" in entity)) return null;
-              return <ArExperienceImport key={entity.id} {...entity.asset} />;
+              return <ArExperienceImport key={entity.id} entity={entity} />;
             })
             .flat();
         })}

@@ -1,18 +1,23 @@
-@font-face {
-  font-family: "Roboto";
-  src: url("./Roboto-Regular.ttf") format("ttf");
+:root {
+  --color-button: #4285f4;
+  --color-button-hover: #3367d6;
 }
+
 * {
-  font-family: "Roboto", sans-serif;
+  font-family: system-ui, sans-serif;
 }
+
 body {
   margin: 0;
   overflow: hidden;
 }
+
 a-scene {
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
+
 .button-wrapper {
   position: absolute;
   bottom: 1rem;
@@ -25,27 +30,30 @@ a-scene {
   justify-content: center;
   align-items: center;
 }
+
 .button-container {
-  min-height: 2rem;
-  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
 }
-.button-container button {
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  background-color: #e6007e; /*#55fc27;*/
+
+button {
+  padding-inline: 1rem;
+  height: 42px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-button);
   color: white;
-  border: 0.5rem solid white;
   cursor: pointer;
-  transition:
-    background-color 0.3s ease,
-    color 0.3s ease;
+  transition: background-color 0.3s;
 }
-.button-container button:hover {
-  background-color: #cd0070; /*#5b7d51;*/
-  color: white;
+
+button:hover {
+  background-color: var(--color-button-hover);
 }
 
 .visible {
@@ -79,6 +87,33 @@ a-scene {
   gap: 0.5rem;
 }
 
-#video-controls button {
-  border-radius: 100rem;
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.splash-content {
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 80%;
+}
+
+.splash-button {
+  margin-top: 1.5rem;
+  margin-inline: auto;
+  font-weight: 600;
+}
+
+.splash-button:hover {
+  background-color: #3367d6;
 }
