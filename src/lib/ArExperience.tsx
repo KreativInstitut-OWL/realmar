@@ -9,7 +9,8 @@ import {
   ExportEntity,
 } from "./export";
 import { decomposeMatrix4 } from "./three";
-import { Pause, Play, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Pause, Play, RotateCcw } from "lucide-react";
+import { getItemName } from "./item";
 
 export const ArExperience = ({ state }: { state: ExportAppState }) => {
   const { items, projectName } = state;
@@ -48,8 +49,12 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         )}
         <div className="button-wrapper">
           <div className="button-container invisible" id="gallery-buttons">
-            <button id="prev">Zurück</button>
-            <button id="next">Weiter</button>
+            <button id="prev">
+              <ArrowLeft />
+            </button>
+            <button id="next">
+              <ArrowRight />
+            </button>
           </div>
           <div className="button-container invisible" id="video-buttons">
             <button id="play">
@@ -101,12 +106,13 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
         <a-entity
           key={item.id}
           mindar-image-target={toAttrs({ targetIndex: itemIndex })}
-          id={item.id}
+          data-item-name={getItemName(item, itemIndex)}
+          id={`item_${item.id}`}
           {...(item.displayMode === "gallery"
             ? { "realmar-gallery": toAttrs({ startIndex: 0 }) }
             : {})}
           {...(item.itemDependencyId !== null
-            ? { "realmar-depends-on": `#${item.itemDependencyId}` }
+            ? { "realmar-depends-on": `#item_${item.itemDependencyId}` }
             : {})}
         >
           {item.entities.map((entity, entityIndex) => (
@@ -160,7 +166,7 @@ function ArExperienceEntity(
       position={toVec3(position)}
       quaternion={toVec4(quaternion)}
       scale={toVec3(scale)}
-      id={props.entity.id}
+      id={`entity_${props.entity.id}`}
       data-entity-id={props.entity.id}
       look-at={lookAtCamera?.enabled ? "camera" : undefined}
       {...props}
@@ -222,7 +228,11 @@ function ArExperienceEntityModel({
   assertIsExportEntityWithAsset(entity);
 
   return (
-    <a-entity {...props} gltf-model={`#${entity.asset.id}`} animation-mixer />
+    <a-entity
+      {...props}
+      gltf-model={`#asset_${entity.asset.id}`}
+      animation-mixer
+    />
   );
 }
 
@@ -236,7 +246,7 @@ function ArExperienceEntityPlane({
   return (
     <a-plane
       {...props}
-      src={`#${entity.asset.id}`}
+      src={`#asset_${entity.asset.id}`}
       width={toNumber(entity.asset.width!)}
       height={toNumber(entity.asset.height!)}
       color="#ffffff"

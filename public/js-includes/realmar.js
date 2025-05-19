@@ -453,6 +453,97 @@ AFRAME.registerComponent("text-3d", {
 
 // #endregion text-3d
 
+// #region mindar-image-target
+
+// delete AFRAME.components["mindar-image-system"] to override the default from mind-ar
+delete AFRAME.components["mindar-image-target"];
+
+AFRAME.registerComponent("mindar-image-target", {
+  dependencies: ["mindar-image-system"],
+
+  schema: {
+    targetIndex: { type: "number" },
+  },
+
+  postMatrix: null, // rescale the anchor to make width of 1 unit = physical width of card
+
+  init: function () {
+    const arSystem = this.el.sceneEl.systems["mindar-image-system"];
+    arSystem.registerAnchor(this, this.data.targetIndex);
+
+    this.invisibleMatrix = new AFRAME.THREE.Matrix4().set(
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    );
+
+    this.el.object3D.matrixAutoUpdate = false;
+
+    this._hide();
+  },
+
+  _hide: function () {
+    const root = this.el.object3D;
+    root.visible = false;
+    root.matrix = this.invisibleMatrix;
+  },
+
+  setupMarker([markerWidth, markerHeight]) {
+    const position = new AFRAME.THREE.Vector3();
+    const quaternion = new AFRAME.THREE.Quaternion();
+    const scale = new AFRAME.THREE.Vector3();
+    position.x = markerWidth / 2;
+    position.y = markerWidth / 2 + (markerHeight - markerWidth) / 2;
+    scale.x = markerWidth;
+    scale.y = markerWidth;
+    scale.z = markerWidth;
+    this.postMatrix = new AFRAME.THREE.Matrix4();
+    this.postMatrix.compose(position, quaternion, scale);
+  },
+
+  updateWorldMatrix(worldMatrix) {
+    const hiddenByDependsOn =
+      this.el.hasAttribute("realmar-depends-on") &&
+      !this.el.components["realmar-depends-on"].didFindDependency;
+    if (hiddenByDependsOn) {
+      console.warn("Not showing target due to realmar-depends-on");
+      worldMatrix = null;
+    }
+
+    this.el.emit("targetUpdate");
+    if (!this.el.object3D.visible && worldMatrix !== null) {
+      this.el.emit("targetFound");
+    } else if (this.el.object3D.visible && worldMatrix === null) {
+      this.el.emit("targetLost");
+    }
+
+    this.el.object3D.visible = worldMatrix !== null;
+    if (worldMatrix === null) {
+      this.el.object3D.matrix = this.invisibleMatrix;
+      return;
+    }
+    var m = new AFRAME.THREE.Matrix4();
+    m.elements = worldMatrix;
+    m.multiply(this.postMatrix);
+    this.el.object3D.matrix = m;
+  },
+});
+
+// #endregion mindar-image-target
+
 // #region float
 
 /**
@@ -695,6 +786,8 @@ AFRAME.registerComponent("realmar-gallery-item", {
 AFRAME.registerComponent("realmar-depends-on", {
   schema: { type: "selector" },
 
+  didFindDependency: false,
+
   init: function () {
     this.didFindDependency = false;
     // cache own the target index
@@ -713,26 +806,14 @@ AFRAME.registerComponent("realmar-depends-on", {
 
     const handleTargetFound = (event) => {
       if (event.target === this.data) {
+        console.log("Found dependency:", this.data);
         this.didFindDependency = true;
         this.el.emit("dependency-found");
         scene.removeEventListener("targetFound", handleTargetFound);
-        this.updateMindArImageTarget();
       }
     };
 
     scene.addEventListener("targetFound", handleTargetFound);
-
-    this.updateMindArImageTarget();
-  },
-
-  updateMindArImageTarget: function () {
-    this.el.setAttribute("mindar-image-target", {
-      targetIndex: this.didFindDependency ? this.mindArImageTargetIndex : -1,
-    });
-  },
-
-  tick: function () {
-    this.el.object3D.lookAt(this.data.object3D.position);
   },
 });
 
@@ -823,7 +904,7 @@ function initVideoControls(scene) {
       return;
     }
 
-    console.log("Found target with videos:", videoObjects);
+    // console.log("Found target with videos:", videoObjects);
 
     const firstVideoObject = videoObjects[0];
 
@@ -907,7 +988,10 @@ function initAudioPermission() {
   const deferSceneLoadNode = document.getElementById("defer-scene-load");
 
   if (!splashScreen || !startButton) {
-    deferSceneLoadNode.load();
+    if (deferSceneLoadNode) {
+      deferSceneLoadNode.load();
+    }
+    return;
   }
 
   // Create audio context - this helps with unlocking audio on iOS

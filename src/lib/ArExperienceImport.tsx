@@ -7,7 +7,9 @@ function ArExperienceImport({ entity }: { entity: ExportEntity }) {
   const { asset } = entity;
 
   if (asset.type.includes("image")) {
-    return <img key={asset.id} id={asset.id} src={`${asset.path}`} />;
+    return (
+      <img key={asset.id} id={`asset_${asset.id}`} src={`${asset.path}`} />
+    );
   }
 
   if (asset.type.includes("video")) {
@@ -15,7 +17,7 @@ function ArExperienceImport({ entity }: { entity: ExportEntity }) {
     return (
       <video
         key={asset.id}
-        id={asset.id}
+        id={`asset_${asset.id}`}
         src={`${asset.path}`}
         loop={entity.loop ? true : undefined}
         data-autoplay={entity.autoplay ? true : undefined}
@@ -26,7 +28,13 @@ function ArExperienceImport({ entity }: { entity: ExportEntity }) {
     );
   }
   if (asset.type.includes("model")) {
-    return <a-asset-item key={asset.id} id={asset.id} src={`${asset.path}`} />;
+    return (
+      <a-asset-item
+        key={asset.id}
+        id={`asset_${asset.id}`}
+        src={`${asset.path}`}
+      />
+    );
   }
 }
 
