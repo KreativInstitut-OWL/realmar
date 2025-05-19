@@ -456,92 +456,107 @@ AFRAME.registerComponent("text-3d", {
 // #region mindar-image-target
 
 // delete AFRAME.components["mindar-image-system"] to override the default from mind-ar
-delete AFRAME.components["mindar-image-target"];
+// delete AFRAME.components["mindar-image-target"];
 
-AFRAME.registerComponent("mindar-image-target", {
-  dependencies: ["mindar-image-system"],
+// AFRAME.registerComponent("mindar-image-target", {
+//   dependencies: ["mindar-image-system"],
 
-  schema: {
-    targetIndex: { type: "number" },
-  },
+//   schema: {
+//     targetIndex: { type: "number" },
+//   },
 
-  postMatrix: null, // rescale the anchor to make width of 1 unit = physical width of card
+//   postMatrix: null, // rescale the anchor to make width of 1 unit = physical width of card
 
-  init: function () {
-    const arSystem = this.el.sceneEl.systems["mindar-image-system"];
-    arSystem.registerAnchor(this, this.data.targetIndex);
+//   init: function () {
+//     const arSystem = this.el.sceneEl.systems["mindar-image-system"];
+//     arSystem.registerAnchor(this, this.data.targetIndex);
 
-    this.invisibleMatrix = new AFRAME.THREE.Matrix4().set(
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0
-    );
+//     this.invisibleMatrix = new AFRAME.THREE.Matrix4().set(
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0,
+//       0
+//     );
 
-    this.el.object3D.matrixAutoUpdate = false;
+//     this.el.object3D.matrixAutoUpdate = false;
 
-    this._hide();
-  },
+//     this._hide();
+//   },
 
-  _hide: function () {
-    const root = this.el.object3D;
-    root.visible = false;
-    root.matrix = this.invisibleMatrix;
-  },
+//   _hide: function () {
+//     const root = this.el.object3D;
+//     root.visible = false;
+//     root.matrix = this.invisibleMatrix;
+//   },
 
-  setupMarker([markerWidth, markerHeight]) {
-    const position = new AFRAME.THREE.Vector3();
-    const quaternion = new AFRAME.THREE.Quaternion();
-    const scale = new AFRAME.THREE.Vector3();
-    position.x = markerWidth / 2;
-    position.y = markerWidth / 2 + (markerHeight - markerWidth) / 2;
-    scale.x = markerWidth;
-    scale.y = markerWidth;
-    scale.z = markerWidth;
-    this.postMatrix = new AFRAME.THREE.Matrix4();
-    this.postMatrix.compose(position, quaternion, scale);
-  },
+//   setupMarker([markerWidth, markerHeight]) {
+//     const position = new AFRAME.THREE.Vector3();
+//     const quaternion = new AFRAME.THREE.Quaternion();
+//     const scale = new AFRAME.THREE.Vector3();
+//     position.x = markerWidth / 2;
+//     position.y = markerWidth / 2 + (markerHeight - markerWidth) / 2;
+//     scale.x = markerWidth;
+//     scale.y = markerWidth;
+//     scale.z = markerWidth;
+//     this.postMatrix = new AFRAME.THREE.Matrix4();
+//     this.postMatrix.compose(position, quaternion, scale);
+//   },
 
-  updateWorldMatrix(worldMatrix) {
-    const hiddenByDependsOn =
-      this.el.hasAttribute("realmar-depends-on") &&
-      !this.el.components["realmar-depends-on"].didFindDependency;
-    if (hiddenByDependsOn) {
-      console.warn("Not showing target due to realmar-depends-on");
-      worldMatrix = null;
-    }
+//   updateWorldMatrix(worldMatrix) {
+//     const hiddenByDependsOn =
+//       this.el.hasAttribute("realmar-depends-on") &&
+//       !this.el.components["realmar-depends-on"].didFindDependency;
+//     if (hiddenByDependsOn) {
+//       console.warn("Not showing target due to realmar-depends-on");
+//       worldMatrix = null;
+//     }
 
-    this.el.emit("targetUpdate");
-    if (!this.el.object3D.visible && worldMatrix !== null) {
-      this.el.emit("targetFound");
-    } else if (this.el.object3D.visible && worldMatrix === null) {
-      this.el.emit("targetLost");
-    }
+//     this.el.emit("targetUpdate");
+//     if (!this.el.object3D.visible && worldMatrix !== null) {
+//       this.el.emit("targetFound");
+//     } else if (this.el.object3D.visible && worldMatrix === null) {
+//       this.el.emit("targetLost");
+//     }
 
-    this.el.object3D.visible = worldMatrix !== null;
-    if (worldMatrix === null) {
-      this.el.object3D.matrix = this.invisibleMatrix;
-      return;
-    }
-    var m = new AFRAME.THREE.Matrix4();
-    m.elements = worldMatrix;
-    m.multiply(this.postMatrix);
-    this.el.object3D.matrix = m;
-  },
-});
+//     this.el.object3D.visible = worldMatrix !== null;
+//     if (worldMatrix === null) {
+//       this.el.object3D.matrix = this.invisibleMatrix;
+//       return;
+//     }
+//     var m = new AFRAME.THREE.Matrix4();
+//     m.elements = worldMatrix;
+//     m.multiply(this.postMatrix);
+//     this.el.object3D.matrix = m;
+//   },
+// });
 
+const originalUpdateWorldMatrix =
+  AFRAME.components["mindar-image-target"].updateWorldMatrix;
+
+AFRAME.components["mindar-image-target"].updateWorldMatrix = function (
+  worldMatrix
+) {
+  const hiddenByDependsOn =
+    this.el.hasAttribute("realmar-depends-on") &&
+    !this.el.components["realmar-depends-on"].didFindDependency;
+  if (hiddenByDependsOn) {
+    console.warn("Not showing target due to realmar-depends-on");
+    worldMatrix = null;
+  }
+  originalUpdateWorldMatrix.call(this, worldMatrix);
+};
 // #endregion mindar-image-target
 
 // #region float
@@ -989,7 +1004,16 @@ function initAudioPermission() {
 
   if (!splashScreen || !startButton) {
     if (deferSceneLoadNode) {
-      deferSceneLoadNode.load();
+      console.log(
+        "No splash screen or start button found, loading scene immediately"
+      );
+      // i don't know why this timeout is needed, but it is
+      // probably some race condition with the scene loading
+      setTimeout(() => {
+        deferSceneLoadNode.load(() => {
+          console.log("Scene loaded without splash screen");
+        });
+      }, 10);
     }
     return;
   }
