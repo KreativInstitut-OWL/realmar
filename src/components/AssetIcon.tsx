@@ -4,6 +4,7 @@ import {
   FileBox,
   FileImage,
   FileQuestion,
+  FileType2,
   FileVideo,
   LucideProps,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const mimeTypeIcons: Record<
   image: FileImage,
   model: FileBox,
   video: FileVideo,
+  "application/json": FileType2,
 };
 
 export const AssetIcon = forwardRef<
