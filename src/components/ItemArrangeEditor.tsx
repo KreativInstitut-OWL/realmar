@@ -10,6 +10,7 @@ import {
   Asset,
   Entity,
   getComponent,
+  isAssetFont,
   isEntityImage,
   isEntityModel,
   isEntityText,
@@ -255,6 +256,10 @@ const EntityTextComponent = forwardRef<
     font,
   } = entity;
 
+  const fontAsset = useAsset(isAssetFont(font) ? font.assetId : null);
+  const fontFile = useFile(fontAsset?.fileId);
+  const fontUrl = useObjectUrl(fontFile);
+
   const [boundingGeometry, setBoundingGeometry] =
     useState<THREE.BufferGeometry>();
   const [centerOffset, setCenterOffset] = useState<THREE.Vector3>(
@@ -304,6 +309,11 @@ const EntityTextComponent = forwardRef<
     font,
   ]);
 
+  // If a custom font is selected but not yet loaded, do not render the text until available
+  if (isAssetFont(font) && !fontUrl) {
+    return null;
+  }
+
   return (
     <Suspense fallback={null}>
       <mesh ref={composeRefs(ref, meshRef)}>
@@ -314,7 +324,7 @@ const EntityTextComponent = forwardRef<
               setFontLoaded(true);
             }
           }}
-          font={font.path}
+          font={isAssetFont(font) ? (fontUrl as string) : font.path}
           bevelEnabled
           lineHeight={lineHeight}
           letterSpacing={letterSpacing}

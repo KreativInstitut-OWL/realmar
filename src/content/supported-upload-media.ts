@@ -8,6 +8,8 @@ export const validExtensions = [
   "mpeg",
   "mpe",
   "mov",
+  // three.js typeface JSON fonts
+  "json",
 ];
 export const acceptedUploadMedia = [
   "image/png",
@@ -17,4 +19,6 @@ export const acceptedUploadMedia = [
   "video/mp4",
   "video/mpeg",
   "video/mov",
+  // Accept generic JSON for three.js typeface fonts
+  "application/json",
 ];

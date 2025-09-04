@@ -13,7 +13,9 @@ import {
   isEntityText,
   isEntityVideo,
   Item,
+  isAssetFont,
   systemFonts,
+  useStore,
   useUpdateEntity,
   useUpdateEntityComponent,
 } from "@/store";
@@ -81,6 +83,8 @@ export function EntityProperties({
     },
     [entity?.editorScaleUniformly, entity?.transform, updateEntity]
   );
+
+  const assets = useStore((s) => s.assets);
 
   if (!item || !entity) return null;
 
@@ -222,15 +226,24 @@ export function EntityProperties({
               <ControlRow columns={3}>
                 <FormLabel>Font</FormLabel>
                 <Select
-                  value={entity.font?.path}
+                  value={
+                    isAssetFont(entity.font)
+                      ? `asset:${entity.font.assetId}`
+                      : `system:${entity.font.path}`
+                  }
                   onValueChange={(value) => {
-                    const font = systemFonts.find(
-                      (font) => font.path === value
-                    );
-                    if (!font) return;
-                    updateEntity({
-                      font,
-                    });
+                    if (value.startsWith("system:")) {
+                      const path = value.slice("system:".length);
+                      const font = systemFonts.find((f) => f.path === path);
+                      if (!font) return;
+                      updateEntity({ font });
+                      return;
+                    }
+                    if (value.startsWith("asset:")) {
+                      const assetId = value.slice("asset:".length);
+                      updateEntity({ font: { assetId } });
+                      return;
+                    }
                   }}
                 >
                   <FormControl className="col-span-2">
@@ -240,10 +253,23 @@ export function EntityProperties({
                   </FormControl>
                   <SelectContent>
                     {systemFonts.map((font) => (
-                      <SelectItem key={font.path} value={font.path}>
+                      <SelectItem
+                        key={`system:${font.path}`}
+                        value={`system:${font.path}`}
+                      >
                         {font.family} {font.style}
                       </SelectItem>
                     ))}
+                    {assets
+                      .filter((a) => a.originalExtension === "json")
+                      .map((asset) => (
+                        <SelectItem
+                          key={`asset:${asset.id}`}
+                          value={`asset:${asset.id}`}
+                        >
+                          {asset.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </ControlRow>

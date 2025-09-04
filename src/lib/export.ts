@@ -5,6 +5,7 @@ import {
   Entity,
   EntityWithAsset,
   EntityWithoutAsset,
+  isAssetFont,
   isEntityText,
   isEntityWithAsset,
   Item,
@@ -186,6 +187,7 @@ export async function compileArtifacts(
     const exportItems: ExportItem[] = [];
 
     const fonts = new Set<string>();
+    const customFontAssetIds = new Set<string>();
 
     for (let index = 0; index < items.length; index++) {
       const item = items[index];
@@ -218,7 +220,11 @@ export async function compileArtifacts(
 
         if (isEntityText(entity)) {
           if (entity.font) {
-            fonts.add(entity.font.path);
+            if (isAssetFont(entity.font)) {
+              customFontAssetIds.add(entity.font.assetId);
+            } else {
+              fonts.add(entity.font.path);
+            }
           }
         }
 
@@ -265,10 +271,45 @@ export async function compileArtifacts(
       exportItems.push(exportItem);
     }
 
-    // download fonts
+    // download system fonts by URL path
     for (const fontPath of fonts) {
       const fontFile = await fetchAsBlob(fontPath);
-      artifacts.set(fontPath, fontFile);
+      artifacts.set(fontPath.replace(/^\//, ""), fontFile);
+    }
+
+    // bundle custom font assets from the filestore and rewrite entity font paths
+    if (customFontAssetIds.size) {
+      // Build a quick lookup for assets
+      const assetMap = new Map(state.assets.map((a) => [a.id, a] as const));
+
+      for (const item of exportItems) {
+        for (let i = 0; i < item.entities.length; i++) {
+          const entity = item.entities[i] as Entity;
+          if (!isEntityText(entity)) continue;
+
+          const font = entity.font;
+          if (isAssetFont(font)) {
+            const asset = assetMap.get(font.assetId);
+            if (!asset) continue;
+            const file = await FileStore.get(asset.fileId);
+            if (!file) continue;
+
+            const path = `fonts/${asset.id}.typeface.json` as const;
+            artifacts.set(path, file);
+
+            // update the entity font to use a path that ArExperience consumes
+            (
+              entity as unknown as {
+                font: { family: string; style: string; path: string };
+              }
+            ).font = {
+              family: asset.name,
+              style: "Regular",
+              path: `/${path}`,
+            };
+          }
+        }
+      }
     }
 
     const exportState: ExportAppState = {

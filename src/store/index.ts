@@ -294,10 +294,28 @@ export const systemFonts = [
 
 type SystemFont = (typeof systemFonts)[number];
 
+export type AssetFont = {
+  assetId: string;
+  // Optional path used during export to carry the bundled file location
+  path?: string;
+  family?: string;
+  style?: string;
+};
+
+export type EntityFont = SystemFont | AssetFont;
+
+export function isAssetFont(font: EntityFont): font is AssetFont {
+  return (font as AssetFont).assetId !== undefined;
+}
+
+export function isSystemFont(font: EntityFont): font is SystemFont {
+  return !isAssetFont(font);
+}
+
 export type EntityText = EntityBase & {
   type: "text";
   text: string;
-  font: SystemFont;
+  font: EntityFont;
   curveSegments: number;
   bevelSize: number;
   bevelThickness: number;
@@ -991,6 +1009,17 @@ export const useStore = create<AppState>()(
                   );
                 }
               }
+              // If entity is a text that uses a custom font asset, treat as a reference
+              if (isEntityText(entity)) {
+                const font = entity.font;
+                if (isAssetFont(font) && assetIds.includes(font.assetId)) {
+                  if (mode === "restrict") {
+                    throw new DeleteReferenceError(
+                      `Cannot delete asset ${font.assetId} because it is used as a font in item ${item.id}`
+                    );
+                  }
+                }
+              }
             }
           }
 
@@ -1003,15 +1032,31 @@ export const useStore = create<AppState>()(
             // TODO: This could be optimized by noting the path to be deleted/nulled the first time we loop through items and entities
             for (const item of state.items) {
               for (const entity of item.entities) {
-                if (!isEntityWithAsset(entity)) continue;
-                if (mode === "cascade") {
-                  // remove the entity from the item
-                  item.entities = item.entities.filter(
-                    (e) => e.id !== entity.id
-                  );
-                } else if (mode === "set-null") {
-                  // set the assetId to null
-                  entity.assetId = null;
+                // Handle asset-based entities first
+                if (isEntityWithAsset(entity)) {
+                  if (mode === "cascade") {
+                    item.entities = item.entities.filter(
+                      (e) => e.id !== entity.id
+                    );
+                  } else if (mode === "set-null") {
+                    entity.assetId = null;
+                  }
+                }
+
+                // Handle text entities referencing custom font asset
+                if (isEntityText(entity)) {
+                  const font = entity.font;
+                  if (isAssetFont(font) && assetIds.includes(font.assetId)) {
+                    if (mode === "cascade") {
+                      // Remove the entire text entity if its font is deleted in cascade mode
+                      item.entities = item.entities.filter(
+                        (e) => e.id !== entity.id
+                      );
+                    } else if (mode === "set-null") {
+                      // Fallback to first system font
+                      entity.font = systemFonts[0];
+                    }
+                  }
                 }
               }
             }
