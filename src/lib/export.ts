@@ -229,7 +229,8 @@ export async function compileArtifacts(
         }
 
         if (!isEntityWithAsset(entity)) {
-          exportItem.entities.push(entity);
+          // Clone to avoid mutating read-only state objects later
+          exportItem.entities.push({ ...entity } as EntityWithoutAsset);
           continue;
         }
 
@@ -297,16 +298,15 @@ export async function compileArtifacts(
             const path = `fonts/${asset.id}.typeface.json` as const;
             artifacts.set(path, file);
 
-            // update the entity font to use a path that ArExperience consumes
-            (
-              entity as unknown as {
-                font: { family: string; style: string; path: string };
-              }
-            ).font = {
-              family: asset.name,
-              style: "Regular",
-              path: `/${path}`,
-            };
+            // Replace entity with a new object to avoid mutating frozen state shapes
+            item.entities[i] = {
+              ...(entity as EntityWithoutAsset),
+              font: {
+                family: asset.name,
+                style: "Regular",
+                path: `/${path}`,
+              },
+            } as EntityWithoutAsset;
           }
         }
       }
