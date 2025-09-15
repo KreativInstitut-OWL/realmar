@@ -31,8 +31,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <meta charSet="UTF-8" />
         <title>{projectName}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link href="style.css" rel="stylesheet" />
-        <script src="realmar.js" type="module" />
+        <link href="./style.css" rel="stylesheet" />
+        <script src="./realmar.js" type="module" />
       </head>
       <body>
         <ArExperienceScene items={items} />
@@ -77,7 +77,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
   return (
     <a-scene
       mindar-image={toAttrs({
-        imageTargetSrc: "targets.mind",
+        imageTargetSrc: "./targets.mind",
         filterMinCF: 0.0001,
         filterBeta: 0.01,
       })}

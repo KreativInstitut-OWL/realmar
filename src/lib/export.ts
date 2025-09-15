@@ -112,18 +112,9 @@ export async function compileArtifacts(
   const artifacts: ExportArtifactMap = new Map();
 
   try {
-    // Add static files
-    // artifacts.set(
-    //   "aframe-master.min.js",
-    //   await fetchAsBlob("/js/aframe-master.min.js")
-    // );
-    // artifacts.set(
-    //   "mindar-image-aframe.prod.js",
-    //   await fetchAsBlob("/js/mindar-image-aframe.prod.js")
-    // );
-    artifacts.set("realmar.js", await fetchAsBlob("/js-includes/realmar.js"));
-    artifacts.set("style.css", await fetchAsBlob("/js-includes/style.css"));
-    artifacts.set("LICENSE", await fetchAsBlob("/LICENSE"));
+    artifacts.set("./realmar.js", await fetchAsBlob("/js-includes/realmar.js"));
+    artifacts.set("./style.css", await fetchAsBlob("/js-includes/style.css"));
+    artifacts.set("./LICENSE", await fetchAsBlob("/LICENSE"));
 
     const { items, assets } = state;
 
@@ -182,7 +173,7 @@ export async function compileArtifacts(
     );
     targetFileSources.forEach((src) => URL.revokeObjectURL(src));
 
-    artifacts.set("targets.mind", new Blob([exportedBuffer]));
+    artifacts.set("./targets.mind", new Blob([exportedBuffer]));
 
     const exportItems: ExportItem[] = [];
 
@@ -249,7 +240,7 @@ export async function compileArtifacts(
           );
         }
 
-        const path = `markers/${itemFolderName}/${getFileName({
+        const path = `./markers/${itemFolderName}/${getFileName({
           name: asset.name,
           originalBasename: asset.originalBasename,
           originalExtension: asset.originalExtension,
@@ -275,7 +266,7 @@ export async function compileArtifacts(
     // download system fonts by URL path
     for (const fontPath of fonts) {
       const fontFile = await fetchAsBlob(fontPath);
-      artifacts.set(fontPath.replace(/^\//, ""), fontFile);
+      artifacts.set(`./${fontPath.replace(/^\//, "")}`, fontFile);
     }
 
     // bundle custom font assets from the filestore and rewrite entity font paths
@@ -295,7 +286,7 @@ export async function compileArtifacts(
             const file = await FileStore.get(asset.fileId);
             if (!file) continue;
 
-            const path = `fonts/${asset.id}.typeface.json` as const;
+            const path = `./fonts/${asset.id}.typeface.json` as const;
             artifacts.set(path, file);
 
             // Replace entity with a new object to avoid mutating frozen state shapes
@@ -304,7 +295,7 @@ export async function compileArtifacts(
               font: {
                 family: asset.name,
                 style: "Regular",
-                path: `/${path}`,
+                path,
               },
             } as EntityWithoutAsset;
           }
@@ -324,17 +315,20 @@ export async function compileArtifacts(
     )}`;
 
     if (isPreview) {
-      for (const [key, value] of artifacts.entries()) {
+      for (const [path, blob] of artifacts.entries()) {
         // TODO: add cleanup for the URL.createObjectURL
-        const url = URL.createObjectURL(value);
-        html = html.replaceAll(key, url);
+        let objectUrl = URL.createObjectURL(blob);
+        if (path.endsWith(".glb")) {
+          objectUrl += "#/model.glb";
+        }
+        html = html.replaceAll(path, objectUrl);
       }
     }
 
     console.log("HTML: ", await prettifyHtml(html));
 
     artifacts.set(
-      "index.html",
+      "./index.html",
       new Blob([await prettifyHtml(html)], { type: "text/html" })
     );
 
