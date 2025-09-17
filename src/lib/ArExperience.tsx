@@ -231,7 +231,9 @@ function ArExperienceEntityModel({
     <a-entity
       {...props}
       gltf-model={`#asset_${entity.asset.id}`}
-      animation-mixer
+      animation-mixer={
+        entity.type === "model" && entity.playAnimation ? true : undefined
+      }
     />
   );
 }
