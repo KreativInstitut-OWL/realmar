@@ -81,7 +81,12 @@ const EntityImageComponent = forwardRef<
   return (
     <mesh ref={ref} renderOrder={1000}>
       <planeGeometry args={[asset.width!, asset.height!]} />
-      <meshBasicMaterial map={texture} side={THREE.DoubleSide} />
+      <meshBasicMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        transparent={true}
+        alphaTest={0.1}
+      />
       {children}
     </mesh>
   );
@@ -132,7 +137,12 @@ const EntityVideoComponentImpl = forwardRef<
   return (
     <mesh ref={ref}>
       <planeGeometry args={[asset.width!, asset.height!]} />
-      <meshLambertMaterial map={texture} side={THREE.DoubleSide} />
+      <meshLambertMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        transparent={true}
+        alphaTest={0.1}
+      />
       {children}
     </mesh>
   );
