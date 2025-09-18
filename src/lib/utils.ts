@@ -33,6 +33,29 @@ export function selectAll(element: HTMLInputElement | null) {
   element?.setSelectionRange(0, element?.value.length);
 }
 
+export function inferMimeFromFilename(filename: string): string {
+  const extension = filename.toLowerCase().split(".").pop() ?? "";
+  const map: Record<string, string> = {
+    svg: "image/svg+xml",
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+    gif: "image/gif",
+    bmp: "image/bmp",
+    avif: "image/avif",
+    mp4: "video/mp4",
+    webm: "video/webm",
+    ogg: "video/ogg",
+    mov: "video/quicktime",
+    mkv: "video/x-matroska",
+    glb: "model/gltf-binary",
+    json: "application/json",
+    txt: "text/plain",
+  };
+  return map[extension] ?? "";
+}
+
 /**
  * Generates an intelligent name for a copied entity following standard conventions
  *

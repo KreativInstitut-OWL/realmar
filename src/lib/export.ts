@@ -173,7 +173,7 @@ export async function compileArtifacts(
     );
     targetFileSources.forEach((src) => URL.revokeObjectURL(src));
 
-    artifacts.set("./targets.mind", new Blob([exportedBuffer]));
+    artifacts.set("./targets.mind", new Blob([new Uint8Array(exportedBuffer)]));
 
     const exportItems: ExportItem[] = [];
 

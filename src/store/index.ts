@@ -1,6 +1,6 @@
 import { EditorView } from "@/const/editorView";
 import { DEFAULT_TRANSFORM } from "@/lib/three";
-import { uppercaseFirstLetter } from "@/lib/utils";
+import { inferMimeFromFilename, uppercaseFirstLetter } from "@/lib/utils";
 import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
@@ -55,8 +55,10 @@ export async function createAsset({
   // if asset type is image or video, we can get the width and height
   // from the file itself
 
-  const isImage = file.type.startsWith("image/");
-  const isVideo = file.type.startsWith("video/");
+  const effectiveType = file.type || inferMimeFromFilename(file.name);
+
+  const isImage = effectiveType.startsWith("image/");
+  const isVideo = effectiveType.startsWith("video/");
 
   let width = null;
   let height = null;
@@ -110,7 +112,7 @@ export async function createAsset({
   return {
     id: id ?? nanoid(5),
     fileId: fileId ?? nanoid(5),
-    type: type ?? file.type,
+    type: type ?? effectiveType,
     name: name ?? _originalBasename,
     originalBasename: _originalBasename,
     originalExtension: _originalExtension,

@@ -10,6 +10,7 @@ import {
 } from ".";
 import * as FileStore from "./file-store";
 import { toast } from "sonner";
+import { inferMimeFromFilename } from "@/lib/utils";
 
 const FILE_ID_NAME_DELIMITER = "___";
 
@@ -147,10 +148,8 @@ async function parseRealmArFile(file: File): Promise<ParsedRealmArFile> {
               );
 
               // Create File object directly
-              parsedFiles.set(
-                fileId,
-                new File([fileBlob], fileName, { type: fileBlob.type })
-              );
+              const type = fileBlob.type || inferMimeFromFilename(fileName);
+              parsedFiles.set(fileId, new File([fileBlob], fileName, { type }));
             });
 
             filePromises.push(promise);
