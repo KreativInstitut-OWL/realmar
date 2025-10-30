@@ -1,0 +1,116 @@
+---
+description: Guidelines and context for the realm AR project - an AR content creation tool
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# realm AR - Project Guidelines
+
+## Project Overview
+
+realm AR is a web-based AR (Augmented Reality) content creation tool that enables users to create image-tracking AR experiences. Users can upload images as markers/targets, attach 3D entities (images, videos, 3D models, text), and export complete AR experiences as human readable (and editable) HTML (A-Frame web components) bundles.
+
+## Tech Stack
+
+- **Frontend**: React 19, TypeScript, Tailwind CSS, shadcn/ui components
+- **AR Engine**: A-Frame + mind-ar (image tracking) — FOR EXPORT
+- **3D**: Three.js, React Three Fiber — FOR PREVIEW
+- **State Management**: Zustand with Immer
+- **Data Persistence**: IndexedDB (idb-keyval)
+- **Build**: Vite, ESLint, Prettier
+- **Testing**: Vitest, Testing Library
+
+## Architecture
+
+- **Items**: Image markers/targets that trigger AR content
+- **Assets**: Media files (images, videos, 3D models, fonts)
+- **Entities**: 3D objects positioned on markers (can reference assets)
+- **Preview**: Live AR preview using webcam/camera
+- **Export**: Compiles to standalone HTML/JS bundles
+
+## Code Guidelines
+
+### State Management
+
+- Use Zustand stores in `/src/store/`
+- Prefer Immer for mutations (automatic with middleware)
+- State is persisted to IndexedDB automatically
+- File assets stored separately from app state
+
+### Components
+
+- Use shadcn/ui components from `/src/components/ui/`
+- Follow component naming: `ComponentName.tsx`
+- Use TypeScript interfaces for props
+- Keep components focused and reusable
+
+### AR Experience Structure
+
+- AR scenes use A-Frame with mind-ar image tracking
+- Entities positioned relative to detected image markers
+- Supports multiple markers with different entities each
+- Camera controls disabled for AR immersion
+
+### File Organization
+
+```
+src/
+├── components/     # React components
+├── lib/           # Utilities, AR logic, exports
+├── store/         # Zustand state management
+├── hooks/         # Custom React hooks
+├── const/         # Constants and enums
+└── types/         # TypeScript type definitions
+```
+
+### Offline Only
+
+The app is designed to be used offline. All assets are stored in IndexedDB and are only accessible locally, there is no server side involved besides the initial download of the app.
+
+### Development Workflow
+
+1. **Items View**: Create/upload marker images
+2. **Assets View**: Upload media files (images/videos/models)
+3. **Item Editor**: Arrange entities on markers in 3D space
+4. **Preview**: Test AR experience with camera
+5. **Export**: Generate deployable HTML bundle
+
+### Key Concepts
+
+- **Markers**: Images detected by camera to trigger AR
+- **Entities**: 3D objects (geometries, images, videos, text)
+- **Assets**: File resources referenced by entities
+- **Transforms**: Position/rotation/scale of entities in 3D space
+
+### Export Process
+
+- Compiles image targets using mind-ar
+- Bundles all assets and generates HTML (using react static rendering)
+- Creates ZIP archive for distribution
+- Supports gallery navigation between markers
+
+### Browser Compatibility
+
+- Modern browsers with camera access
+- Safari has known issues with webcam flipping
+- Requires HTTPS for camera permissions
+
+## Common Tasks
+
+- Adding new entity types: Extend store types and A-Frame components
+- New export formats: Modify `/src/lib/export.ts`
+- UI improvements: Use shadcn/ui patterns
+- AR features: Work with A-Frame and mind-ar APIs
+
+## Testing
+
+- Unit tests in `/src/tests/`
+- Component tests with Testing Library
+- Run tests: `npm test`
+
+## Performance Notes
+
+- Large asset files stored in IndexedDB (only locally)
+- AR compilation can be CPU intensive
+- Preview uses iframe with sandbox permissions
+- Camera access requires user permission
