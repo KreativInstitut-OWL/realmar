@@ -676,15 +676,6 @@ export const useStore = create<AppState>()(
           const item = get().items.find((item) => item.id === itemId);
           if (!item) return;
 
-          // if (item.targetAssetId) {
-          //   await FileStore.del(item.targetAssetId);
-          // }
-
-          // for (const entity of item.entities) {
-          //   if (!isEntityWithAsset(entity)) continue;
-          //   await FileStore.del(entity.assetId);
-          // }
-
           set((state) => {
             const index = state.items.findIndex((item) => item.id === itemId);
             if (index === -1) return;
@@ -831,14 +822,6 @@ export const useStore = create<AppState>()(
             if (!item) return;
             item.targetAssetId = null;
           });
-
-          // const targetAssetId =
-          //   get().items.find((item) => item.id === itemId)?.targetAssetId ??
-          //   null;
-
-          // if (targetAssetId) {
-          //   await FileStore.del(targetAssetId);
-          // }
         },
 
         addItemEntity: async (itemId, entity, afterIndex) => {
@@ -920,18 +903,6 @@ export const useStore = create<AppState>()(
         },
 
         removeItemEntities: (itemId, entityIds) => {
-          // const entities =
-          //   get()
-          //     .items.find((item) => item.id === itemId)
-          //     ?.entities.filter((entity) => entityIds.includes(entity.id)) ??
-          //   [];
-
-          // await Promise.all(
-          //   entities
-          //     .filter((entity) => isEntityWithAsset(entity))
-          //     .map((entity) => FileStore.del(entity.assetId))
-          // );
-
           set((state) => {
             const item = state.items.find((item) => item.id === itemId);
             if (!item) return;
