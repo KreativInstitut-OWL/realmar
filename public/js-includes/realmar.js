@@ -909,6 +909,7 @@ AFRAME.registerComponent("realmar-depends-on", {
 function initDomControls(scene) {
   initGalleryControls(scene);
   initVideoControls(scene);
+  initLinkControls(scene);
 }
 
 function initGalleryControls(scene) {
@@ -1050,6 +1051,42 @@ function initVideoControls(scene) {
       activeVideoObject.video.play().catch((e) => {
         console.log("Video play error:", e);
       });
+    }
+  });
+}
+
+function initLinkControls(scene) {
+  // Find link buttons
+  const linkButtons = document.getElementById("link-buttons");
+  const linkButton = linkButtons.querySelector("#link-button");
+
+  // Show/hide link buttons based on marker visibility
+  scene.addEventListener("targetFound", (event) => {
+    const targetEl = event.target;
+    const itemName = targetEl.getAttribute("data-item-name");
+
+    // Find the link data from the target element
+    // The link data should be available as data attributes or from the item
+    const linkUrl = targetEl.getAttribute("data-link-url");
+    const linkTitle = targetEl.getAttribute("data-link-title");
+    const linkEnabled = targetEl.getAttribute("data-link-enabled") === "true";
+
+    if (linkUrl && linkTitle && linkEnabled) {
+      linkButton.href = linkUrl;
+      linkButton.textContent = linkTitle;
+      linkButtons.classList.remove("invisible");
+    }
+  });
+
+  scene.addEventListener("targetLost", (event) => {
+    const targetEl = event.target;
+    const linkUrl = targetEl.getAttribute("data-link-url");
+    const linkEnabled = targetEl.getAttribute("data-link-enabled") === "true";
+
+    if (linkUrl && linkEnabled) {
+      linkButtons.classList.add("invisible");
+      linkButton.href = "#";
+      linkButton.textContent = "";
     }
   });
 }

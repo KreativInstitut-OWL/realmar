@@ -8,6 +8,7 @@ import { CommandItem } from "./ui/command";
 import { ControlGroup, ControlLabel, ControlRow } from "./ui/control";
 import { FormControl, FormItem, FormLabel } from "./ui/form";
 import { Input } from "./ui/input";
+import { Switch } from "./ui/switch";
 import {
   Select,
   SelectContent,
@@ -149,6 +150,80 @@ export function ItemMarker() {
                   </ul>
                 </ControlRow>
               </FormItem>
+            </ControlGroup>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <ControlGroup>
+              <ControlLabel level={2}>Link</ControlLabel>
+              <FormItem asChild>
+                <ControlRow columns={3}>
+                  <FormLabel className="col-span-1">Add Link</FormLabel>
+                  <FormControl>
+                    <Switch
+                      onCheckedChange={(enabled) => {
+                        setItem(item.id, {
+                          link: enabled
+                            ? {
+                                url: item.link?.url || "",
+                                title: item.link?.title || "",
+                                enabled: true,
+                              }
+                            : null,
+                        });
+                      }}
+                      checked={item.link !== null}
+                    />
+                  </FormControl>
+                </ControlRow>
+              </FormItem>
+              {item.link?.enabled ? (
+                <>
+                  <FormItem asChild>
+                    <ControlRow columns={3}>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl className="col-span-2">
+                        <Input
+                          type="text"
+                          onChange={(event) => {
+                            setItem(item.id, {
+                              link: {
+                                url: item.link?.url || "",
+                                title: event.target.value || "",
+                                enabled: item.link?.enabled ?? true,
+                              },
+                            });
+                          }}
+                          value={item.link?.title || ""}
+                          placeholder="Enter link title"
+                        />
+                      </FormControl>
+                    </ControlRow>
+                  </FormItem>
+                  <FormItem asChild>
+                    <ControlRow columns={3}>
+                      <FormLabel>URL</FormLabel>
+                      <FormControl className="col-span-2">
+                        <Input
+                          type="url"
+                          onChange={(event) => {
+                            setItem(item.id, {
+                              link: {
+                                url: event.target.value || "",
+                                title: item.link?.title || "",
+                                enabled: item.link?.enabled ?? true,
+                              },
+                            });
+                          }}
+                          value={item.link?.url || ""}
+                          placeholder="https://example.com"
+                        />
+                      </FormControl>
+                    </ControlRow>
+                  </FormItem>
+                </>
+              ) : null}
             </ControlGroup>
           </SidebarGroupContent>
         </SidebarGroup>

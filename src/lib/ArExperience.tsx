@@ -67,6 +67,14 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
               <RotateCcw />
             </button>
           </div>
+          <div className="button-container invisible" id="link-buttons">
+            <a
+              id="link-button"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+            ></a>
+          </div>
         </div>
       </body>
     </html>
@@ -102,30 +110,42 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
         id="camera"
       />
 
-      {items.map((item, itemIndex) => (
-        <a-entity
-          key={item.id}
-          mindar-image-target={toAttrs({ targetIndex: itemIndex })}
-          data-item-name={getItemName(item, itemIndex)}
-          id={`item_${item.id}`}
-          {...(item.displayMode === "gallery"
-            ? { "realmar-gallery": toAttrs({ startIndex: 0 }) }
-            : {})}
-          {...(item.itemDependencyId !== null
-            ? { "realmar-depends-on": `#item_${item.itemDependencyId}` }
-            : {})}
-        >
-          {item.entities.map((entity, entityIndex) => (
-            <ArExperienceEntity
-              entity={entity}
-              key={entity.id}
-              {...(item.displayMode === "gallery"
-                ? { "realmar-gallery-item": toAttrs({ index: entityIndex }) }
-                : {})}
-            />
-          ))}
-        </a-entity>
-      ))}
+      {items.map((item, itemIndex) => {
+        const linkAttrs =
+          item.link && item.link.enabled
+            ? {
+                "data-link-url": item.link.url,
+                "data-link-title": item.link.title,
+                "data-link-enabled": item.link.enabled.toString(),
+              }
+            : {};
+
+        return (
+          <a-entity
+            key={item.id}
+            mindar-image-target={toAttrs({ targetIndex: itemIndex })}
+            data-item-name={getItemName(item, itemIndex)}
+            id={`item_${item.id}`}
+            {...(item.displayMode === "gallery"
+              ? { "realmar-gallery": toAttrs({ startIndex: 0 }) }
+              : {})}
+            {...(item.itemDependencyId !== null
+              ? { "realmar-depends-on": `#item_${item.itemDependencyId}` }
+              : {})}
+            {...linkAttrs}
+          >
+            {item.entities.map((entity, entityIndex) => (
+              <ArExperienceEntity
+                entity={entity}
+                key={entity.id}
+                {...(item.displayMode === "gallery"
+                  ? { "realmar-gallery-item": toAttrs({ index: entityIndex }) }
+                  : {})}
+              />
+            ))}
+          </a-entity>
+        );
+      })}
 
       <a-node id="defer-scene-load" />
     </a-scene>

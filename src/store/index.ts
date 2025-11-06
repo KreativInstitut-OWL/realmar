@@ -523,6 +523,7 @@ export type Item = {
   name: string | null;
   itemDependencyId: string | null;
   displayMode: "gallery" | "scene";
+  link: { url: string; title: string; enabled: boolean } | null;
 
   // editor state (these have no effect for the export)
   editorLinkTransforms: boolean;
@@ -539,6 +540,7 @@ function createItem(props: Partial<Omit<Item, "id">> = {}): Item {
     name: null,
     itemDependencyId: null,
     displayMode: "scene",
+    link: null,
 
     editorLinkTransforms: false,
     editorPivotControlScale: 0.5,

@@ -38,7 +38,7 @@ a-scene {
   gap: 0.5rem;
 }
 
-button {
+button, #link-button {
   padding-inline: 1rem;
   height: 42px;
   font-size: 16px;
@@ -50,9 +50,10 @@ button {
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  text-decoration: none;
 }
 
-button:hover {
+button:hover, #link-button:hover {
   background-color: var(--color-button-hover);
 }
 
