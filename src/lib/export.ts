@@ -9,6 +9,7 @@ import {
   isEntityText,
   isEntityWithAsset,
   Item,
+  systemFonts,
   useStore,
 } from "@/store";
 import * as FileStore from "@/store/file-store";
@@ -18,30 +19,16 @@ import saveAs from "file-saver";
 import JSZip from "jszip";
 import React from "react";
 import { ArExperience } from "./ArExperience";
-import { autoPadStart, getItemFolderName } from "./item";
+import { getItemFolderName } from "./item";
 import { prettifyHtml } from "./prettier";
 import {
   createSquareImageFileFromSrc,
   reactRenderToString,
   renderSvgReactNodeToBase64Src,
+  renderSvgReactNodeToSvgFile,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
-
-export const getFileName = ({
-  name,
-  originalBasename,
-  originalExtension,
-  index,
-  count,
-}: {
-  name?: string;
-  originalBasename: string;
-  originalExtension: string;
-  index: number;
-  count: number;
-}) => {
-  return `${autoPadStart(index + 1, count)}-${name ?? originalBasename}.${originalExtension}` as const;
-};
+import { getFilePathForExport, getTargetPathForExport } from "./utils";
 
 export type ExportAsset = Asset & {
   file: File;
@@ -119,7 +106,7 @@ export async function compileArtifacts(
     const { items, assets } = state;
 
     const targetFiles = await Promise.all(
-      items.map(async (item) => {
+      items.map(async (item, index) => {
         if (item.targetAssetId) {
           const targetAsset = assets.find(
             (asset) => asset.id === item.targetAssetId
@@ -146,17 +133,58 @@ export async function compileArtifacts(
 
           URL.revokeObjectURL(src);
 
+          // Add target file to artifacts
+          const targetPath = getTargetPathForExport(
+            index,
+            item.id,
+            targetAsset.fileId,
+            `${targetAsset.originalBasename}.png`
+          );
+          artifacts.set(targetPath, squareTargetFile);
+
+          const originalTargetPath = getTargetPathForExport(
+            index,
+            item.id,
+            targetAsset.fileId,
+            `${targetAsset.originalBasename}.original.${targetAsset.originalExtension}`
+          );
+          artifacts.set(originalTargetPath, file);
+
           return squareTargetFile;
         }
 
+        const svgNode = React.createElement(GeneratedTarget, { id: item.id });
+
         // If the target asset is not set, create a generated target
-        return createSquareImageFileFromSrc({
-          src: renderSvgReactNodeToBase64Src(
-            React.createElement(GeneratedTarget, { id: item.id })
-          ),
+        const generatedTargetFile = await createSquareImageFileFromSrc({
+          src: renderSvgReactNodeToBase64Src(svgNode),
           id: `${item.id}.generated`,
           size: 2048,
         });
+
+        // Add generated target file to artifacts
+        const targetPath = getTargetPathForExport(
+          index,
+          item.id,
+          `${item.id}.generated`,
+          "generated.png"
+        );
+        artifacts.set(targetPath, generatedTargetFile);
+
+        const generatedTargetFileSvg = renderSvgReactNodeToSvgFile(
+          svgNode,
+          `${item.id}.generated`
+        );
+
+        const originalTargetPath = getTargetPathForExport(
+          index,
+          item.id,
+          `${item.id}.generated`,
+          `original.svg`
+        );
+        artifacts.set(originalTargetPath, generatedTargetFileSvg);
+
+        return generatedTargetFile;
       })
     );
 
@@ -174,6 +202,20 @@ export async function compileArtifacts(
     targetFileSources.forEach((src) => URL.revokeObjectURL(src));
 
     artifacts.set("./targets.mind", new Blob([new Uint8Array(exportedBuffer)]));
+
+    // Add all assets upfront to files/ folder
+    const assetIdToPath = new Map<string, string>();
+    for (const asset of state.assets) {
+      const file = await FileStore.get(asset.fileId);
+      if (!file) {
+        throw new Error(
+          `File (id: ${asset.fileId}) not found for asset ${asset.id}.`
+        );
+      }
+      const path = `./${getFilePathForExport(asset.fileId, file.name)}`;
+      artifacts.set(path, file);
+      assetIdToPath.set(asset.id, path);
+    }
 
     const exportItems: ExportItem[] = [];
 
@@ -240,15 +282,7 @@ export async function compileArtifacts(
           );
         }
 
-        const path = `./markers/${itemFolderName}/${getFileName({
-          name: asset.name,
-          originalBasename: asset.originalBasename,
-          originalExtension: asset.originalExtension,
-          index: entityIndex,
-          count: item.entities.length,
-        })}` as const;
-
-        artifacts.set(path, file);
+        const path = assetIdToPath.get(asset.id)!;
 
         exportItem.entities.push({
           ...entity,
@@ -263,13 +297,13 @@ export async function compileArtifacts(
       exportItems.push(exportItem);
     }
 
-    // download system fonts by URL path
-    for (const fontPath of fonts) {
-      const fontFile = await fetchAsBlob(fontPath);
-      artifacts.set(`./${fontPath.replace(/^\//, "")}`, fontFile);
+    // download all system fonts
+    for (const fontDef of systemFonts) {
+      const fontFile = await fetchAsBlob(fontDef.path);
+      artifacts.set(`./${fontDef.path.replace(/^\//, "")}`, fontFile);
     }
 
-    // bundle custom font assets from the filestore and rewrite entity font paths
+    // rewrite custom font entity paths (fonts are already in files/ folder)
     if (customFontAssetIds.size) {
       // Build a quick lookup for assets
       const assetMap = new Map(state.assets.map((a) => [a.id, a] as const));
@@ -283,11 +317,8 @@ export async function compileArtifacts(
           if (isAssetFont(font)) {
             const asset = assetMap.get(font.assetId);
             if (!asset) continue;
-            const file = await FileStore.get(asset.fileId);
-            if (!file) continue;
 
-            const path = `./fonts/${asset.id}.typeface.json` as const;
-            artifacts.set(path, file);
+            const path = assetIdToPath.get(asset.id)!;
 
             // Replace entity with a new object to avoid mutating frozen state shapes
             item.entities[i] = {
@@ -325,7 +356,7 @@ export async function compileArtifacts(
       }
     }
 
-    console.log("HTML: ", await prettifyHtml(html));
+    // console.log("HTML: ", await prettifyHtml(html));
 
     artifacts.set(
       "./index.html",

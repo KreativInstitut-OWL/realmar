@@ -10,9 +10,11 @@ import {
 } from ".";
 import * as FileStore from "./file-store";
 import { toast } from "sonner";
-import { inferMimeFromFilename } from "@/lib/utils";
-
-const FILE_ID_NAME_DELIMITER = "___";
+import {
+  getFilePathForExport,
+  inferMimeFromFilename,
+  parseFilePathForImport,
+} from "@/lib/utils";
 
 export function getProjectSlugWithDateTime() {
   const projectName = useStore.getState().projectName ?? "Untitled Project";
@@ -55,7 +57,7 @@ export async function save(onProgress?: (progress: number) => void) {
 
   // Add files
   for (const [id, file] of (await FileStore.getAll()).entries()) {
-    zip.file(`files/${id}${FILE_ID_NAME_DELIMITER}${file.name}`, file);
+    zip.file(getFilePathForExport(id, file.name), file);
   }
 
   const content = await zip.generateAsync(
@@ -140,8 +142,7 @@ async function parseRealmArFile(file: File): Promise<ParsedRealmArFile> {
             if (relativePath.endsWith("/")) return;
 
             const promise = zipFile.async("blob").then((fileBlob) => {
-              const fileId = relativePath.split(FILE_ID_NAME_DELIMITER)[0];
-              const fileName = relativePath.split(FILE_ID_NAME_DELIMITER)[1];
+              const { fileId, fileName } = parseFilePathForImport(relativePath);
 
               console.log(
                 `Parsed file: ${fileId} - ${fileName} (${fileBlob.size} bytes)`

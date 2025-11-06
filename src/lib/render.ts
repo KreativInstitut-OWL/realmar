@@ -29,6 +29,15 @@ export function renderSvgReactNodeToBase64Src(node: React.ReactNode) {
   return "data:image/svg+xml;base64," + btoa(reactRenderToString(node));
 }
 
+export function renderSvgReactNodeToSvgFile(
+  node: React.ReactNode,
+  name: string
+) {
+  const svg = reactRenderToString(node);
+  const file = new File([svg], `${name}.svg`, { type: "image/svg+xml" });
+  return file;
+}
+
 export function createPngFileFromCanvas(
   canvas: HTMLCanvasElement,
   name: string

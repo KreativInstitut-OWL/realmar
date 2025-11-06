@@ -83,3 +83,29 @@ export function generateCopyName(originalName: string): string {
   // Default case: first copy
   return `${originalName} (copy)`;
 }
+
+export const FILE_ID_NAME_DELIMITER = "___";
+
+export function getFilePathForExport(fileId: string, fileName: string): string {
+  return `files/${fileId}${FILE_ID_NAME_DELIMITER}${fileName}`;
+}
+
+export function getTargetPathForExport(
+  itemIndex: number,
+  itemId: string,
+  fileId: string,
+  fileName: string
+): string {
+  return `targets/${itemIndex}${FILE_ID_NAME_DELIMITER}${itemId}${FILE_ID_NAME_DELIMITER}${fileId}${FILE_ID_NAME_DELIMITER}${fileName}`;
+}
+
+export function parseFilePathForImport(relativePath: string): {
+  fileId: string;
+  fileName: string;
+} {
+  const parts = relativePath.split(FILE_ID_NAME_DELIMITER);
+  return {
+    fileId: parts[0],
+    fileName: parts[1],
+  };
+}
