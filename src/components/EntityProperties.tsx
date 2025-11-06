@@ -60,6 +60,13 @@ export function EntityProperties({
   const float = getComponent(entity, "float");
   const updateFloat = useUpdateEntityComponent(item?.id, entity?.id, "float");
 
+  const turntable = getComponent(entity, "turntable");
+  const updateTurntable = useUpdateEntityComponent(
+    item?.id,
+    entity?.id,
+    "turntable"
+  );
+
   const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
   const updateEntity = useUpdateEntity(item?.id, entity?.id);
@@ -522,6 +529,67 @@ export function EntityProperties({
                   onChange={(value) =>
                     typeof value === "number" &&
                     updateFloat({ floatingRange: [-value, value] })
+                  }
+                />
+              </ControlRow>
+            </>
+          ) : null}
+        </ControlGroup>
+      </>
+
+      <>
+        <Separator />
+        <ControlGroup>
+          <ControlLabel level={2}>Turntable</ControlLabel>
+          <FormItem asChild>
+            <ControlRow columns={3}>
+              <FormLabel className="col-span-2">Enable Turntable</FormLabel>
+              <FormControl>
+                <Switch
+                  onCheckedChange={(enabled) => {
+                    updateTurntable({ enabled });
+                  }}
+                  checked={turntable?.enabled}
+                />
+              </FormControl>
+            </ControlRow>
+          </FormItem>
+          {turntable?.enabled ? (
+            <>
+              <ControlRow columns={3}>
+                <FormLabel>Axis</FormLabel>
+                <FormItem asChild>
+                  <Select
+                    value={turntable.axis}
+                    onValueChange={(axis: "x" | "y" | "z") =>
+                      updateTurntable({ axis })
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="x">X</SelectItem>
+                      <SelectItem value="y">Y</SelectItem>
+                      <SelectItem value="z">Z</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+                <FormControlNumber
+                  description="Speed"
+                  label={<Gauge />}
+                  step={0.1}
+                  min={-20}
+                  max={20}
+                  formatOptions={{
+                    style: "decimal",
+                    maximumFractionDigits: 2,
+                  }}
+                  value={turntable.speed}
+                  onChange={(speed) =>
+                    typeof speed === "number" && updateTurntable({ speed })
                   }
                 />
               </ControlRow>

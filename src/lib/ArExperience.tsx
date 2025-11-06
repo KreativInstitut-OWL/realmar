@@ -160,6 +160,7 @@ function ArExperienceEntity(
   );
   const lookAtCamera = getComponent(props.entity, "look-at-camera");
   const float = getComponent(props.entity, "float");
+  const turntable = getComponent(props.entity, "turntable");
 
   const element = (
     <Component
@@ -182,6 +183,28 @@ function ArExperienceEntity(
         rotationIntensity: float.rotationIntensity,
         floatingRangeMin: float.floatingRange?.[0],
         floatingRangeMax: float.floatingRange?.[1],
+      })}
+    >
+      {turntable?.enabled ? (
+        <a-entity
+          turntable={toAttrs({
+            enabled: turntable.enabled,
+            speed: turntable.speed,
+            axis: turntable.axis,
+          })}
+        >
+          {element}
+        </a-entity>
+      ) : (
+        element
+      )}
+    </a-entity>
+  ) : turntable?.enabled ? (
+    <a-entity
+      turntable={toAttrs({
+        enabled: turntable.enabled,
+        speed: turntable.speed,
+        axis: turntable.axis,
       })}
     >
       {element}

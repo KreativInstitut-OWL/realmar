@@ -666,6 +666,78 @@ AFRAME.registerComponent("float", {
 
 // #endregion float
 
+// #region turntable
+
+/**
+ * @typedef {Object} TurntableData
+ * @property {boolean} enabled - Whether the turntable rotation is active
+ * @property {number} speed - Speed of the rotation in radians per second
+ * @property {string} axis - Axis to rotate around (x, y, or z)
+ */
+
+/**
+ * Adds continuous rotation around a configurable axis to an entity.
+ * Creates a turntable-like rotation effect.
+ *
+ * @this {AFRAME.Component & {data: TurntableData}}
+ */
+AFRAME.registerComponent("turntable", {
+  schema: {
+    enabled: { type: "boolean", default: true },
+    speed: { type: "number", default: 1 },
+    axis: { type: "string", default: "z" },
+  },
+
+  init: function () {
+    // Store original rotation values
+    this.originalRotation = {
+      x: this.el.object3D.rotation.x,
+      y: this.el.object3D.rotation.y,
+      z: this.el.object3D.rotation.z,
+    };
+
+    // Store original matrix auto update setting
+    this.wasMatrixAutoUpdate = this.el.object3D.matrixAutoUpdate;
+
+    // Disable automatic matrix updates for performance
+    this.el.object3D.matrixAutoUpdate = false;
+  },
+
+  tick: function (time, delta) {
+    /** @type {TurntableData} */
+    const data = this.data;
+
+    if (!data.enabled || data.speed === 0) return;
+
+    // Convert delta from milliseconds to seconds
+    const deltaSeconds = delta / 1000;
+
+    // Calculate rotation amount
+    const rotationAmount = data.speed * deltaSeconds;
+
+    // Apply rotation to the specified axis
+    this.el.object3D.rotation[data.axis] += rotationAmount;
+
+    // Manually update the matrix
+    this.el.object3D.updateMatrix();
+  },
+
+  remove: function () {
+    // Restore original rotation
+    this.el.object3D.rotation.x = this.originalRotation.x;
+    this.el.object3D.rotation.y = this.originalRotation.y;
+    this.el.object3D.rotation.z = this.originalRotation.z;
+
+    // Restore original matrix auto update setting
+    this.el.object3D.matrixAutoUpdate = this.wasMatrixAutoUpdate;
+
+    // Make sure to update the matrix one last time
+    this.el.object3D.updateMatrix();
+  },
+});
+
+// #endregion turntable
+
 // #region realmar-gallery
 
 // realmar-gallery component manages gallery state and navigation

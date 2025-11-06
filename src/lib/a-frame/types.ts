@@ -75,6 +75,7 @@ export interface CustomComponent {
   quaternion?: AFrameVec4;
   "look-at"?: string;
   float?: AFrameMap;
+  turntable?: AFrameMap;
   "mindar-image-target"?: string;
   "mindar-image"?: string;
   "realmar-display-mode"?: string;

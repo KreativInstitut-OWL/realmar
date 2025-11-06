@@ -148,7 +148,20 @@ interface ComponentFloat
     }
   > {}
 
-export type Component = ComponentLookAtCamera | ComponentFloat;
+interface ComponentTurntable
+  extends ComponentBase<
+    "turntable",
+    {
+      enabled: boolean;
+      speed: number;
+      axis: "x" | "y" | "z";
+    }
+  > {}
+
+export type Component =
+  | ComponentLookAtCamera
+  | ComponentFloat
+  | ComponentTurntable;
 
 export type ComponentMap = {
   [key in Component["name"]]?: Extract<Component, { name: key }>;
@@ -179,6 +192,16 @@ function createComponent<
           ...payload,
         },
       } as ComponentFloat;
+    case "turntable":
+      return {
+        name,
+        payload: {
+          enabled: true,
+          speed: 1,
+          axis: "z",
+          ...payload,
+        },
+      } as ComponentTurntable;
     default:
       throw new Error(`Unknown component name: ${name}`);
   }

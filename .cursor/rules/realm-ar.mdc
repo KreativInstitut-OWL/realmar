@@ -67,6 +67,14 @@ src/
 
 The app is designed to be used offline. All assets are stored in IndexedDB and are only accessible locally, there is no server side involved besides the initial download of the app.
 
+### react-three-fiber Editor and A-Frame Export
+
+Since the app uses react-three-fiber for the 3D editor (`ItemArrangeEditor.tsx`) and a-frame (which is build on top of three.js but does not use react-three-fiber or drei) for the export, we need to think about each feature we add to items/entities/assets in both engines.
+
+For example, 3D Text in three.js is supported by the `Text3D` component from `@react-three/drei`. This component is directly supported in the A-Frame export. In `public/js-includes/realmar.js`, we create the `text-3d` component for A-Frame. (Here code is adapted from the three.js examples and modified to work with A-Frame.)
+
+The same is true for the `float` component for example.
+
 ### Development Workflow
 
 1. **Items View**: Create/upload marker images

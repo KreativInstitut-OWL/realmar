@@ -392,6 +392,48 @@ function useEntityReactComponent(entity: Entity) {
   }, [entity]);
 }
 
+function Turntable({
+  enabled,
+  speed,
+  axis,
+  children,
+}: {
+  enabled?: boolean;
+  speed?: number;
+  axis?: "x" | "y" | "z";
+  children: React.ReactNode;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+
+  // Reset rotation on other axes when axis changes
+  useEffect(() => {
+    if (!groupRef.current || axis === undefined) return;
+
+    const group = groupRef.current;
+    const axes: ("x" | "y" | "z")[] = ["x", "y", "z"];
+
+    axes.forEach((currentAxis) => {
+      if (currentAxis !== axis) {
+        group.rotation[currentAxis] = 0;
+      }
+    });
+  }, [axis]);
+
+  useFrame((_, delta) => {
+    if (
+      !enabled ||
+      !groupRef.current ||
+      speed === undefined ||
+      axis === undefined
+    )
+      return;
+    const rotationAmount = speed * delta;
+    groupRef.current.rotation[axis] += rotationAmount;
+  });
+
+  return <group ref={groupRef}>{children}</group>;
+}
+
 function TransformableEntity({
   entity,
   onTransformChange,
@@ -409,6 +451,8 @@ function TransformableEntity({
   const lookAtCamera = getComponent(entity, "look-at-camera");
 
   const float = getComponent(entity, "float");
+
+  const turntable = getComponent(entity, "turntable");
 
   const { transform } = entity;
 
@@ -489,7 +533,19 @@ function TransformableEntity({
         disableScaling
         axisColors={["#fca5a5", "#55fc27", "#38bdf8"]}
       >
-        {float?.enabled ? <Float {...float}>{entityNode}</Float> : entityNode}
+        {float?.enabled ? (
+          <Float {...float}>
+            {turntable?.enabled ? (
+              <Turntable {...turntable}>{entityNode}</Turntable>
+            ) : (
+              entityNode
+            )}
+          </Float>
+        ) : turntable?.enabled ? (
+          <Turntable {...turntable}>{entityNode}</Turntable>
+        ) : (
+          entityNode
+        )}
       </PivotControls>
     </group>
   );
