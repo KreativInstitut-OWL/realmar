@@ -184,9 +184,6 @@ function ArExperienceEntity(
 
   const element = (
     <Component
-      position={toVec3(position)}
-      quaternion={toVec4(quaternion)}
-      scale={toVec3(scale)}
       id={`entity_${props.entity.id}`}
       data-entity-id={props.entity.id}
       look-at={lookAtCamera?.enabled ? "camera" : undefined}
@@ -194,18 +191,38 @@ function ArExperienceEntity(
     />
   );
 
-  return float?.enabled ? (
+  return (
     <a-entity
-      float={toAttrs({
-        enabled: float.enabled,
-        speed: float.speed,
-        intensity: float.intensity,
-        rotationIntensity: float.rotationIntensity,
-        floatingRangeMin: float.floatingRange?.[0],
-        floatingRangeMax: float.floatingRange?.[1],
-      })}
+      position={toVec3(position)}
+      quaternion={toVec4(quaternion)}
+      scale={toVec3(scale)}
     >
-      {turntable?.enabled ? (
+      {float?.enabled ? (
+        <a-entity
+          float={toAttrs({
+            enabled: float.enabled,
+            speed: float.speed,
+            intensity: float.intensity,
+            rotationIntensity: float.rotationIntensity,
+            floatingRangeMin: float.floatingRange?.[0],
+            floatingRangeMax: float.floatingRange?.[1],
+          })}
+        >
+          {turntable?.enabled ? (
+            <a-entity
+              turntable={toAttrs({
+                enabled: turntable.enabled,
+                speed: turntable.speed,
+                axis: turntable.axis,
+              })}
+            >
+              {element}
+            </a-entity>
+          ) : (
+            element
+          )}
+        </a-entity>
+      ) : turntable?.enabled ? (
         <a-entity
           turntable={toAttrs({
             enabled: turntable.enabled,
@@ -219,18 +236,6 @@ function ArExperienceEntity(
         element
       )}
     </a-entity>
-  ) : turntable?.enabled ? (
-    <a-entity
-      turntable={toAttrs({
-        enabled: turntable.enabled,
-        speed: turntable.speed,
-        axis: turntable.axis,
-      })}
-    >
-      {element}
-    </a-entity>
-  ) : (
-    element
   );
 }
 

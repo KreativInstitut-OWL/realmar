@@ -1063,7 +1063,6 @@ function initLinkControls(scene) {
   // Show/hide link buttons based on marker visibility
   scene.addEventListener("targetFound", (event) => {
     const targetEl = event.target;
-    const itemName = targetEl.getAttribute("data-item-name");
 
     // Find the link data from the target element
     // The link data should be available as data attributes or from the item

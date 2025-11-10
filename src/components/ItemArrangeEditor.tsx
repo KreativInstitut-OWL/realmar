@@ -404,19 +404,21 @@ function Turntable({
   children: React.ReactNode;
 }) {
   const groupRef = useRef<THREE.Group>(null);
+  const originalRotationRef = useRef<THREE.Euler | null>(null);
+  const turntableRotationRef = useRef(0);
 
-  // Reset rotation on other axes when axis changes
+  // Initialize original rotation when component mounts
   useEffect(() => {
-    if (!groupRef.current || axis === undefined) return;
+    if (!groupRef.current) return;
+    originalRotationRef.current = groupRef.current.rotation.clone();
+  }, []);
 
-    const group = groupRef.current;
-    const axes: ("x" | "y" | "z")[] = ["x", "y", "z"];
-
-    axes.forEach((currentAxis) => {
-      if (currentAxis !== axis) {
-        group.rotation[currentAxis] = 0;
-      }
-    });
+  // Reset turntable rotation when axis changes
+  useEffect(() => {
+    turntableRotationRef.current = 0;
+    if (!groupRef.current || !originalRotationRef.current) return;
+    // Restore original rotation
+    groupRef.current.rotation.copy(originalRotationRef.current);
   }, [axis]);
 
   useFrame((_, delta) => {
@@ -424,11 +426,19 @@ function Turntable({
       !enabled ||
       !groupRef.current ||
       speed === undefined ||
-      axis === undefined
+      axis === undefined ||
+      !originalRotationRef.current
     )
       return;
-    const rotationAmount = speed * delta;
-    groupRef.current.rotation[axis] += rotationAmount;
+
+    // Accumulate turntable rotation
+    turntableRotationRef.current += speed * delta;
+
+    // Apply turntable rotation to the group (on top of original rotation)
+    const group = groupRef.current;
+    group.rotation.copy(originalRotationRef.current);
+    group.rotation[axis] =
+      originalRotationRef.current[axis] + turntableRotationRef.current;
   });
 
   return <group ref={groupRef}>{children}</group>;
