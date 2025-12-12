@@ -7,6 +7,15 @@
 import GIF from "gif.js";
 import UPNG from "upng-js";
 
+// Type definition for UPNG frame structure
+interface UPNGFrame {
+  rect: { x: number; y: number; width: number; height: number };
+  data: Uint8Array;
+  blend: number;
+  delay: number;
+  dispose: number;
+}
+
 export async function loadGifContainer(file: File): Promise<any> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -42,7 +51,7 @@ export async function loadApngContainer(file: File): Promise<any> {
         const png = UPNG.decode(arrayBuffer);
 
         const frames = [];
-        for (let src of png.frames) {
+        for (let src of png.frames as UPNGFrame[]) {
           if (!src.data) continue;
 
           frames.push({

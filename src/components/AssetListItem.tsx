@@ -80,7 +80,7 @@ export const AssetListItem = forwardRef<
               {asset.isAnimated ? (
                 <>
                   {" "}
-                  <Badge size="sm" variant="secondary">
+                  <Badge size="sm" variant="default">
                     Animated
                   </Badge>
                 </>
