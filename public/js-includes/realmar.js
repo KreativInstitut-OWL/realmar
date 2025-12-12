@@ -7,7 +7,10 @@ import "https://cdn.jsdelivr.net/npm/aframe@1.7.0/dist/aframe-master.min.js";
 import "https://cdn.jsdelivr.net/npm/aframe-extras@7.5.4/dist/aframe-extras.min.js";
 import "https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.min.js";
 // pako is loaded via script tag in HTML (required by upng-js)
-import "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js";
+import {
+  parseGIF,
+  decompressFrames,
+} from "https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm";
 import "https://cdn.jsdelivr.net/npm/upng-js@2.1.0/UPNG.js";
 
 const AFRAME = window.AFRAME;
@@ -1798,19 +1801,23 @@ AFRAME.registerComponent("animated-image", {
       // Detect format and parse
       if (assetElement.src.toLowerCase().endsWith(".gif")) {
         // eslint-disable-next-line no-undef
-        const gif = new GIF(arrayBuffer);
+        const gifData = parseGIF(arrayBuffer);
+
+        // Decompress frames to get pixel data
+        const frames = decompressFrames(gifData, true); // true for buildImagePatches
+
         container = {
           downscale: false,
-          width: gif.raw.lsd.width,
-          height: gif.raw.lsd.height,
-          frames: gif.decompressFrames(true),
+          width: gifData.lsd.width,
+          height: gifData.lsd.height,
+          frames: frames, // This gives us the frame data ComposedTexture expects
         };
       } else if (assetElement.src.toLowerCase().endsWith(".png")) {
         // eslint-disable-next-line no-undef
         const png = UPNG.decode(arrayBuffer);
         const frames = [];
 
-        for (let src of png.frames) {
+        for (const src of png.frames) {
           if (!src.data) continue;
 
           frames.push({

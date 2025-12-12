@@ -1,10 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Utilities for loading animated images (GIF/APNG) into ComposedTexture containers
  */
 
-// Note: The npm gif.js package types don't match the decoder API we need
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import GIF from "gif.js";
+import { parseGIF, decompressFrames } from "gifuct-js";
 import UPNG from "upng-js";
 
 // Type definition for UPNG frame structure
@@ -22,14 +22,18 @@ export async function loadGifContainer(file: File): Promise<any> {
     reader.onload = () => {
       try {
         const arrayBuffer = reader.result as ArrayBuffer;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
-        const gif = new (GIF as any)(arrayBuffer);
+
+        // Parse GIF using gifuct-js
+        const gifData = parseGIF(arrayBuffer);
+
+        // Decompress frames to get pixel data
+        const frames = decompressFrames(gifData, true); // true for buildImagePatches
 
         const container = {
           downscale: false,
-          width: gif.raw.lsd.width,
-          height: gif.raw.lsd.height,
-          frames: gif.decompressFrames(true), // This gives us the frame data ComposedTexture expects
+          width: gifData.lsd.width,
+          height: gifData.lsd.height,
+          frames: frames, // This gives us the frame data ComposedTexture expects
         };
 
         resolve(container);
@@ -51,7 +55,7 @@ export async function loadApngContainer(file: File): Promise<any> {
         const png = UPNG.decode(arrayBuffer);
 
         const frames = [];
-        for (let src of png.frames as UPNGFrame[]) {
+        for (const src of png.frames as UPNGFrame[]) {
           if (!src.data) continue;
 
           frames.push({

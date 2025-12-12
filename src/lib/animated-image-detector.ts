@@ -1,11 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Utilities for detecting animated images (GIF/APNG) at upload time
  */
 
-// Note: The npm gif.js package types don't match the decoder API we need
-// We'll use a type assertion to bypass the type check
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-import GIF from "gif.js";
+import { parseGIF } from "gifuct-js";
 import UPNG from "upng-js";
 
 export async function detectAnimatedImage(
@@ -24,7 +23,6 @@ export async function detectAnimatedImage(
     if (fileType === "image/png" || fileName.endsWith(".png")) {
       return await detectAnimatedPng(file);
     }
-
     // Not a supported animated format
     return { isAnimated: false, frameCount: 1 };
   } catch (error) {
@@ -42,22 +40,43 @@ async function detectAnimatedGif(
     reader.onload = () => {
       try {
         const arrayBuffer = reader.result as ArrayBuffer;
-        // The npm gif.js types don't match the decoder API we need
-        // Use type assertion since the runtime library accepts ArrayBuffer
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-call
-        const gif = new (GIF as any)(arrayBuffer);
-        const frames = gif.decompressFrames(true);
-        const frameCount = frames.length;
-        resolve({
+
+        // Check if this is actually a valid GIF file
+        const view = new Uint8Array(arrayBuffer);
+        const header = String.fromCharCode(...view.slice(0, 6));
+
+        if (!header.startsWith("GIF8")) {
+          console.warn(`Invalid GIF header: ${header}`);
+          resolve({ isAnimated: false, frameCount: 1 });
+          return;
+        }
+
+        let gifData: any;
+        try {
+          gifData = parseGIF(arrayBuffer);
+        } catch (parseError) {
+          console.error(`Failed to parse GIF:`, parseError);
+          resolve({ isAnimated: false, frameCount: 1 });
+          return;
+        }
+
+        // Get frame count from parsed GIF data
+        const frameCount = gifData.frames?.length || 0;
+
+        const result = {
           isAnimated: frameCount > 1,
-          frameCount,
-        });
+          frameCount: frameCount || 1,
+        };
+        resolve(result);
       } catch (error) {
         console.warn("Failed to parse GIF:", error);
         resolve({ isAnimated: false, frameCount: 1 });
       }
     };
-    reader.onerror = () => resolve({ isAnimated: false, frameCount: 1 });
+    reader.onerror = (error) => {
+      console.warn("FileReader error:", error);
+      resolve({ isAnimated: false, frameCount: 1 });
+    };
     reader.readAsArrayBuffer(file);
   });
 }
@@ -71,17 +90,22 @@ async function detectAnimatedPng(
       try {
         const arrayBuffer = reader.result as ArrayBuffer;
         const png = UPNG.decode(arrayBuffer);
+
         const frameCount = png.frames?.length || 1;
-        resolve({
+        const result = {
           isAnimated: frameCount > 1,
           frameCount,
-        });
+        };
+        resolve(result);
       } catch (error) {
         console.warn("Failed to parse PNG:", error);
         resolve({ isAnimated: false, frameCount: 1 });
       }
     };
-    reader.onerror = () => resolve({ isAnimated: false, frameCount: 1 });
+    reader.onerror = (error) => {
+      console.warn("FileReader error:", error);
+      resolve({ isAnimated: false, frameCount: 1 });
+    };
     reader.readAsArrayBuffer(file);
   });
 }
