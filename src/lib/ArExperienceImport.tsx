@@ -7,7 +7,14 @@ function ArExperienceImport({ entity }: { entity: ExportEntity }) {
   const { asset } = entity;
 
   if (asset.type.includes("image")) {
-    return <img key={asset.id} id={`asset_${asset.id}`} src={asset.path} />;
+    return (
+      <img
+        key={asset.id}
+        id={`asset_${asset.id}`}
+        src={asset.path}
+        data-is-animated={asset.isAnimated ? "true" : "false"}
+      />
+    );
   }
 
   if (asset.type.includes("video")) {

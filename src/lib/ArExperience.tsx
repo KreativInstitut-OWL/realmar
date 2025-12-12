@@ -32,6 +32,8 @@ export const ArExperience = ({ state }: { state: ExportAppState }) => {
         <title>{projectName}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link href="./style.css" rel="stylesheet" />
+        {/* Load pako before realmar.js - required by upng-js */}
+        <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
         <script src="./realmar.js" type="module" />
       </head>
       <body>
@@ -293,14 +295,21 @@ function ArExperienceEntityPlane({
   entity: ExportEntity;
 } & AFrameEntityProps) {
   assertIsExportEntityWithAsset(entity);
+
+  const isAnimated = entity.asset.isAnimated;
+  const assetId = entity.asset.id;
+
   return (
     <a-plane
       {...props}
-      src={`#asset_${entity.asset.id}`}
+      src={`#asset_${assetId}`}
       width={toNumber(entity.asset.width!)}
       height={toNumber(entity.asset.height!)}
       color="#ffffff"
       alpha-test={0.5}
+      {...(isAnimated
+        ? { "animated-image": toAttrs({ src: `#asset_${assetId}` }) }
+        : {})}
     />
   );
 }

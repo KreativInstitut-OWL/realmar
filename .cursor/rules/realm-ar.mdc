@@ -90,6 +90,10 @@ The same is true for the `float` component for example.
 - **Assets**: File resources referenced by entities
 - **Transforms**: Position/rotation/scale of entities in 3D space
 
+### State
+
+We are using Zustand for state management. The state is persisted to IndexedDB automatically. Our state is similar to an ECS (Entity Component System). Each item has a list of entities, and each entity has a list of components. A component in state is not the same as a React component!
+
 ### Export Process
 
 - Compiles image targets using mind-ar

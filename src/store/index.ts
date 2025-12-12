@@ -1,6 +1,7 @@
 import { EditorView } from "@/const/editorView";
 import { DEFAULT_TRANSFORM } from "@/lib/three";
 import { inferMimeFromFilename, uppercaseFirstLetter } from "@/lib/utils";
+import { detectAnimatedImage } from "@/lib/animated-image-detector";
 import * as FileStore from "@/store/file-store";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import * as idb from "idb-keyval"; // can use anything: IndexedDB, Ionic Storage, etc.
@@ -38,6 +39,7 @@ export type Asset = {
   height: number | null;
   originalWidth: number | null;
   originalHeight: number | null;
+  isAnimated?: boolean;
 };
 
 export async function createAsset({
@@ -64,6 +66,7 @@ export async function createAsset({
   let height = null;
   let originalWidth = null;
   let originalHeight = null;
+  let isAnimated = undefined;
 
   if (isImage) {
     const image = new Image();
@@ -82,6 +85,10 @@ export async function createAsset({
         resolve();
       };
     });
+
+    // Detect if image is animated
+    const animationInfo = await detectAnimatedImage(file);
+    isAnimated = animationInfo.isAnimated;
   } else if (isVideo) {
     const video = document.createElement("video");
     video.src = URL.createObjectURL(file);
@@ -123,6 +130,7 @@ export async function createAsset({
     height,
     originalWidth,
     originalHeight,
+    isAnimated,
   };
 }
 
