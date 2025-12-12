@@ -1,8 +1,11 @@
 import { useObjectUrl } from "@/hooks/useObjectUrl";
+import { loadAnimatedImageContainer } from "@/lib/animated-image-loader";
+import { loadComposedTexture } from "@/lib/load-composed-texture";
 import {
   createSquareThreeTextureFromSrc,
   renderSvgReactNodeToBase64Src,
 } from "@/lib/render";
+import { cn } from "@/lib/utils";
 import {
   assertIsEntityModel,
   assertIsEntityText,
@@ -37,6 +40,7 @@ import {
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { Eye } from "lucide-react";
 import {
   cloneElement,
   forwardRef,
@@ -51,9 +55,7 @@ import * as THREE from "three";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { GeneratedTarget } from "./GeneratedTarget";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
 import { contentVariants } from "./ui/styles/menu";
-import { Eye } from "lucide-react";
 
 const EulerNull = new THREE.Euler(0, 0, 0);
 
@@ -62,11 +64,104 @@ const EntityImageComponent = forwardRef<
   { asset: Asset | null; file: File | null; children: React.ReactNode }
 >(({ asset, file, children }, ref) => {
   const src = useObjectUrl(file);
+  const [texture, setTexture] = useState<THREE.Texture | null>(null);
+  const materialRef = useRef<THREE.MeshBasicMaterial | null>(null);
 
-  const texture = useMemo(() => {
-    if (!src) return null;
-    return new THREE.TextureLoader().load(src);
-  }, [src]);
+  useEffect(() => {
+    if (!file) {
+      setTexture(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    if (asset?.isAnimated) {
+      // Load animated texture - ensure ComposedTexture is loaded first
+      Promise.all([loadComposedTexture(), loadAnimatedImageContainer(file)])
+        .then(async ([, container]) => {
+          if (!isMounted) return;
+          // Use window.THREE.ComposedTexture since that's where ComposedTexture.js registers it
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const windowThree = (window as any).THREE;
+          if (!windowThree?.ComposedTexture) {
+            throw new Error("ComposedTexture not available on window.THREE");
+          }
+          const ComposedTextureClass = windowThree.ComposedTexture;
+          // Create empty and assign container (recommended for async loading)
+          const composedTexture = new ComposedTextureClass();
+          // ComposedTexture.assign() is async and needs to be awaited
+          await composedTexture.assign(container);
+          if (!isMounted) return;
+
+          // Wait for texture to be ready
+          if (!composedTexture.ready) {
+            await new Promise<void>((resolve) => {
+              composedTexture.addEventListener("ready", () => resolve(), {
+                once: true,
+              });
+            });
+          }
+
+          if (!isMounted) return;
+
+          // Ensure texture is playing (autoplay should handle this, but let's be explicit)
+          if (!composedTexture.isPlaying) {
+            composedTexture.play();
+          }
+
+          setTexture(composedTexture);
+        })
+        .catch((error) => {
+          if (!isMounted) return;
+          console.error(
+            "Failed to load animated texture, falling back to regular texture:",
+            error
+          );
+          const fallbackTexture = new THREE.TextureLoader().load(src!);
+          setTexture(fallbackTexture);
+        });
+    } else {
+      // Load regular texture
+      const regularTexture = new THREE.TextureLoader().load(src!);
+      setTexture(regularTexture);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [src, file, asset?.isAnimated, asset?.id]);
+
+  // Force material update when texture changes (especially for ComposedTexture)
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const composedTexture = texture as any;
+    if (texture && composedTexture.isComposedTexture) {
+      // ComposedTexture updates its canvas, so we need to mark it for update
+      texture.needsUpdate = true;
+      // Also ensure the texture is playing
+      if (!composedTexture.isPlaying) {
+        composedTexture.play();
+      }
+      // Update material when texture changes
+      if (materialRef.current) {
+        materialRef.current.needsUpdate = true;
+      }
+    }
+  }, [texture]);
+
+  // Continuously update ComposedTexture animations and material
+  useFrame((_, delta) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const composedTexture = texture as any;
+    if (texture && composedTexture.isComposedTexture) {
+      // Update the texture animation (delta is in seconds)
+      composedTexture.update(delta);
+      // Ensure material sees texture updates
+      if (texture.needsUpdate && materialRef.current) {
+        materialRef.current.needsUpdate = true;
+      }
+    }
+  });
 
   useEffect(() => {
     return () => {
@@ -82,6 +177,7 @@ const EntityImageComponent = forwardRef<
     <mesh ref={ref} renderOrder={1000}>
       <planeGeometry args={[asset.width!, asset.height!]} />
       <meshBasicMaterial
+        ref={materialRef}
         map={texture}
         side={THREE.DoubleSide}
         transparent={true}
@@ -635,6 +731,13 @@ export function ItemArrangeEditor(props: ItemArrangeEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [canvasKey, setCanvasKey] = useState(0);
+
+  // Load ComposedTexture.js on mount
+  useEffect(() => {
+    loadComposedTexture().catch((error) => {
+      console.warn("Failed to load ComposedTexture.js:", error);
+    });
+  }, []);
 
   // Set up context loss handler manually
   useEffect(() => {

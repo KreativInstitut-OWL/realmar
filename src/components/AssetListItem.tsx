@@ -77,6 +77,14 @@ export const AssetListItem = forwardRef<
                   </Badge>
                 </>
               ) : null}
+              {asset.isAnimated ? (
+                <>
+                  {" "}
+                  <Badge size="sm" variant="secondary">
+                    Animated
+                  </Badge>
+                </>
+              ) : null}
             </div>
 
             <div className="truncate text-gray-11">{asset.type}</div>

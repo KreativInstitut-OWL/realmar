@@ -6,6 +6,7 @@ import {
   FileQuestion,
   FileType2,
   FileVideo,
+  ImagePlay,
   LucideProps,
 } from "lucide-react";
 import { forwardRef } from "react";

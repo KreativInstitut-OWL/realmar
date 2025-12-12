@@ -1,10 +1,11 @@
 import { cn } from "@/lib/utils";
-import { Entity } from "@/store";
+import { Entity, isEntityWithAsset, useAsset } from "@/store";
 import {
   Box,
   EyeOff,
   FileQuestion,
   Image,
+  ImagePlay,
   LucideProps,
   Parentheses,
   SquarePlay,
@@ -27,11 +28,24 @@ export const EntityIcon = forwardRef<
   const type = entity.type;
   const Icon = entityIcon[type] || FileQuestion;
   const editorHidden = entity.editorHidden;
+  const asset = useAsset(isEntityWithAsset(entity) ? entity.assetId : null);
 
   if (editorHidden && showHiddenIcon) {
     return (
       <EyeOff
         ref={ref}
+        className={cn(
+          "size-4 text-gray-11 aria-selected:text-azure-11 shrink-0",
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+
+  if (asset?.isAnimated) {
+    return (
+      <ImagePlay
         className={cn(
           "size-4 text-gray-11 aria-selected:text-azure-11 shrink-0",
           className
