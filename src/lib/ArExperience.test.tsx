@@ -90,7 +90,9 @@ function createExportState({
 describe("ArExperience export markup", () => {
   it("does not inject a deferred scene-load node", () => {
     const html = renderToStaticMarkup(
-      <ArExperience state={createExportState({ autoplay: true, muted: true })} />
+      <ArExperience
+        state={createExportState({ autoplay: true, muted: true })}
+      />,
     );
 
     expect(html).not.toContain("defer-scene-load");
@@ -100,10 +102,12 @@ describe("ArExperience export markup", () => {
     const withAudioHtml = renderToStaticMarkup(
       <ArExperience
         state={createExportState({ autoplay: true, muted: false })}
-      />
+      />,
     );
     const mutedHtml = renderToStaticMarkup(
-      <ArExperience state={createExportState({ autoplay: true, muted: true })} />
+      <ArExperience
+        state={createExportState({ autoplay: true, muted: true })}
+      />,
     );
 
     expect(withAudioHtml).toContain('data-autoplay="true"');
