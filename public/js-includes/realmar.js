@@ -2167,26 +2167,25 @@ document.addEventListener("DOMContentLoaded", () => {
 function initAudioPermission() {
   const splashScreen = document.getElementById("splash-screen");
   const startButton = document.getElementById("start-button");
-  const deferSceneLoadNode = document.getElementById("defer-scene-load");
 
   if (!splashScreen || !startButton) {
-    if (deferSceneLoadNode) {
-      console.log(
-        "No splash screen or start button found, loading scene immediately"
-      );
-      // i don't know why this timeout is needed, but it is
-      // probably some race condition with the scene loading
-      setTimeout(() => {
-        deferSceneLoadNode.load(() => {
-          console.log("Scene loaded without splash screen");
-        });
-      }, 10);
-    }
     return;
   }
 
   // Create audio context - this helps with unlocking audio on iOS
   let audioContext;
+  const shouldEnableAudio = (video) => video.dataset.muted !== "true";
+  const shouldAutoplay = (video) => video.dataset.autoplay === "true";
+
+  const syncVideoPlayback = (video) => {
+    if (shouldEnableAudio(video)) {
+      video.muted = false;
+    }
+
+    if (shouldAutoplay(video) && video.paused) {
+      video.play().catch((e) => console.log("Video play error:", e));
+    }
+  };
 
   // Function to unlock audio
   function unlockAudio() {
@@ -2207,13 +2206,7 @@ function initAudioPermission() {
     // Find all video elements
     const videos = document.querySelectorAll("video");
     videos.forEach((video) => {
-      // Enable audio
-      video.muted = false;
-
-      // If the video should autoplay but was paused due to browser restrictions
-      if (video.hasAttribute("autoplay") && video.paused) {
-        video.play().catch((e) => console.log("Video play error:", e));
-      }
+      syncVideoPlayback(video);
     });
 
     // Set global flag for future videos
@@ -2221,9 +2214,6 @@ function initAudioPermission() {
 
     // Hide splash screen
     splashScreen.style.display = "none";
-
-    // finish loading the scene
-    deferSceneLoadNode.load();
   }
 
   // Add click event listener
@@ -2234,21 +2224,15 @@ function initAudioPermission() {
     if (window.audioPermissionGranted) {
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
-          if (node.tagName === "VIDEO") {
-            node.muted = false;
-            if (node.hasAttribute("autoplay")) {
-              node.play().catch((e) => console.log("Video play error:", e));
-            }
+          if (node instanceof HTMLVideoElement) {
+            syncVideoPlayback(node);
           }
 
           // Check for videos in child elements
           const videos = node.querySelectorAll?.("video");
           if (videos) {
             videos.forEach((video) => {
-              video.muted = false;
-              if (video.hasAttribute("autoplay")) {
-                video.play().catch((e) => console.log("Video play error:", e));
-              }
+              syncVideoPlayback(video);
             });
           }
         });

@@ -26,6 +26,7 @@ function ArExperienceImport({ entity }: { entity: ExportEntity }) {
         src={asset.path}
         loop={entity.loop ? true : undefined}
         data-autoplay={entity.autoplay ? true : undefined}
+        data-muted={entity.muted ? "true" : "false"}
         muted={entity.muted ? true : undefined}
         playsInline={true}
         crossOrigin="anonymous"
