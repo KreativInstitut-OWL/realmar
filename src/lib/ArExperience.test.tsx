@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import * as THREE from "three";
 import { describe, expect, it, vi } from "vitest";
 import { ArExperience } from "./ArExperience";
 import type { ExportAppState, ExportAsset } from "./export";
@@ -13,9 +14,13 @@ vi.mock("./export", () => ({
   assertIsExportEntityWithAsset: () => {},
 }));
 
-const identityTransform = [
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-] as const;
+// prettier-ignore
+const identityTransform: THREE.Matrix4Tuple = [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  0, 0, 0, 1,
+];
 
 const videoAsset: ExportAsset = {
   id: "asset-video-1",
