@@ -149,7 +149,6 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
         );
       })}
 
-      <a-node id="defer-scene-load" />
     </a-scene>
   );
 }
