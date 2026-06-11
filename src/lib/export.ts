@@ -28,7 +28,11 @@ import {
   renderSvgReactNodeToSvgFile,
 } from "./render";
 import compileImageTargets from "./uploadAndCompile";
-import { getFilePathForExport, getTargetPathForExport } from "./utils";
+import {
+  getFilePathForExport,
+  getTargetPathForExport,
+  normalizeZipEntryPath,
+} from "./utils";
 
 export type ExportAsset = Asset & {
   file: File;
@@ -418,9 +422,9 @@ export async function bundleArtifacts(
   try {
     const zip = new JSZip();
 
-    // Add all artifacts to the zip
+    // Add all artifacts to the zip (strip `./` — Windows Explorer ignores those paths)
     for (const [path, blob] of artifacts.entries()) {
-      zip.file(path, blob);
+      zip.file(normalizeZipEntryPath(path), blob);
     }
     // Generate and save the zip
     const content = await zip.generateAsync({ type: "blob" }, (meta) => {

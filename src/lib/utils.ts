@@ -90,6 +90,11 @@ export function getFilePathForExport(fileId: string, fileName: string): string {
   return `files/${fileId}${FILE_ID_NAME_DELIMITER}${fileName}`;
 }
 
+/** Zip entry paths must not use a `./` prefix — Windows Explorer ignores those entries. */
+export function normalizeZipEntryPath(path: string): string {
+  return path.replace(/^\.\//, "");
+}
+
 export function getTargetPathForExport(
   itemIndex: number,
   itemId: string,
