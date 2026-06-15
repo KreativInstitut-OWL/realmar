@@ -42,6 +42,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { Separator } from "./ui/separator";
 import { Switch } from "./ui/switch";
 import { Toggle } from "./ui/toggle";
+import { useLanguage } from "@/LanguageProvider";
 
 export function EntityProperties({
   item,
@@ -70,6 +71,7 @@ export function EntityProperties({
   const { position, rotation, scale } = useDecomposeMatrix4(entity?.transform);
 
   const updateEntity = useUpdateEntity(item?.id, entity?.id);
+  const { t } = useLanguage();
 
   const updateEntityTransform = useCallback(
     (
@@ -99,7 +101,7 @@ export function EntityProperties({
     <div className="grid gap-4">
       {/* Position section */}
       <ControlGroup>
-        <ControlLabel level={2}>Position</ControlLabel>
+        <ControlLabel level={2}>{t("position")}</ControlLabel>
         <ControlRow columns={3}>
           {(["x", "y", "z"] as const).map((component) => (
             <FormControlNumber
@@ -120,7 +122,7 @@ export function EntityProperties({
         </ControlRow>
       </ControlGroup>
       <ControlGroup>
-        <ControlLabel level={2}>Rotation</ControlLabel>
+        <ControlLabel level={2}>{t("rotation")}</ControlLabel>
         <ControlRow
           columns={3}
           // end={
@@ -160,7 +162,7 @@ export function EntityProperties({
       </ControlGroup>
       {/* Scale section */}
       <ControlGroup>
-        <ControlLabel level={2}>Scale</ControlLabel>
+        <ControlLabel level={2}>{t("scale")}</ControlLabel>
         <ControlRow
           columns={3}
           end={
@@ -172,8 +174,8 @@ export function EntityProperties({
                   editorScaleUniformly,
                 });
               }}
-              aria-label="Scale uniformly"
-              tooltip="Scale uniformly"
+              aria-label={t("scaleUniformly")}
+              tooltip={t("scaleUniformly")}
             >
               {entity.editorScaleUniformly ? <Link2 /> : <Unlink2 />}
             </Toggle>
@@ -198,6 +200,25 @@ export function EntityProperties({
           ))}
         </ControlRow>
       </ControlGroup>
+      
+      <Separator />
+      <ControlGroup>
+        <ControlLabel level={2}>{t("hoverText")}</ControlLabel>
+        <FormItem asChild>
+          <ControlRow columns={3}>
+            <FormLabel className="col-span-1">{t("hoverText")}</FormLabel>
+            <FormControl className="col-span-2">
+              <Textarea
+                value={entity.hoverText || ""}
+                onChange={(e) => {
+                  updateEntity({ hoverText: e.target.value });
+                }}
+                placeholder={t("hoverText")}
+              />
+            </FormControl>
+          </ControlRow>
+        </FormItem>
+      </ControlGroup>
       {/*
       
   font: SystemFont;
@@ -214,24 +235,24 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>Text Properties</ControlLabel>
+            <ControlLabel level={2}>{t("textProperties")}</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel>Text</FormLabel>
+                <FormLabel>{t("text")}</FormLabel>
                 <FormControl className="col-span-2">
                   <Textarea
                     value={entity.text}
                     onChange={(e) => {
                       updateEntity({ text: e.target.value });
                     }}
-                    placeholder="Enter text"
+                    placeholder={t("enterText")}
                   />
                 </FormControl>
               </ControlRow>
             </FormItem>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel>Font</FormLabel>
+                <FormLabel>{t("font")}</FormLabel>
                 <Select
                   value={
                     isAssetFont(entity.font)
@@ -255,7 +276,7 @@ export function EntityProperties({
                 >
                   <FormControl className="col-span-2">
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select font" />
+                      <SelectValue placeholder={t("selectFont")} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -283,7 +304,7 @@ export function EntityProperties({
             </FormItem>
             <ControlRow columns={3}>
               <FormControlNumber
-                description="Font Size"
+                description={t("fontSize")}
                 label={<ALargeSmall />}
                 step={0.01}
                 min={0.01}
@@ -298,7 +319,7 @@ export function EntityProperties({
                 }
               />
               <FormControlNumber
-                description="Letter Spacing"
+                description={t("letterSpacing")}
                 label={<SeparatorVertical />}
                 step={0.01}
                 min={-5}
@@ -315,7 +336,7 @@ export function EntityProperties({
               />
 
               <FormControlNumber
-                description="Line Height"
+                description={t("lineHeight")}
                 label={<SeparatorHorizontal />}
                 step={0.1}
                 min={0}
@@ -332,7 +353,7 @@ export function EntityProperties({
             </ControlRow>
             <ControlRow columns={3}>
               <FormControlNumber
-                description="Extrude"
+                description={t("extrude")}
                 label={<MoveDiagonal />}
                 step={0.01}
                 min={0}
@@ -347,7 +368,7 @@ export function EntityProperties({
                 }
               />
               <FormControlNumber
-                description="Bevel Size"
+                description={t("bevelSize")}
                 label={<SquareRoundCorner />}
                 step={0.001}
                 min={0}
@@ -385,7 +406,7 @@ export function EntityProperties({
                 onColorChange={(color) => {
                   updateEntity({ color });
                 }}
-                label="Text Color"
+                label={t("textColor")}
               />
             </ControlRow>
           </ControlGroup>
@@ -396,10 +417,10 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>3D Model Properties</ControlLabel>
+            <ControlLabel level={2}>{t("modelProperties")}</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel className="col-span-2">Play animation</FormLabel>
+                <FormLabel className="col-span-2">{t("playAnimation")}</FormLabel>
                 <FormControl>
                   <Switch
                     onCheckedChange={(playAnimation) => {
@@ -418,10 +439,10 @@ export function EntityProperties({
         <>
           <Separator />
           <ControlGroup>
-            <ControlLabel level={2}>Video Properties</ControlLabel>
+            <ControlLabel level={2}>{t("videoProperties")}</ControlLabel>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel className="col-span-2">Autoplay</FormLabel>
+                <FormLabel className="col-span-2">{t("autoplay")}</FormLabel>
                 <FormControl>
                   <Switch
                     onCheckedChange={(autoplay) => {
@@ -434,7 +455,7 @@ export function EntityProperties({
             </FormItem>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel className="col-span-2">Muted</FormLabel>
+                <FormLabel className="col-span-2">{t("muted")}</FormLabel>
                 <FormControl>
                   <Switch
                     onCheckedChange={(muted) => {
@@ -447,7 +468,7 @@ export function EntityProperties({
             </FormItem>
             <FormItem asChild>
               <ControlRow columns={3}>
-                <FormLabel className="col-span-2">Loop</FormLabel>
+                <FormLabel className="col-span-2">{t("loop")}</FormLabel>
                 <FormControl>
                   <Switch
                     onCheckedChange={(loop) => {
@@ -465,10 +486,10 @@ export function EntityProperties({
       <>
         <Separator />
         <ControlGroup>
-          <ControlLabel level={2}>Float</ControlLabel>
+          <ControlLabel level={2}>{t("float")}</ControlLabel>
           <FormItem asChild>
             <ControlRow columns={3}>
-              <FormLabel className="col-span-2">Enable Float</FormLabel>
+              <FormLabel className="col-span-2">{t("enableFloat")}</FormLabel>
               <FormControl>
                 <Switch
                   onCheckedChange={(enabled) => {

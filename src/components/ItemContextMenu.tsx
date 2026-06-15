@@ -18,6 +18,7 @@ import {
   ArrowUpToLine,
 } from "lucide-react";
 import { forwardRef } from "react";
+import { useLanguage } from "@/LanguageProvider";
 
 export const ItemContextMenu = forwardRef<
   HTMLSpanElement,
@@ -29,6 +30,7 @@ export const ItemContextMenu = forwardRef<
   const setItem = useStore((state) => state.setItem);
   const moveItem = useStore((state) => state.moveItem);
   const items = useStore((state) => state.items);
+  const { t } = useLanguage();
 
   const itemIndex = items.findIndex((i) => i.id === item.id);
 
@@ -41,27 +43,25 @@ export const ItemContextMenu = forwardRef<
         <ContextMenuItem
           onSelect={() => {
             if (
-              confirm(
-                "Are you sure you want to delete this item and all its entities?"
-              )
+              confirm(t("deleteItemWarning"))
             ) {
               removeItem(item.id);
             }
           }}
         >
-          Delete
+          {t("delete")}
         </ContextMenuItem>
         <ContextMenuItem
           onSelect={() => {
             const oldName = item.name;
-            const newName = prompt("Enter a new name", oldName || "");
+            const newName = prompt(t("enterNewName"), oldName || "");
             setItem(item.id, { name: newName || null });
           }}
         >
-          Rename
+          {t("rename")}
         </ContextMenuItem>
         <ContextMenuSub>
-          <ContextMenuSubTrigger>Move</ContextMenuSubTrigger>
+          <ContextMenuSubTrigger>{t("move")}</ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             <ContextMenuItem
               disabled={itemIndex === 0}
@@ -70,7 +70,7 @@ export const ItemContextMenu = forwardRef<
               }}
             >
               <ArrowUpToLine className="size-4 mr-2" />
-              To start
+              {t("toStart")}
             </ContextMenuItem>
             <ContextMenuItem
               disabled={itemIndex === 0}
@@ -79,7 +79,7 @@ export const ItemContextMenu = forwardRef<
               }}
             >
               <ArrowUp className="size-4 mr-2" />
-              Up
+              {t("up")}
             </ContextMenuItem>
             <ContextMenuItem
               disabled={itemIndex === item.entities.length - 1}
@@ -88,7 +88,7 @@ export const ItemContextMenu = forwardRef<
               }}
             >
               <ArrowDown className="size-4 mr-2" />
-              Down
+              {t("down")}
             </ContextMenuItem>
             <ContextMenuItem
               disabled={itemIndex === item.entities.length - 1}
@@ -97,7 +97,7 @@ export const ItemContextMenu = forwardRef<
               }}
             >
               <ArrowDownToLine className="size-4 mr-2" />
-              To end
+              {t("toEnd")}
             </ContextMenuItem>
           </ContextMenuSubContent>
         </ContextMenuSub>

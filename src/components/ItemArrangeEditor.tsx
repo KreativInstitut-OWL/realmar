@@ -37,6 +37,7 @@ import {
   PivotControls,
   Text3D,
   useVideoTexture,
+  Html,
 } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -619,7 +620,18 @@ function TransformableEntity({
   );
 
   return (
-    <group onClick={() => onSelect()}>
+    <group 
+      onClick={() => onSelect()}
+      onPointerOver={(e) => { e.stopPropagation(); setIsDragging(true); }}
+      onPointerOut={() => { setIsDragging(false); }}
+    >
+      {entity.hoverText && isDragging && (
+        <Html center position={[0, 0.5, 0]}>
+          <div className="bg-black/80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm pointer-events-none whitespace-nowrap shadow-md">
+            {entity.hoverText}
+          </div>
+        </Html>
+      )}
       <PivotControls
         scale={0.5}
         matrix={matrixRef.current}

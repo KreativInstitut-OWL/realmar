@@ -27,6 +27,7 @@ import {
 import { forwardRef } from "react";
 import { ItemPreview } from "./ItemPreview";
 import { Badge } from "./ui/badge";
+import { useLanguage } from "@/LanguageProvider";
 
 export const ItemEntityContextMenu = forwardRef<
   HTMLSpanElement,
@@ -45,6 +46,7 @@ export const ItemEntityContextMenu = forwardRef<
     (state) => state.sendItemEntitiesToItem
   );
   const items = useStore((state) => state.items);
+  const { t } = useLanguage();
 
   const isMultipleSelected = selectedEntityIds.length > 1;
 
@@ -54,7 +56,7 @@ export const ItemEntityContextMenu = forwardRef<
       <ContextMenuContent className="w-48">
         <ContextMenuLabel className="flex items-center gap-2">
           <div className="flex-1 truncate min-w-0">
-            {entity?.name ?? "Unknown entity"}{" "}
+            {entity?.name ?? t("unknownEntity")}{" "}
           </div>
           {isMultipleSelected ? (
             <Badge>+{selectedEntityIds.length - 1}</Badge>
@@ -70,7 +72,7 @@ export const ItemEntityContextMenu = forwardRef<
             }}
           >
             {entity.editorHidden ? <Eye /> : <EyeOff />}
-            {entity.editorHidden ? "Show in editor" : "Hide in editor"}
+            {entity.editorHidden ? t("showInEditor") : t("hideInEditor")}
           </ContextMenuItem>
         ) : null}
         <ContextMenuItem
@@ -80,8 +82,8 @@ export const ItemEntityContextMenu = forwardRef<
         >
           <Trash2 />
           {isMultipleSelected
-            ? `Remove ${selectedEntityIds.length} entities`
-            : "Remove"}
+            ? t("removeMultipleEntities", selectedEntityIds.length)
+            : t("remove")}
         </ContextMenuItem>
         {!isMultipleSelected && (
           <ContextMenuItem
@@ -98,7 +100,7 @@ export const ItemEntityContextMenu = forwardRef<
             }}
           >
             <CopyPlus />
-            Duplicate
+            {t("duplicate")}
           </ContextMenuItem>
         )}
         {!isMultipleSelected && (
@@ -106,21 +108,21 @@ export const ItemEntityContextMenu = forwardRef<
             disabled={isMultipleSelected}
             onSelect={() => {
               const oldName = entity.name;
-              const newName = prompt("Enter a new name", oldName);
+              const newName = prompt(t("enterNewName"), oldName);
               if (newName) {
                 setItemEntity(item.id, entity.id, { name: newName });
               }
             }}
           >
             <Pencil />
-            Rename
+            {t("rename")}
           </ContextMenuItem>
         )}
         {!isMultipleSelected && (
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <ArrowUpDown />
-              Move
+              {t("move")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
               <ContextMenuItem
@@ -130,7 +132,7 @@ export const ItemEntityContextMenu = forwardRef<
                 }}
               >
                 <ArrowUpToLine />
-                To start
+                {t("toStart")}
               </ContextMenuItem>
               <ContextMenuItem
                 disabled={entityIndex === 0}
@@ -139,7 +141,7 @@ export const ItemEntityContextMenu = forwardRef<
                 }}
               >
                 <ArrowUp />
-                Up
+                {t("up")}
               </ContextMenuItem>
               <ContextMenuItem
                 disabled={entityIndex === item.entities.length - 1}
@@ -148,7 +150,7 @@ export const ItemEntityContextMenu = forwardRef<
                 }}
               >
                 <ArrowDown />
-                Down
+                {t("down")}
               </ContextMenuItem>
               <ContextMenuItem
                 disabled={entityIndex === item.entities.length - 1}
@@ -161,7 +163,7 @@ export const ItemEntityContextMenu = forwardRef<
                 }}
               >
                 <ArrowDownToLine />
-                To end
+                {t("toEnd")}
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
@@ -170,7 +172,7 @@ export const ItemEntityContextMenu = forwardRef<
           <ContextMenuSub>
             <ContextMenuSubTrigger>
               <Forward />
-              Send to marker
+              {t("sendToMarker")}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="w-48">
               {items.map((otherItem) => (

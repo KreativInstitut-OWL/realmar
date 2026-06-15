@@ -14,6 +14,7 @@ import { useState } from "react";
 import { AssetDropzone } from "./AssetDropzone";
 import { AssetList } from "./AssetList";
 import { Button } from "./ui/button";
+import { useLanguage } from "@/LanguageProvider";
 
 export default function ItemAddAssetEntitiesDialog({
   children,
@@ -28,13 +29,14 @@ export default function ItemAddAssetEntitiesDialog({
   );
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const { t } = useLanguage();
 
   return (
     <Dialog>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Asset Entities to Marker</DialogTitle>
+          <DialogTitle>{t("addAssetEntitiesToMarker")}</DialogTitle>
           <DialogDescription></DialogDescription>
           <DialogCloseX />
         </DialogHeader>
@@ -48,10 +50,7 @@ export default function ItemAddAssetEntitiesDialog({
             />
           </div>
           <p className="text-sm text-gray-11 -mb-6 max-w-prose">
-            Select the assets you want to add to the marker and then click "Add
-            assets" to add them to the marker as entities. You can select
-            multiple assets by holding the Ctrl (Windows) or Command (Mac) key
-            while clicking on them.
+            {t("selectAssetsInstruction")}
           </p>
           <AssetList
             selectedIds={selectedIds}
@@ -62,7 +61,7 @@ export default function ItemAddAssetEntitiesDialog({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="ghost">
-              Cancel
+              {t("cancel")}
             </Button>
           </DialogClose>
           <DialogClose asChild>
@@ -81,11 +80,10 @@ export default function ItemAddAssetEntitiesDialog({
             >
               {selectedIds.length > 0 ? (
                 <>
-                  Add {selectedIds.length}{" "}
-                  {selectedIds.length === 1 ? "asset" : "assets"}
+                  {t("addMultipleAssets", selectedIds.length)}
                 </>
               ) : (
-                <>Select asset(s) to add</>
+                <>{t("selectAssetsToAdd")}</>
               )}
             </Button>
           </DialogClose>

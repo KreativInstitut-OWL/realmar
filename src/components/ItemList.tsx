@@ -13,6 +13,7 @@ import {
   SidebarMenuSubItem,
 } from "./ui/sidebar";
 import { DragHandle, Sortable } from "./ui/sortable";
+import { useLanguage } from "@/LanguageProvider";
 
 export const ItemListList = React.forwardRef<
   React.ElementRef<typeof SidebarMenuSub>,
@@ -57,6 +58,7 @@ const ItemListTabsTrigger = React.forwardRef<
   );
   const editorSetCurrentView = useStore((state) => state.setEditorCurrentView);
   const item = useItem(itemId);
+  const { t } = useLanguage();
   if (!item) return null;
 
   return (
@@ -76,7 +78,7 @@ const ItemListTabsTrigger = React.forwardRef<
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Drag item"
+              aria-label={t("dragItem")}
               className="ml-auto"
             >
               <GripHorizontal />
@@ -91,6 +93,7 @@ const ItemListTabsTrigger = React.forwardRef<
 export const ItemListSelectedItemContent = () => {
   const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
   const itemCount = useStore((state) => state.items.length);
+  const { t } = useLanguage();
 
   if (itemCount === 0) {
     return (
@@ -101,7 +104,7 @@ export const ItemListSelectedItemContent = () => {
             useStore.getState().addItem(true);
           }}
         >
-          <Plus /> Add your first marker
+          <Plus /> {t("addFirstMarker")}
         </Button>
       </SplashScreen>
     );
@@ -111,9 +114,9 @@ export const ItemListSelectedItemContent = () => {
     return (
       <div className="h-full w-full grid place-items-center">
         <div className="text-gray-11 text-center">
-          No item selected.
+          {t("noItemSelected")}
           <br />
-          Select an item from the list to view and edit its properties.
+          {t("selectItemToEdit")}
         </div>
       </div>
     );

@@ -1,4 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { useLanguage } from "@/LanguageProvider";
 import {
   Dropzone,
   DropzoneDragAcceptContent,
@@ -14,6 +17,8 @@ export function ItemTarget() {
     (state) => state.setItemTargetFromFile
   );
   const removeItemTarget = useStore((state) => state.removeItemTarget);
+  const setItem = useStore((state) => state.setItem);
+  const { t } = useLanguage();
 
   const asset = useAsset(item?.targetAssetId);
 
@@ -35,7 +40,7 @@ export function ItemTarget() {
             <ImagePlusIcon className="size-5" />
           </div>
           <DropzoneDragAcceptContent className="grid aspect-square place-items-center absolute inset-0 bg-gray-1/70 backdrop-blur-xs">
-            Replace marker…
+            {t("replaceMarker")}
           </DropzoneDragAcceptContent>
         </Dropzone>
       </DropzoneProvider>
@@ -50,14 +55,27 @@ export function ItemTarget() {
         >
           <XIcon />
           <span>
-            Remove{" "}
+            {t("remove")}{" "}
             <span className="max-w-12 truncate inline-block align-bottom">
               {asset.originalBasename}
             </span>
-            .{asset.originalExtension} as marker
+            .{asset.originalExtension} {t("asMarker")}
           </span>
         </Button>
       ) : null}
+
+      <FormItem className="mt-4 flex flex-row items-center justify-between rounded-lg border p-4">
+        <div className="space-y-0.5">
+          <FormLabel>{t("freezeTracking")}</FormLabel>
+          <div className="text-sm text-gray-11">{t("freezeTracking_desc")}</div>
+        </div>
+        <FormControl>
+          <Switch
+            checked={!!item.freezeOnLost}
+            onCheckedChange={(checked) => setItem(item.id, { freezeOnLost: checked })}
+          />
+        </FormControl>
+      </FormItem>
     </div>
   );
 }

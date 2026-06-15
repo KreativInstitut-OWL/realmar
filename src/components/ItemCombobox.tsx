@@ -4,6 +4,7 @@ import * as React from "react";
 import { ItemPreview } from "./ItemPreview";
 import { Combobox, ComboboxTriggerButton } from "./ui/combobox";
 import { CommandGroup, CommandItem, CommandSeparator } from "./ui/command";
+import { useLanguage } from "@/LanguageProvider";
 
 export function ItemComboboxEditorCurrentItem() {
   const editorCurrentItemId = useStore((state) => state.editorCurrentItemId);
@@ -11,6 +12,7 @@ export function ItemComboboxEditorCurrentItem() {
     (state) => state.setEditorCurrentItemId
   );
   const addItem = useStore((state) => state.addItem);
+  const { t } = useLanguage();
 
   return (
     <ItemCombobox
@@ -30,7 +32,7 @@ export function ItemComboboxEditorCurrentItem() {
               }}
             >
               <Plus className="size-4" />
-              Add Marker
+              {t("addMarker")}
             </CommandItem>
           </CommandGroup>
         </>
@@ -53,6 +55,7 @@ export function ItemCombobox({
   disabledItemIds?: Map<string, string>;
 }) {
   const items = useStore((state) => state.items);
+  const { t } = useLanguage();
 
   return (
     <Combobox
@@ -67,8 +70,8 @@ export function ItemCombobox({
         disabled: disabledItemIds?.has(item.id),
         value: item.id,
       }))}
-      empty="No marker found."
-      inputPlaceholder="Search marker..."
+      empty={t("noMarkerFound")}
+      inputPlaceholder={t("searchMarker")}
       {...props}
     />
   );
@@ -77,10 +80,11 @@ export function ItemCombobox({
 export function ItemComboboxTrigger(
   props: React.ComponentProps<typeof ComboboxTriggerButton>
 ) {
+  const { t } = useLanguage();
   return (
     <ComboboxTriggerButton
-      aria-label="Choose Marker"
-      noValue="Choose Marker..."
+      aria-label={t("chooseMarker")}
+      noValue={t("chooseMarkerPlaceholder")}
       {...props}
     />
   );

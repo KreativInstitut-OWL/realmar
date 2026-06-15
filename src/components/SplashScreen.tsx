@@ -3,6 +3,7 @@ import * as React from "react";
 import { RealmArLogo } from "./RealmArLogo";
 import { cn } from "@/lib/utils";
 import { Badge } from "./ui/badge";
+import { useLanguage } from "@/LanguageProvider";
 
 const VERSION = "1.0";
 const VERSION_TAG = "Beta";
@@ -14,6 +15,7 @@ export const SplashScreen = ({
   children?: React.ReactNode;
   className?: string;
 }) => {
+  const { t } = useLanguage();
   return (
     <div
       className={cn(
@@ -33,7 +35,7 @@ export const SplashScreen = ({
             </Badge>
           </div>
           <p className="text-lg">
-            Create Augmented and Extended Reality experiences with{" "}
+            {t("splashScreenTitle")}{" "}
             <RealmArLogo inline />.
           </p>
         </div>
@@ -44,16 +46,14 @@ export const SplashScreen = ({
           })}
         >
           <p className="text-sm">
-            All data stays local in your browser and can be saved at any time:
-            nothing is stored on our servers.
+            {t("splashScreenDataPrivacy")}
             <br />
-            Export your AR project as an A-Frame-powered web app to continue
-            editing and host it anywhere.
+            {t("splashScreenExport")}
           </p>
           <p className="text-sm">
-            Made with{" "}
+            {t("madeWith")}{" "}
             <Heart className="size-3.5 inline -translate-y-0.5 fill-ruby-9 text-ruby-9" />
-            <span className="sr-only">love</span> in Germany by{" "}
+            <span className="sr-only">{t("love")}</span> {t("inGermanyBy")}{" "}
             <a
               href="https://kreativ.institute"
               target="_blank"

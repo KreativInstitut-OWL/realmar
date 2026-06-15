@@ -8,6 +8,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { AlertDialogCancel } from "@radix-ui/react-alert-dialog";
+import { useLanguage } from "@/LanguageProvider";
 
 export default function AlertDialogConfirmRemove({
   onConfirm,
@@ -18,15 +19,16 @@ export default function AlertDialogConfirmRemove({
   onCancel: () => void;
   open: boolean;
 }) {
+  const { t } = useLanguage();
   return (
     <AlertDialog open={open}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Do you really want to remove this item?
+            {t("confirmRemoveItem")}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This action is irreversible.
+            {t("actionIrreversible")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -35,14 +37,14 @@ export default function AlertDialogConfirmRemove({
               onCancel();
             }}
           >
-            Cancel
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
               onConfirm();
             }}
           >
-            Remove item
+            {t("removeItem")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

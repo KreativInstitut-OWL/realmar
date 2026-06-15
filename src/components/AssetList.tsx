@@ -7,6 +7,7 @@ import { AssetListItem, AssetListItemDragOverlay } from "./AssetListItem";
 import { Sortable } from "./ui/sortable";
 import { Input } from "./ui/input";
 import Fuse from "fuse.js";
+import { useLanguage } from "@/LanguageProvider";
 
 export function AssetList({
   selectedIds: selectedIdsProp,
@@ -23,6 +24,7 @@ export function AssetList({
 }) {
   const assets = useStore((state) => state.assets);
   const moveAssets = useStore((state) => state.moveAssets);
+  const { t } = useLanguage();
 
   const [selectedIds = [], setSelectedIds] = useControllableState<string[]>({
     prop: selectedIdsProp,
@@ -83,7 +85,7 @@ export function AssetList({
     <div>
       <Input
         type="search"
-        placeholder="Search assets…"
+        placeholder={t("searchAssets")}
         className="mb-2 w-64"
         value={filterValue}
         onChange={(event) => {
@@ -160,7 +162,7 @@ export function AssetList({
         <div className={cn(className)}>
           <div className="w-full bg-gray-1 h-9 flex items-center justify-center">
             <div className="text-gray-11 text-sm text-center">
-              No assets found matching your search.
+              {t("noAssetsFound")}
             </div>
           </div>
         </div>
@@ -170,8 +172,7 @@ export function AssetList({
     <div className={cn(className)}>
       <div className="w-full bg-gray-1 h-9 flex items-center justify-center">
         <div className="text-gray-11 text-sm text-center">
-          Add assets to your project by dragging them to the dropzone above or
-          by clicking it to select files.
+          {t("addAssetsPrompt")}
         </div>
       </div>
     </div>

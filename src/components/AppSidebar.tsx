@@ -9,6 +9,7 @@ import {
   Save,
   Sun,
   Trash2,
+  Languages,
 } from "lucide-react";
 import * as React from "react";
 
@@ -37,10 +38,18 @@ import { EditableText } from "./ui/editable-text";
 import { Separator } from "./ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { RealmArLogo } from "./RealmArLogo";
+import { useLanguage } from "@/LanguageProvider";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // const { setOpen } = useSidebar();
   const projectName = useStore((state) => state.projectName);
+  const { t } = useLanguage();
 
   return (
     <Sidebar collapsible="icon" className="overflow-hidden flex-row" {...props}>
@@ -70,8 +79,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 onChange={(value) => {
                   useStore.getState().setProjectName(value || null);
                 }}
-                placeholder="Untitled Project"
-                tooltip="Click to change project name"
+                placeholder={t("untitledProject")}
+                tooltip={t("clickToChangeProjectName")}
               />
             </div>
           </SidebarMenuItem>
@@ -90,68 +99,71 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <ExportDialog>
               <SidebarMenuButton
-                tooltip={{ children: "Export" }}
+                tooltip={{ children: t("export") }}
                 className="px-2.5 md:px-2"
               >
                 <ArrowRightToLine />
-                Export
+                {t("export")}
               </SidebarMenuButton>
             </ExportDialog>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SaveDialog>
               <SidebarMenuButton
-                tooltip={{ children: "Save" }}
+                tooltip={{ children: t("save") }}
                 className="px-2.5 md:px-2"
               >
                 <Save />
-                Save
+                {t("save")}
               </SidebarMenuButton>
             </SaveDialog>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={{ children: "Load" }}
+              tooltip={{ children: t("load") }}
               className="px-2.5 md:px-2"
               onClick={() => {
                 loadFromFile();
               }}
             >
               <FolderOpen />
-              Load
+              {t("load")}
             </SidebarMenuButton>
           </SidebarMenuItem>
 
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={{ children: "Merge Into Project" }}
+              tooltip={{ children: t("mergeIntoProject") }}
               className="px-2.5 md:px-2"
               onClick={() => {
                 mergeFromFile();
               }}
             >
               <Merge />
-              Merge Into Project
+              {t("mergeIntoProject")}
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              tooltip={{ children: "Reset" }}
+              tooltip={{ children: t("reset") }}
               className="px-2.5 md:px-2"
               onClick={() => {
                 if (
-                  confirm("Resetting will delete all your data. Are you sure?")
+                  confirm(t("resetWarning"))
                 ) {
                   useStore.getState().reset();
                 }
               }}
             >
               <Trash2 />
-              Reset
+              {t("reset")}
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <ColorSchemeMenuButton />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <LanguageMenuButton />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
@@ -161,18 +173,54 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
 function ColorSchemeMenuButton() {
   const [colorScheme, setColorScheme] = useColorScheme();
+  const { t } = useLanguage();
 
   return (
     <SidebarMenuButton
-      tooltip={{ children: "Color Scheme" }}
+      tooltip={{ children: t("colorScheme") }}
       className="px-2.5 md:px-2"
       onClick={() => {
         setColorScheme(colorScheme === "dark" ? "light" : "dark");
       }}
     >
       {colorScheme === "dark" ? <MoonStar /> : <Sun />}
-      <span>Switch Color Scheme</span>
+      <span>{t("switchColorScheme")}</span>
     </SidebarMenuButton>
+  );
+}
+
+function LanguageMenuButton() {
+  const { language, setLanguage } = useLanguage();
+
+  const langs = {
+    en: "English",
+    de: "Deutsch",
+    es: "Español",
+    fr: "Français",
+    ar: "العربية",
+    hi: "हिन्दी",
+    zh: "中文",
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <SidebarMenuButton
+          tooltip={{ children: "Change Language / Sprache ändern" }}
+          className="px-2.5 md:px-2"
+        >
+          <Languages />
+          <span>{langs[language as keyof typeof langs] || "Language"}</span>
+        </SidebarMenuButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent side="right" align="start">
+        {Object.entries(langs).map(([code, name]) => (
+          <DropdownMenuItem key={code} onClick={() => setLanguage(code)}>
+            {name}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -181,14 +229,15 @@ function AppSidebarMenu() {
   const setEditorCurrentView = useStore((state) => state.setEditorCurrentView);
   const addItem = useStore((state) => state.addItem);
   const { state } = useSidebar();
+  const { t } = useLanguage();
 
   return (
     <SidebarMenu>
       {(Object.entries(editorView) as [EditorView, string][]).map(
-        ([key, label]) => (
+        ([key]) => (
           <SidebarMenuItem key={key}>
             <SidebarMenuButton
-              tooltip={{ children: label }}
+              tooltip={{ children: t(`view_${key}`) }}
               onClick={() => {
                 setEditorCurrentView(key);
               }}
@@ -199,14 +248,14 @@ function AppSidebarMenu() {
               className="px-2.5 md:px-2"
             >
               {editorViewIcon[key]}
-              <span>{label}</span>
+              <span>{t(`view_${key}`)}</span>
             </SidebarMenuButton>
 
             {key === "items" && (
               <>
                 <SidebarMenuAction onClick={() => addItem()}>
                   <Plus />
-                  <span className="sr-only">Add Marker</span>
+                  <span className="sr-only">{t("addMarker")}</span>
                 </SidebarMenuAction>
                 <ItemListList />
               </>

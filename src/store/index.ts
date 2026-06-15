@@ -219,6 +219,7 @@ export type EntityBase = {
   id: string;
   name: string;
   transform: THREE.Matrix4Tuple;
+  hoverText?: string;
 
   // realmar aframe components
   components: ComponentMap;
@@ -531,6 +532,7 @@ export type Item = {
   name: string | null;
   itemDependencyId: string | null;
   displayMode: "gallery" | "scene";
+  freezeOnLost?: boolean;
   link: { url: string; title: string; enabled: boolean } | null;
 
   // editor state (these have no effect for the export)

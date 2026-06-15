@@ -134,6 +134,7 @@ function ArExperienceScene({ items }: { items: ExportAppState["items"] }) {
             {...(item.itemDependencyId !== null
               ? { "realmar-depends-on": `#item_${item.itemDependencyId}` }
               : {})}
+            {...(item.freezeOnLost ? { "realmar-freeze": "" } : {})}
             {...linkAttrs}
           >
             {item.entities.map((entity, entityIndex) => (

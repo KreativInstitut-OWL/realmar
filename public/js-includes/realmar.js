@@ -1448,9 +1448,75 @@ AFRAME.components["mindar-image-target"].updateWorldMatrix = function (
     console.warn("Not showing target due to realmar-depends-on");
     worldMatrix = null;
   }
+  
+  if (this.el.hasAttribute("realmar-freeze")) {
+    if (worldMatrix !== null) {
+      this._lastWorldMatrix = worldMatrix;
+    } else if (this._lastWorldMatrix) {
+      worldMatrix = this._lastWorldMatrix;
+    }
+  }
+  
   originalUpdateWorldMatrix.call(this, worldMatrix);
 };
 // #endregion mindar-image-target
+
+// #region hover-tooltip
+AFRAME.registerComponent("realmar-hover-tooltip", {
+  schema: {
+    text: { type: "string" }
+  },
+  init: function () {
+    this.el.classList.add("clickable");
+    
+    this.tooltip = document.createElement("div");
+    this.tooltip.className = "realmar-tooltip";
+    this.tooltip.innerText = this.data.text;
+    this.tooltip.style.display = "none";
+    document.body.appendChild(this.tooltip);
+
+    if (!window.realmarMousePos) {
+      window.realmarMousePos = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+      window.addEventListener('mousemove', (e) => {
+        window.realmarMousePos.x = e.clientX;
+        window.realmarMousePos.y = e.clientY;
+      });
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          window.realmarMousePos.x = e.touches[0].clientX;
+          window.realmarMousePos.y = e.touches[0].clientY;
+        }
+      });
+    }
+
+    this.onMouseEnter = () => {
+      this.tooltip.style.display = "block";
+      this.isHovered = true;
+    };
+
+    this.onMouseLeave = () => {
+      this.tooltip.style.display = "none";
+      this.isHovered = false;
+    };
+
+    this.el.addEventListener("mouseenter", this.onMouseEnter);
+    this.el.addEventListener("mouseleave", this.onMouseLeave);
+  },
+  tick: function() {
+    if (this.isHovered) {
+      this.tooltip.style.left = (window.realmarMousePos.x + 15) + "px";
+      this.tooltip.style.top = (window.realmarMousePos.y + 15) + "px";
+    }
+  },
+  remove: function () {
+    this.el.removeEventListener("mouseenter", this.onMouseEnter);
+    this.el.removeEventListener("mouseleave", this.onMouseLeave);
+    if (this.tooltip.parentNode) {
+      this.tooltip.parentNode.removeChild(this.tooltip);
+    }
+  }
+});
+// #endregion hover-tooltip
 
 // #region float
 

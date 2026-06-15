@@ -7,21 +7,23 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Progress } from "./ui/progress";
 import { useStore } from "@/store";
+import { useLanguage } from "@/LanguageProvider";
 
 function ExportDialog({ children }: { children: React.ReactNode }) {
   const [progress, setProgress] = useState<ProgressUpdate>(defaultProgress);
   const hasItems = useStore((state) => state.items.length > 0);
+  const { t } = useLanguage();
 
   const mutation = useMutation({
     mutationKey: ["export"],
     mutationFn: createExport,
     onSuccess(data) {
       if (data) {
-        toast.success(`Export saved as ${data}`);
+        toast.success(t("exportSuccess", data));
       }
     },
     onError(error) {
-      toast.error("Export failed");
+      toast.error(t("exportFailed"));
       console.error(error);
     },
   });
@@ -42,7 +44,7 @@ function ExportDialog({ children }: { children: React.ReactNode }) {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {progress.stage === "compile" ? `Compiling…` : "Bundling…"} (
+            {progress.stage === "compile" ? t("compiling") : t("bundling")} (
             {new Intl.NumberFormat(undefined, {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,

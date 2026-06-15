@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useLanguage } from "@/LanguageProvider";
 
 export function ItemAddEntityDropdownMenu({
   children,
@@ -15,6 +16,7 @@ export function ItemAddEntityDropdownMenu({
   children: React.ReactNode;
   item: Item;
 }) {
+  const { t } = useLanguage();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
@@ -26,7 +28,7 @@ export function ItemAddEntityDropdownMenu({
             }}
           >
             <FileStack />
-            Asset(s)
+            {t("assets")}
           </DropdownMenuItem>
         </ItemAddAssetEntitiesDialog>
         <DropdownMenuItem
@@ -37,7 +39,7 @@ export function ItemAddEntityDropdownMenu({
           }}
         >
           <Text />
-          Text
+          {t("text")}
         </DropdownMenuItem>
         {/* <DropdownMenuItem
                               onClick={() => {

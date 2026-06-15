@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ImagePlusIcon } from "lucide-react";
 import { toast } from "sonner";
+import { useLanguage } from "@/LanguageProvider";
 
 export function AssetDropzone({
   className,
@@ -15,13 +16,14 @@ export function AssetDropzone({
 }: React.ComponentProps<typeof Dropzone> & {
   onFiles: (files: File[]) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <DropzoneProvider
       // accept={{ "image/*": [], "model/*": [".glb"] }}
       onDrop={(files, fileRejections) => {
         if (fileRejections.length > 0) {
           toast.error(
-            "Some files were not accepted. Please check the file types."
+            t("filesNotAccepted")
           );
           return;
         }
@@ -33,15 +35,14 @@ export function AssetDropzone({
         <DropzoneContent className="text-sm">
           <ImagePlusIcon className="size-4 mb-4" />
           <div>
-            Add one or more assets by dropping them here or click to select
-            files.
+            {t("dropFilesInstruction")}
           </div>
           <div className="text-gray-11">
-            Supported file types: images, videos and 3D models (*.glb)
+            {t("supportedFileTypes")}
           </div>
         </DropzoneContent>
         <DropzoneDragAcceptContent>
-          Drop files here to add them your project…
+          {t("dropFilesHere")}
         </DropzoneDragAcceptContent>
       </Dropzone>
     </DropzoneProvider>

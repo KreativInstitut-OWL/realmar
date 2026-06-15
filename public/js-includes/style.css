@@ -40,6 +40,7 @@ a-scene {
 
 button, #link-button {
   padding-inline: 1rem;
+  margin-right: 12px;
   height: 42px;
   font-size: 16px;
   display: flex;
@@ -117,4 +118,18 @@ button:hover, #link-button:hover {
 
 .splash-button:hover {
   background-color: #3367d6;
+}
+
+.realmar-tooltip {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  pointer-events: none;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }

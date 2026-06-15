@@ -29,3 +29,7 @@ public/kio-assets/*
 public/*.svg
 public/*.ico
 public/*.woff2
+
+# Agent Directories
+.tmp/
+.env
